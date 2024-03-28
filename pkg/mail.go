@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// https://github.com/mstgnz/gomail
 type Mail struct {
 	From        string
 	Name        string
