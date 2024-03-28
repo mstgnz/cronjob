@@ -8,7 +8,9 @@ import (
 	"github.com/mstgnz/cronjob/config"
 )
 
-func HomeHandler(w http.ResponseWriter, _ *http.Request) {
+type Home struct{}
+
+func (h *Home) HomeHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := config.Render(w, "home", map[string]any{"products": map[string]any{"test": template.HTML("<strong>test</strong>")}}, "navlink", "subscribe", "recommend", "scroll"); err != nil {
 		log.Println(err)
 	}
