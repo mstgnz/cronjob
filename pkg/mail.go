@@ -1,4 +1,4 @@
-package config
+package pkg
 
 import (
 	"crypto/tls"
@@ -13,101 +13,101 @@ import (
 )
 
 type Mail struct {
-	from        string
-	name        string
-	host        string
-	port        string
-	user        string
-	pass        string
-	subject     string
-	content     string
-	to          []string
-	cc          []string
-	bcc         []string
-	attachments map[string][]byte
+	From        string
+	Name        string
+	Host        string
+	Port        string
+	User        string
+	Pass        string
+	Subject     string
+	Content     string
+	To          []string
+	Cc          []string
+	Bcc         []string
+	Attachments map[string][]byte
 }
 
 // SetFrom sets the sender's email address
 func (m *Mail) SetFrom(from string) *Mail {
-	m.from = from
+	m.From = from
 	return m
 }
 
 // SetName sets the sender's name
 func (m *Mail) SetName(name string) *Mail {
-	m.name = name
+	m.Name = name
 	return m
 }
 
 // SetHost sets the SMTP server host
 func (m *Mail) SetHost(host string) *Mail {
-	m.host = host
+	m.Host = host
 	return m
 }
 
 // SetPort sets the SMTP server port
 func (m *Mail) SetPort(port string) *Mail {
-	m.port = port
+	m.Port = port
 	return m
 }
 
 // SetUser sets the SMTP server username
 func (m *Mail) SetUser(user string) *Mail {
-	m.user = user
+	m.User = user
 	return m
 }
 
 // SetPass sets the SMTP server password
 func (m *Mail) SetPass(pass string) *Mail {
-	m.pass = pass
+	m.Pass = pass
 	return m
 }
 
 // SetSubject sets the email subject
 func (m *Mail) SetSubject(subject string) *Mail {
-	m.subject = subject
+	m.Subject = subject
 	return m
 }
 
 // SetContent sets the email content
 func (m *Mail) SetContent(content string) *Mail {
-	m.content = content
+	m.Content = content
 	return m
 }
 
 // SetTo sets the email recipients
 func (m *Mail) SetTo(to ...string) *Mail {
-	m.to = to
+	m.To = to
 	return m
 }
 
 // SetCc sets the email CC recipients
 func (m *Mail) SetCc(cc ...string) *Mail {
-	m.cc = cc
+	m.Cc = cc
 	return m
 }
 
 // SetBcc sets the email BCC recipients
 func (m *Mail) SetBcc(bcc ...string) *Mail {
-	m.bcc = bcc
+	m.Bcc = bcc
 	return m
 }
 
 // SetAttachment sets the email attachments
 func (m *Mail) SetAttachment(attachments map[string][]byte) *Mail {
-	m.attachments = attachments
+	m.Attachments = attachments
 	return m
 }
 
 // SendText sends the email with plain text content
 func (m *Mail) SendText() error {
-	m.subject = "text/plain: " + m.subject
+	m.Subject = "text/plain: " + m.Subject
 	return m.send()
 }
 
 // SendHTML sends the email with HTML content
 func (m *Mail) SendHTML() error {
-	m.subject = "text/html: " + m.subject
+	m.Subject = "text/html: " + m.Subject
 	return m.send()
 }
 
@@ -116,23 +116,23 @@ func (m *Mail) send() error {
 	if !m.validate() {
 		return errors.New("missing parameter")
 	}
-	addr := fmt.Sprintf("%s:%s", m.host, m.port)
+	addr := fmt.Sprintf("%s:%s", m.Host, m.Port)
 
 	// Create content
 	var message strings.Builder
-	message.WriteString(fmt.Sprintf("From: %s <%s>\n", m.name, m.from))
-	message.WriteString(fmt.Sprintf("To: %s\n", strings.Join(m.to, ", ")))
-	message.WriteString(fmt.Sprintf("Cc: %s\n", strings.Join(m.cc, ", ")))
-	message.WriteString(fmt.Sprintf("Bcc: %s\n", strings.Join(m.bcc, ", ")))
-	message.WriteString(fmt.Sprintf("Subject: %s\n", m.subject))
+	message.WriteString(fmt.Sprintf("From: %s <%s>\n", m.Name, m.From))
+	message.WriteString(fmt.Sprintf("To: %s\n", strings.Join(m.To, ", ")))
+	message.WriteString(fmt.Sprintf("Cc: %s\n", strings.Join(m.Cc, ", ")))
+	message.WriteString(fmt.Sprintf("Bcc: %s\n", strings.Join(m.Bcc, ", ")))
+	message.WriteString(fmt.Sprintf("Subject: %s\n", m.Subject))
 	message.WriteString("MIME-Version: 1.0\n")
 	message.WriteString("Content-Type: multipart/mixed; boundary=BOUNDARY\n\n")
 
 	// Add email content
-	message.WriteString(fmt.Sprintf("--BOUNDARY\nContent-Type: text/plain\n\n%s\n\n", m.content))
+	message.WriteString(fmt.Sprintf("--BOUNDARY\nContent-Type: text/plain\n\n%s\n\n", m.Content))
 
 	// Add attachments
-	for filename, data := range m.attachments {
+	for filename, data := range m.Attachments {
 		message.WriteString(fmt.Sprintf("--BOUNDARY\nContent-Disposition: attachment; filename=\"%s\"\n", filename))
 		message.WriteString("Content-Type: application/octet-stream\n\n")
 		message.Write(data)
@@ -143,7 +143,7 @@ func (m *Mail) send() error {
 	// TLS configuration for connecting to SMTP server
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
-		ServerName:         m.host,
+		ServerName:         m.Host,
 	}
 
 	// Connection timeout setting
@@ -159,25 +159,25 @@ func (m *Mail) send() error {
 	}
 	defer conn.Close()
 
-	client, err := smtp.NewClient(conn, m.host)
+	client, err := smtp.NewClient(conn, m.Host)
 	if err != nil {
 		return err
 	}
 	defer client.Quit()
 
 	// Authentication information
-	auth := smtp.PlainAuth("", m.user, m.pass, m.host)
+	auth := smtp.PlainAuth("", m.User, m.Pass, m.Host)
 
 	if err := client.Auth(auth); err != nil {
 		return err
 	}
 
 	// Email sending process
-	if err := client.Mail(m.from); err != nil {
+	if err := client.Mail(m.From); err != nil {
 		return err
 	}
 
-	allRecipients := append(append(m.to, m.cc...), m.bcc...)
+	allRecipients := append(append(m.To, m.Cc...), m.Bcc...)
 	for _, recipient := range allRecipients {
 		if err := client.Rcpt(recipient); err != nil {
 			return err
@@ -201,22 +201,22 @@ func (m *Mail) send() error {
 }
 
 func (m *Mail) validate() bool {
-	if m.from == "" || m.name == "" || m.host == "" || m.port == "" || m.user == "" || m.pass == "" || m.subject == "" || m.content == "" || len(m.to) == 0 {
+	if m.From == "" || m.Name == "" || m.Host == "" || m.Port == "" || m.User == "" || m.Pass == "" || m.Subject == "" || m.Content == "" || len(m.To) == 0 {
 		return false
 	}
-	for _, email := range m.to {
+	for _, email := range m.To {
 		if !m.isEmailValid(email) {
 			log.Printf("This email %s is not correct.\n", email)
 			return false
 		}
 	}
-	for _, email := range m.cc {
+	for _, email := range m.Cc {
 		if !m.isEmailValid(email) {
 			log.Printf("This email %s is not correct.\n", email)
 			return false
 		}
 	}
-	for _, email := range m.bcc {
+	for _, email := range m.Bcc {
 		if !m.isEmailValid(email) {
 			log.Printf("This email %s is not correct.\n", email)
 			return false
