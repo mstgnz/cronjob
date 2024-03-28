@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", (event) => {
     // init tinymce
-    tinymce.init({
+    /* tinymce.init({
         selector: '#tinymce',
         plugins: 'autolink lists link image charmap preview anchor pagebreak',
         toolbar_mode: 'floating',
-    })
+    }) */
     // init tippy
     tippy(".avatar")
 })
@@ -23,19 +23,19 @@ var header = document.getElementById("header");
 document.addEventListener("scroll", function () {
     /*Refresh scroll % width*/
     scroll = ((h[st] || b[st]) / ((h[sh] || b[sh]) - h.clientHeight)) * 100;
-    progress.style.setProperty("--scroll", scroll + "%");
+    progress?.style.setProperty("--scroll", scroll + "%");
 
     /*Apply classes for slide in bar*/
     scrollpos = window.scrollY;
 
     if (scrollpos > 100) {
-        header.classList.remove("hidden");
-        header.classList.remove("fadeOutUp");
-        header.classList.add("slideInDown");
+        header?.classList.remove("hidden");
+        header?.classList.remove("fadeOutUp");
+        header?.classList.add("slideInDown");
     } else {
-        header.classList.remove("slideInDown");
-        header.classList.add("fadeOutUp");
-        header.classList.add("hidden");
+        header?.classList.remove("slideInDown");
+        header?.classList.add("fadeOutUp");
+        header?.classList.add("hidden");
     }
 })
 

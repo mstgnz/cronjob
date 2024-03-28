@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
@@ -11,7 +10,7 @@ import (
 type Timing struct{}
 
 func (s *Timing) ScheduleHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := config.Render(w, "schedule", map[string]any{"products": map[string]any{"test": template.HTML("<strong>test</strong>")}}, "navlink", "subscribe", "recommend", "scroll"); err != nil {
+	if err := config.Render(w, "schedule", map[string]any{}); err != nil {
 		log.Println(err)
 	}
 }

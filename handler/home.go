@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
@@ -11,20 +10,20 @@ import (
 type Home struct{}
 
 func (h *Home) HomeHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := config.Render(w, "home", map[string]any{"products": map[string]any{"test": template.HTML("<strong>test</strong>")}}, "navlink", "subscribe", "recommend", "scroll"); err != nil {
+	if err := config.Render(w, "home", map[string]any{}); err != nil {
 		log.Println(err)
 	}
 }
 
 func PostHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := config.Render(w, "post", map[string]any{"products": map[string]any{"test": template.HTML("<strong>test</strong>")}}, "navlink", "subscribe", "recommend", "scroll", "slidenav"); err != nil {
+	if err := config.Render(w, "post", map[string]any{}); err != nil {
 		log.Println(err)
 	}
 }
 
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		if err := config.Render(w, "create", nil, "navlink", "recommend", "scroll", "slidenav"); err != nil {
+		if err := config.Render(w, "create", map[string]any{}); err != nil {
 			log.Println(err)
 		}
 	} else {

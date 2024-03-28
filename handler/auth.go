@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
@@ -11,7 +10,7 @@ import (
 type Auth struct{}
 
 func (a *Auth) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if err := config.Render(w, "login", map[string]any{"products": map[string]any{"test": template.HTML("<strong>test</strong>")}}, "navlink", "subscribe", "recommend", "scroll"); err != nil {
+	if err := config.Render(w, "login", map[string]any{"isLogin": false}); err != nil {
 		log.Println(err)
 	}
 	/* if r.Method == http.MethodPost{
@@ -54,19 +53,19 @@ func (a *Auth) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Auth) RegisterHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := config.Render(w, "register", map[string]any{"products": map[string]any{"test": template.HTML("<strong>test</strong>")}}, "navlink", "subscribe", "recommend", "scroll"); err != nil {
+	if err := config.Render(w, "register", map[string]any{}); err != nil {
 		log.Println(err)
 	}
 }
 
 func (a *Auth) UpdateHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := config.Render(w, "profile", map[string]any{"products": map[string]any{"test": template.HTML("<strong>test</strong>")}}, "navlink", "subscribe", "recommend", "scroll"); err != nil {
+	if err := config.Render(w, "profile", map[string]any{}); err != nil {
 		log.Println(err)
 	}
 }
 
 func (a *Auth) DeleteHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := config.Render(w, "profile", map[string]any{"products": map[string]any{"test": template.HTML("<strong>test</strong>")}}, "navlink", "subscribe", "recommend", "scroll"); err != nil {
+	if err := config.Render(w, "profile", map[string]any{}); err != nil {
 		log.Println(err)
 	}
 }
