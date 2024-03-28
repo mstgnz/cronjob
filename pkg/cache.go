@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// https://github.com/mstgnz/ggcache
 // Cacher is an interface used for performing caching operations.
 // Applications can implement this interface to integrate different caching managers.
 type Cacher interface {
