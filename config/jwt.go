@@ -1,22 +1,15 @@
 package config
 
 import (
+	"crypto/rand"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// GetSecretKey get key
-func GetSecretKey() string {
-	secretKey := os.Getenv("JWT_SECRET")
-	if secretKey != "" {
-		secretKey = "my_secret"
-	}
-	return secretKey
-}
+var letterRunes = []rune("0987654321abcçdefgğhıijklmnoöpqrsştuüvwxyzABCÇDEFGĞHIİJKLMNOÖPQRSTUÜVWXYZ-_!?+&%=*")
 
 // GenerateToken token generate
 func GenerateToken(userId uint) (string, error) {
@@ -26,7 +19,7 @@ func GenerateToken(userId uint) (string, error) {
 		Issuer:    strconv.Itoa(int(userId)),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte(GetSecretKey()))
+	t, err := token.SignedString([]byte(App().SecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -39,16 +32,26 @@ func ValidateToken(token string) (*jwt.Token, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t.Header["alg"])
 		}
-		return []byte(GetSecretKey()), nil
+		return []byte(App().SecretKey), nil
 	})
 }
 
-func GetUserIDByToken(token string) (uint, error) {
-	aToken, err := ValidateToken(token)
+func GetUserIDByToken(token string) (string, error) {
+	valid, err := ValidateToken(token)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	claims := aToken.Claims.(jwt.MapClaims)
-	id, _ := strconv.ParseUint(fmt.Sprintf("%v", claims["iss"]), 10, 32)
-	return uint(id), nil
+	claims := valid.Claims.(jwt.MapClaims)
+	id := fmt.Sprintf("%v", claims["iss"])
+	return id, nil
+}
+
+func RandomString(length int) string {
+	s, r := make([]rune, length), []rune(letterRunes)
+	for i := range s {
+		p, _ := rand.Prime(rand.Reader, len(r))
+		x, y := p.Uint64(), uint64(len(r))
+		s[i] = r[x%y]
+	}
+	return string(s)
 }
