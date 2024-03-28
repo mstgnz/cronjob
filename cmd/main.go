@@ -49,7 +49,7 @@ var (
 
 func main() {
 
-	//err := config.App().Mail.SetSubject("tars cron").SetContent("mail geldi mi?").SetTo("mesutgenez@hotmail.com").SetAttachment(map[string][]byte{"query.sql": []byte("1. dosya içeriği"), "query2.sql": []byte("2. dosya içeriği")}).SendText()
+	//err := config.App().Mail.SetSubject("cron").SetContent("mail geldi mi?").SetTo("mesutgenez@hotmail.com").SetAttachment(map[string][]byte{"query.sql": []byte("1. dosya içeriği"), "query2.sql": []byte("2. dosya içeriği")}).SendText()
 
 	// Scheduler Call
 	c := cron.New()
@@ -104,12 +104,12 @@ func main() {
 		}
 	}()
 
-	config.App().InfoLog.Printf("Tars Cron is running on %s", PORT)
+	config.App().InfoLog.Printf("Cron is running on %s", PORT)
 
 	// Block until a signal is received
 	<-ctx.Done()
 
-	config.App().InfoLog.Printf("Tars Cron is shutting on %s", PORT)
+	config.App().InfoLog.Printf("Cron is shutting on %s", PORT)
 
 	// set Shutting
 	config.App().Shutting = true
