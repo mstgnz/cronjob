@@ -1,7 +1,7 @@
 include .env
 
 # Makefile for building and running the Docker image and container
-.PHONY: run live build stop cleanI cleanC exec
+.PHONY: run live build stop cleanI cleanC exec test
 .DEFAULT_GOAL:= run
 
 # Build the Docker image and run the container
@@ -39,3 +39,6 @@ cleanC:
 	else \
 		echo "No such container: $(PROJECT_NAME)"; \
 	fi
+
+test: 
+	go test -v ./...
