@@ -25,7 +25,7 @@ func Render(w http.ResponseWriter, page string, data map[string]any, partials ..
 	}
 
 	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		http.Error(w, "Page not found", http.StatusNotFound)
 		return err
 	}
 
