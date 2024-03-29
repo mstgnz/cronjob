@@ -44,6 +44,7 @@ func init() {
 var (
 	authHandler     handler.Auth
 	homeHandler     handler.Home
+	adminHandler    handler.Admin
 	scheduleHandler handler.Timing
 )
 
@@ -87,8 +88,18 @@ func main() {
 		r.Use(authMiddleware)
 		r.Get("/", homeHandler.HomeHandler)
 		r.Route("/schedule", func(r chi.Router) {
-			r.Get("/", scheduleHandler.ScheduleHandler)
-			r.Post("/", scheduleHandler.ScheduleHandler)
+			r.Route("/create", func(r chi.Router) {
+				r.Get("/", authHandler.RegisterHandler)
+				r.Post("/", authHandler.RegisterHandler)
+			})
+			r.Route("/mail", func(r chi.Router) {
+				r.Get("/", authHandler.RegisterHandler)
+				r.Post("/", authHandler.RegisterHandler)
+			})
+		})
+		r.Route("/admin", func(r chi.Router) {
+			r.Get("/", adminHandler.HomeHandler)
+			r.Get("/schedules", adminHandler.ScheduleHandler)
 		})
 	})
 
