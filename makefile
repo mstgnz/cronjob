@@ -17,6 +17,7 @@ build:
 	docker build -t $(PROJECT_NAME) .
 
 # Stop and remove the Docker container
+# --time=600 for waiting running job
 stop:
 	docker stop --time=600 $(PROJECT_NAME)
 	docker rm $(PROJECT_NAME)
