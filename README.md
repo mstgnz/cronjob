@@ -4,4 +4,10 @@ Defining cronjob tasks in the crontab on a server and tracking and managing thes
 
 The time taken by triggered tasks, their responses, are logged, and notifications can be optionally sent to the email addresses you specify.
 
-This project is user-centric. Each user has their own projects, and therefore, the base URL definition is determined based on user information. When a user wants to add a scheduled task, they only need to enter the path after the domain part of the URL. The system combines this with the base URL to send requests to the resulting URL.
+
+## atention
+This application utilizes a database locking mechanism to prevent duplicate cronjob tasks when running multiple instances in a Kubernetes (k8s) environment.
+
+The instance that first adds a record to the schedule_logs table will be the one triggering the cronjob task. Subsequent instances won't be able to create a new record due to an existing one, resulting in an error and preventing them from executing the task. The microsecond differences between instances will automatically facilitate the locking mechanism.
+
+Nevertheless, it is strongly advised for users of this project to establish an additional control mechanism on their own systems.
