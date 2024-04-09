@@ -1,17 +1,20 @@
--- USER_EXISTS
+-- USER_EXISTS_WITH_EMAIL
 SELECT count(*) FROM users WHERE email=$1;
 
--- USER_GET
+-- USER_GET_WITH_ID
+SELECT * FROM users WHERE id=$1;
+
+-- USER_GET_WITH_EMAIL
 SELECT * FROM users WHERE email=$1;
 
 -- USER_GET_WITH_SCHEDULE
 SELECT u.id, u.fullname, s.* FROM users as u JOIN schedules as s ON s.user_id=u.id WHERE email=$1;
 
 -- USER_UPDATE
-UPDATE users SET fullname=$1, url=$2, updated_at=$3 WHERE id=$4;
+UPDATE users SET fullname=$1 updated_at=$2 WHERE id=$3;
 
 -- USER_INSERT
-INSERT INTO users (fullname,email,password,url,is_admin) VALUES ($1,$2,$3,$4,$5);
+INSERT INTO users (fullname,email,password,is_admin) VALUES ($1,$2,$3,$4);
 
 -- USER_DELETE
 UPDATE users SET deleted_at=$1 WHERE id=$2;
