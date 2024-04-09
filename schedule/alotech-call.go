@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"log"
 	"time"
 
 	"github.com/mstgnz/cronjob/config"
@@ -11,7 +12,7 @@ func AlotechCall() {
 	defer func() {
 		config.DecrementRunning()
 	}()
-	config.App().InfoLog.Println("running AlotechCall")
+	log.Println("running AlotechCall")
 	time.Sleep(time.Second * 70)
-	config.App().InfoLog.Println("finish AlotechCall")
+	log.Println("finish AlotechCall")
 }
