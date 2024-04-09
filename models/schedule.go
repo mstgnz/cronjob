@@ -4,12 +4,12 @@ import "time"
 
 type Schedule struct {
 	ID        int       `json:"id"`
-	Fullname  string    `json:"fullname"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
+	UserId    int       `json:"user_id"`
+	Timing    string    `json:"timing"`
+	Active    bool      `json:"active"`
+	Running   bool      `json:"running"`
+	SendMail  bool      `json:"send_mail"`
 	Url       string    `json:"url"`
-	IsAdmin   bool      `json:"is_admin"`
-	LastLogin time.Time `json:"last_login"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	DeletedAt time.Time `json:"deleted_at,omitempty"`
@@ -21,6 +21,10 @@ func (s *Schedule) GetSchedules(offset, limit int) []*Schedule {
 }
 
 func (s *Schedule) GetScheduleWithUserId(userId int) *Schedule {
+	return s
+}
+
+func (s *Schedule) CreateSchedule(id, user_id int, timing, path string, active, running, send_mail bool) *Schedule {
 	return s
 }
 
