@@ -12,11 +12,11 @@ import (
 var letterRunes = []rune("0987654321abcçdefgğhıijklmnoöpqrsştuüvwxyzABCÇDEFGĞHIİJKLMNOÖPQRSTUÜVWXYZ-_!?+&%=*")
 
 // GenerateToken token generate
-func GenerateToken(userId uint) (string, error) {
+func GenerateToken(userId int) (string, error) {
 	claims := jwt.RegisteredClaims{
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 		ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 0, 1)),
-		Issuer:    strconv.Itoa(int(userId)),
+		Issuer:    strconv.Itoa(userId),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(App().SecretKey))

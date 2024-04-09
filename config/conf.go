@@ -17,28 +17,20 @@ var (
 
 type config struct {
 	DB        *DB
-	Json      *Json
-	Response  *Response
 	Mail      *pkg.Mail
 	Cache     *pkg.Cache
 	SecretKey string
 	QUERY     map[string]string
 	Running   int
 	Shutting  bool
-	InfoLog   *log.Logger
-	ErrorLog  *log.Logger
 }
 
 func App() *config {
 	once.Do(func() {
 		instance = &config{
 			DB:        &DB{},
-			Json:      &Json{},
-			Response:  &Response{},
 			Cache:     pkg.NewCache(),
 			SecretKey: RandomString(8),
-			InfoLog:   log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
-			ErrorLog:  log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile),
 			Mail: &pkg.Mail{
 				From: os.Getenv("MAIL_FROM"),
 				Name: os.Getenv("MAIL_FROM_NAME"),
@@ -50,8 +42,6 @@ func App() *config {
 		}
 		instance.DB.ConnectDatabase()
 	})
-	//go Logger("info", instance.InfoLog)
-	//go Logger("error", instance.ErrorLog)
 	return instance
 }
 

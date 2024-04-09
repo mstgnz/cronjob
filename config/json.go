@@ -7,9 +7,7 @@ import (
 	"net/http"
 )
 
-type Json struct{}
-
-func (j *Json) ReadJSON(w http.ResponseWriter, r *http.Request, data any) error {
+func ReadJSON(w http.ResponseWriter, r *http.Request, data any) error {
 	maxBytes := 1048576 // one megabyte
 
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -27,7 +25,7 @@ func (j *Json) ReadJSON(w http.ResponseWriter, r *http.Request, data any) error 
 	return nil
 }
 
-func (j *Json) WriteJSON(w http.ResponseWriter, httpStatus int, data Response, headers ...http.Header) error {
+func WriteJSON(w http.ResponseWriter, httpStatus int, data Response, headers ...http.Header) error {
 	out, err := json.Marshal(data)
 	if err != nil {
 		return err
