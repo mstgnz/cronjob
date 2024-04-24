@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -49,6 +50,16 @@ var (
 	apiHandler handler.Api
 )
 
+type HttpHandler func(w http.ResponseWriter, r *http.Request) error
+
+func Catch(h HttpHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := h(w, r); err != nil {
+			slog.Info("HTTP handler error", "err", err, "path", r.URL.Path)
+		}
+	}
+}
+
 func main() {
 
 	// test mail with attach
@@ -72,31 +83,31 @@ func main() {
 	fileServer(r, "/assets", http.Dir(filepath.Join(workDir, "assets")))
 
 	// without auth
-	r.Get("/login", webHandler.LoginHandler)
-	r.Post("/login", webHandler.LoginHandler)
-	r.Get("/register", webHandler.RegisterHandler)
-	r.Post("/register", webHandler.RegisterHandler)
-	r.With(headerMiddleware).Post("/api/login", apiHandler.LoginHandler)
-	r.With(headerMiddleware).Post("/api/register", apiHandler.RegisterHandler)
+	r.Get("/login", Catch(webHandler.LoginHandler))
+	r.Post("/login", Catch(webHandler.LoginHandler))
+	r.Get("/register", Catch(webHandler.RegisterHandler))
+	r.Post("/register", Catch(webHandler.RegisterHandler))
+	r.With(headerMiddleware).Post("/api/login", Catch(apiHandler.LoginHandler))
+	r.With(headerMiddleware).Post("/api/register", Catch(apiHandler.RegisterHandler))
 	// with auth
 	r.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
-		r.Get("/", webHandler.HomeHandler)
-		r.Get("/profile", webHandler.ProfileHandler)
-		r.Get("/schedules", webHandler.ListHandler)
+		r.Get("/", Catch(webHandler.HomeHandler))
+		r.Get("/profile", Catch(webHandler.ProfileHandler))
+		r.Get("/schedules", Catch(webHandler.ListHandler))
 		// api
 		r.Route("/api", func(r chi.Router) {
 			r.Use(headerMiddleware)
-			r.Get("/user", apiHandler.UserHandler)
-			r.Put("/user", apiHandler.UserUpdateHandler)
-			r.Get("/schedules", apiHandler.ScheduleListHandler)
-			r.Post("/schedule", apiHandler.ScheduleCreateHandler)
-			r.Put("/schedule", apiHandler.ScheduleUpdateHandler)
-			r.Delete("/schedule/{id}", apiHandler.ScheduleDeleteHandler)
-			r.Get("/schedule/mail/{schedule_id}", apiHandler.ScheduleMailListHandler)
-			r.Post("/schedule/mail", apiHandler.ScheduleMailCreateHandler)
-			r.Put("/schedule/mail", apiHandler.ScheduleMailUpdateHandler)
-			r.Delete("/schedule/mail/{id}", apiHandler.ScheduleMailDeleteHandler)
+			r.Get("/user", Catch(apiHandler.UserHandler))
+			r.Put("/user", Catch(apiHandler.UserUpdateHandler))
+			r.Get("/schedules", Catch(apiHandler.ScheduleListHandler))
+			r.Post("/schedule", Catch(apiHandler.ScheduleCreateHandler))
+			r.Put("/schedule", Catch(apiHandler.ScheduleUpdateHandler))
+			r.Delete("/schedule/{id}", Catch(apiHandler.ScheduleDeleteHandler))
+			r.Get("/schedule/mail/{schedule_id}", Catch(apiHandler.ScheduleMailListHandler))
+			r.Post("/schedule/mail", Catch(apiHandler.ScheduleMailCreateHandler))
+			r.Put("/schedule/mail", Catch(apiHandler.ScheduleMailUpdateHandler))
+			r.Delete("/schedule/mail/{id}", Catch(apiHandler.ScheduleMailDeleteHandler))
 		})
 	})
 
