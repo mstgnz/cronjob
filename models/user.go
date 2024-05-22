@@ -112,11 +112,21 @@ func (u *User) GetUserWithMail(email string) *User {
 	return u
 }
 
-func (u *User) UpdateUser(fullname, email string) *User {
+func (u *User) UpdateFullnameAndEmail(fullname, email string) *User {
 	return u
 }
 
-func (u *User) UpdateUserPassword(password string) *User {
+func (u *User) UpdatePassword(password string) *User {
+	return u
+}
+
+func (u *User) UpdateLastLogin() *User {
+	currentTime := time.Now()
+	formattedTime := currentTime.Format("2006-01-02 15:04:05")
+	rows, _ := config.App().DB.Query(config.App().QUERY["USER_LAST_LOGIN"], formattedTime, u.ID)
+	defer func() {
+		_ = rows.Close()
+	}()
 	return u
 }
 

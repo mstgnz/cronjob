@@ -36,6 +36,9 @@ func (a *Api) LoginService(w http.ResponseWriter, r *http.Request) (int, config.
 		return http.StatusUnauthorized, config.Response{Status: false, Message: "Failed to process request"}
 	}
 
+	// update last_login
+	user.UpdateLastLogin()
+
 	return http.StatusOK, config.Response{Status: true, Message: "Login successful", Data: token}
 }
 

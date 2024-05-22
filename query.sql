@@ -19,6 +19,9 @@ INSERT INTO users (fullname,email,password,is_admin) VALUES ($1,$2,$3,$4);
 -- USER_DELETE
 UPDATE users SET deleted_at=$1 WHERE id=$2;
 
+-- USER_LAST_LOGIN
+UPDATE users SET last_login=$1 WHERE id=$2;
+
 -- SCHEDULES
 SELECT * FROM schedules OFFSET $1 LIMIT $2;
 
