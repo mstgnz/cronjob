@@ -9,8 +9,8 @@ run: cleanC build
 	docker run -d --name $(PROJECT_NAME) -p $(PORT):$(PORT) --env-file .env $(PROJECT_NAME)
 
 live:
-	find . -type f \( -name '*.go' -o -name '*.gohtml' \) | entr -r sh -c 'make && docker logs --follow $(PROJECT_NAME)'
-#	find . -type f \( -name '*.go' -o -name '*.gohtml' \) | entr -r sh -c 'go build -o /tmp/build ./cmd && /tmp/build'
+#	find . -type f \( -name '*.go' -o -name '*.gohtml' \) | entr -r sh -c 'make && docker logs --follow $(PROJECT_NAME)'
+	find . -type f \( -name '*.go' -o -name '*.gohtml' \) | entr -r sh -c 'go build -o /tmp/build ./cmd && /tmp/build'
 
 # Build the Docker image
 build:
