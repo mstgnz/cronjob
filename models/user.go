@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"log"
 	"time"
 
@@ -48,11 +47,11 @@ func (u *User) CreateUser(register *UserRegister) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func(rows *sql.Rows) {
+	defer func() {
 		_ = rows.Close()
-	}(rows)
+	}()
 	for rows.Next() {
-		if err := rows.Scan(&u); err != nil {
+		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.Password, &u.IsAdmin, &u.LastLogin, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt); err != nil {
 			return nil, err
 		}
 	}
@@ -66,9 +65,9 @@ func (u *User) Exists(email string) bool {
 		log.Println("User Exists: ", err)
 		return exists > 0
 	}
-	defer func(rows *sql.Rows) {
+	defer func() {
 		_ = rows.Close()
-	}(rows)
+	}()
 	for rows.Next() {
 		if err := rows.Scan(&exists); err != nil {
 			log.Println("User Exists Scan: ", err)
@@ -83,9 +82,13 @@ func (u *User) GetUserWithId(id int) *User {
 		log.Println("GetUserWithId: ", err)
 		return nil
 	}
+	defer func() {
+		_ = rows.Close()
+	}()
 	for rows.Next() {
-		if err := rows.Scan(&u); err != nil {
-			log.Println("User Exists Scan: ", err)
+		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
+			log.Println("User Scan: ", err)
+			return nil
 		}
 	}
 	return u
@@ -94,12 +97,16 @@ func (u *User) GetUserWithId(id int) *User {
 func (u *User) GetUserWithMail(email string) *User {
 	rows, err := config.App().DB.Query(config.App().QUERY["USER_GET_WITH_EMAIL"], email)
 	if err != nil {
-		log.Println("GetUserWithId: ", err)
+		log.Println("GetUserWithMail: ", err)
 		return nil
 	}
+	defer func() {
+		_ = rows.Close()
+	}()
 	for rows.Next() {
-		if err := rows.Scan(&u); err != nil {
-			log.Println("User Exists Scan: ", err)
+		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
+			log.Println("User Scan: ", err)
+			return nil
 		}
 	}
 	return u

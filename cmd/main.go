@@ -82,20 +82,32 @@ func main() {
 	workDir, _ := os.Getwd()
 	fileServer(r, "/assets", http.Dir(filepath.Join(workDir, "assets")))
 
-	// without auth
+	// swagger
+	r.Get("/swagger", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./template/swagger.html")
+	})
+
+	// web without auth
 	r.Get("/login", Catch(webHandler.LoginHandler))
 	r.Post("/login", Catch(webHandler.LoginHandler))
 	r.Get("/register", Catch(webHandler.RegisterHandler))
 	r.Post("/register", Catch(webHandler.RegisterHandler))
-	r.With(headerMiddleware).Post("/api/login", Catch(apiHandler.LoginHandler))
-	r.With(headerMiddleware).Post("/api/register", Catch(apiHandler.RegisterHandler))
-	// with auth
+
+	// web with auth
 	r.Group(func(r chi.Router) {
-		r.Use(authMiddleware)
+		r.Use(webAuthMiddleware)
 		r.Get("/", Catch(webHandler.HomeHandler))
 		r.Get("/profile", Catch(webHandler.ProfileHandler))
 		r.Get("/schedules", Catch(webHandler.ListHandler))
-		// api
+	})
+
+	// api without auth
+	r.With(headerMiddleware).Post("/api/login", Catch(apiHandler.LoginHandler))
+	r.With(headerMiddleware).Post("/api/register", Catch(apiHandler.RegisterHandler))
+
+	// api with auth
+	r.Group(func(r chi.Router) {
+		r.Use(apiAuthMiddleware)
 		r.Route("/api", func(r chi.Router) {
 			r.Use(headerMiddleware)
 			r.Get("/user", Catch(apiHandler.UserHandler))
@@ -169,7 +181,7 @@ func fileServer(r chi.Router, path string, root http.FileSystem) {
 	})
 }
 
-func authMiddleware(next http.Handler) http.Handler {
+func webAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
@@ -193,7 +205,37 @@ func authMiddleware(next http.Handler) http.Handler {
 		getUser := user.GetUserWithId(user_id)
 		type myKey string
 
-		ctx := context.WithValue(r.Context(), myKey(userId), getUser)
+		ctx := context.WithValue(r.Context(), myKey("user"), getUser)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func apiAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.Header.Get("Authorization")
+		if tokenString == "" {
+			_ = config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Token"})
+			return
+		}
+		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+
+		userId, err := config.GetUserIDByToken(tokenString)
+		if err != nil {
+			_ = config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+			return
+		}
+
+		user_id, err := strconv.Atoi(userId)
+		if err != nil {
+			_ = config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+			return
+		}
+
+		user := &models.User{}
+		getUser := user.GetUserWithId(user_id)
+		type myKey string
+
+		ctx := context.WithValue(r.Context(), myKey("user"), getUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

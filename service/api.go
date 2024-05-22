@@ -13,7 +13,7 @@ func (a *Api) LoginService(w http.ResponseWriter, r *http.Request) (int, config.
 
 	login := &models.UserLogin{}
 	if err := config.ReadJSON(w, r, login); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Credentials"}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Content"}
 	}
 
 	err := config.Validate(login)
@@ -70,7 +70,7 @@ func (a *Api) RegisterService(w http.ResponseWriter, r *http.Request) (int, conf
 }
 
 func (a *Api) UserService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
-	return http.StatusOK, config.Response{Status: true, Message: "Success"}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: r.Context().Value("user")}
 }
 
 func (a *Api) UserUpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
