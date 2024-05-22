@@ -2,10 +2,10 @@
 SELECT count(*) FROM users WHERE email=$1;
 
 -- USER_GET_WITH_ID
-SELECT * FROM users WHERE id=$1;
+SELECT id, fullname, email, is_admin, password FROM users WHERE id=$1;
 
 -- USER_GET_WITH_EMAIL
-SELECT * FROM users WHERE email=$1;
+SELECT id, fullname, email, is_admin, password FROM users WHERE email=$1;
 
 -- USER_GET_WITH_SCHEDULE
 SELECT u.id, u.fullname, s.* FROM users as u JOIN schedules as s ON s.user_id=u.id WHERE email=$1;
