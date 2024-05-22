@@ -1,0 +1,255 @@
+openapi: 3.1.0
+info:
+  title: "Cronjob API Documentation"
+  description: "Defining cronjob tasks in the crontab on a server and tracking and managing these tasks can be challenging. In this project, you can input cronjob definitions for all your projects and the corresponding URL information. This allows requests to be sent to the specified URLs on your behalf at the designated times."
+  version: "1.0.0"
+components:
+  securitySchemes:
+    BearerAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+paths:
+  /{bucket}/w:{width}/h:{height}/{object}:
+    get:
+      summary: "Get Image With Width And Height"
+      operationId: "GetImageWithWidthAndHeight"
+      tags:
+        - "File"
+      parameters:
+        - name: "bucket"
+          in: "path"
+          description: "Bucket Name"
+          schema:
+            type: string
+          required: true
+        - name: "width"
+          in: "path"
+          description: "Width"
+          schema:
+            type: integer
+          required: true
+        - name: "height"
+          in: "path"
+          description: "Height"
+          schema:
+            type: integer
+          required: true
+        - name: "object"
+          in: "path"
+          description: "Object Name"
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "File Found"
+        404:
+          description: "File Not Found"
+  /{bucket}/w:{width}/{object}:
+    get:
+      summary: "Get Image With Width"
+      operationId: "GetImageWithWidth"
+      tags:
+        - "File"
+      parameters:
+        - name: "bucket"
+          in: "path"
+          description: "Bucket Name"
+          schema:
+            type: string
+          required: true
+        - name: "width"
+          in: "path"
+          description: "Width"
+          schema:
+            type: integer
+          required: true
+        - name: "object"
+          in: "path"
+          description: "Object Name"
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "File Found"
+        404:
+          description: "File Not Found"
+  /{bucket}/h:{height}/{object}:
+    get:
+      summary: "Get Image With Height"
+      operationId: "GetImageWithHeight"
+      tags:
+        - "File"
+      parameters:
+        - name: "bucket"
+          in: "path"
+          description: "Bucket Name"
+          schema:
+            type: string
+          required: true
+        - name: "height"
+          in: "path"
+          description: "Height"
+          schema:
+            type: integer
+          required: true
+        - name: "object"
+          in: "path"
+          description: "Object Name"
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "File Found"
+        404:
+          description: "File Not Found"
+  /{bucket}/{object}:
+    get:
+      summary: "Get Image"
+      operationId: "GetImage"
+      tags:
+        - "File"
+      parameters:
+        - name: "bucket"
+          in: "path"
+          description: "Bucket Name"
+          schema:
+            type: string
+          required: true
+        - name: "object"
+          in: "path"
+          description: "Object Name"
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "File Found"
+        404:
+          description: "File Not Found"
+    delete:
+      summary: "Delete Image"
+      operationId: "DeleteImage"
+      tags:
+        - "File"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "bucket"
+          in: "path"
+          description: "Bucket Name"
+          schema:
+            type: string
+          required: true
+        - name: "object"
+          in: "path"
+          description: "Object Name"
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "File Successfully Deleted"
+        400:
+          description: "Invalid path or bucket or file"
+        500:
+          description: "Minio Error"
+  /resize:
+    post:
+      summary: "Resize Image Without Save"
+      operationId: "Resize"
+      tags:
+        - "Resize"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - width
+                - height
+                - file
+              properties:
+                width:
+                  type: integer
+                height:
+                  type: integer
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: "File Found"
+        404:
+          description: "File Not Found"
+  /upload:
+    post:
+      summary: "Upload File"
+      operationId: "Upload"
+      tags:
+        - "Upload"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - bucket
+                - path
+                - file
+              properties:
+                bucket:
+                  type: string
+                path:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+                width:
+                  type: integer
+                height:
+                  type: integer
+      responses:
+        201:
+          description: "Successful Created"
+        400:
+          description: "Some Error"
+  /upload-url:
+    post:
+      summary: "Upload Url"
+      operationId: "UploadImageWithUrl"
+      tags:
+        - "Upload"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - bucket
+                - path
+                - url
+                - extension
+              properties:
+                bucket:
+                  type: string
+                path:
+                  type: string
+                url:
+                  type: string
+                extension:
+                  type: string
+      responses:
+        201:
+          description: "Successful Created"
+        400:
+          description: "Some Error"
