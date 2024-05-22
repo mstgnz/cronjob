@@ -70,7 +70,7 @@ func (a *Api) RegisterService(w http.ResponseWriter, r *http.Request) (int, conf
 }
 
 func (a *Api) UserService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: r.Context().Value("user")}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: r.Context().Value(config.CKey("user"))}
 }
 
 func (a *Api) UserUpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {

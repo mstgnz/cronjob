@@ -15,6 +15,9 @@ var (
 	instance *config
 )
 
+// context key type
+type CKey string
+
 type config struct {
 	DB        *DB
 	Mail      *pkg.Mail
@@ -28,9 +31,10 @@ type config struct {
 func App() *config {
 	once.Do(func() {
 		instance = &config{
-			DB:        &DB{},
-			Cache:     pkg.NewCache(),
-			SecretKey: RandomString(8),
+			DB:    &DB{},
+			Cache: pkg.NewCache(),
+			// the secret key will change every time the application is restarted.
+			SecretKey: "asdf1234", //RandomString(8),
 			Mail: &pkg.Mail{
 				From: os.Getenv("MAIL_FROM"),
 				Name: os.Getenv("MAIL_FROM_NAME"),

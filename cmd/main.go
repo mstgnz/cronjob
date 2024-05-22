@@ -203,9 +203,8 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 		}
 		user := &models.User{}
 		getUser := user.GetUserWithId(user_id)
-		type myKey string
 
-		ctx := context.WithValue(r.Context(), myKey("user"), getUser)
+		ctx := context.WithValue(r.Context(), config.CKey("user"), getUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -233,9 +232,8 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 
 		user := &models.User{}
 		getUser := user.GetUserWithId(user_id)
-		type myKey string
 
-		ctx := context.WithValue(r.Context(), myKey("user"), getUser)
+		ctx := context.WithValue(r.Context(), config.CKey("user"), getUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
