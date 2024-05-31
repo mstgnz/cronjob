@@ -8,15 +8,15 @@ import (
 )
 
 type User struct {
-	ID        int       `json:"id"`
-	Fullname  string    `json:"fullname"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	IsAdmin   bool      `json:"is_admin"`
-	LastLogin time.Time `json:"last_login"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	ID        int        `json:"id"`
+	Fullname  string     `json:"fullname"`
+	Email     string     `json:"email"`
+	Password  string     `json:"-"`
+	IsAdmin   bool       `json:"is_admin"`
+	LastLogin *time.Time `json:"last_login,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
 type UserLogin struct {
@@ -112,7 +112,20 @@ func (u *User) GetUserWithMail(email string) *User {
 	return u
 }
 
-func (u *User) UpdateFullnameAndEmail(fullname, email string) *User {
+func (u *User) Update(query string, params []any) *User {
+	rows, err := config.App().DB.Query(query, params)
+	if err != nil {
+		return nil
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
+			log.Println("User Scan: ", err)
+			return nil
+		}
+	}
 	return u
 }
 

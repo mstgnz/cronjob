@@ -2,15 +2,11 @@ package handler
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/mstgnz/cronjob/config"
-	"github.com/mstgnz/cronjob/service"
 )
 
-type Web struct {
-	service.Api
-}
+type Web struct{}
 
 func (wb *Web) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
@@ -24,21 +20,6 @@ func (wb *Web) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 
 func (wb *Web) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 	data := map[string]any{}
-	if r.Method == http.MethodPost {
-		_, response := wb.Api.RegisterService(w, r)
-		if response.Status {
-			token, _ := response.Data.(string)
-			http.SetCookie(w, &http.Cookie{
-				Name:    "token",
-				Value:   token,
-				Expires: time.Now().Add(24 * time.Hour),
-			})
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return nil
-		}
-		data["status"] = response.Status
-		data["message"] = response.Message
-	}
 	return config.Render(w, "register", data)
 }
 

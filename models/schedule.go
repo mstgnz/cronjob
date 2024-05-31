@@ -3,16 +3,16 @@ package models
 import "time"
 
 type Schedule struct {
-	ID        int       `json:"id"`
-	UserId    int       `json:"user_id"`
-	Timing    string    `json:"timing"`
-	Active    bool      `json:"active"`
-	Running   bool      `json:"running"`
-	SendMail  bool      `json:"send_mail"`
-	Url       string    `json:"url"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	ID        int        `json:"id"`
+	UserId    int        `json:"user_id"`
+	Timing    string     `json:"timing"`
+	Active    bool       `json:"active"`
+	Running   bool       `json:"running"`
+	SendMail  bool       `json:"send_mail"`
+	Url       string     `json:"url"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
 func (s *Schedule) GetSchedules(offset, limit int) []*Schedule {
