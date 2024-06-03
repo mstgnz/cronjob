@@ -8,6 +8,6 @@ The time taken by triggered tasks, their responses, are logged, and notification
 ## atention
 This application utilizes a database locking mechanism to prevent duplicate cronjob tasks when running multiple instances in a Kubernetes (k8s) environment.
 
-The instance that first adds a record to the schedule_logs table will be the one triggering the cronjob task. Subsequent instances won't be able to create a new record due to an existing one, resulting in an error and preventing them from executing the task. The microsecond differences between instances will automatically facilitate the locking mechanism.
+The instance that first adds a record to the triggered table will be the instance that triggers the cronjob task. Subsequent instances will not be able to create a new record due to an existing record, preventing them from executing the task. The completed task will be unregistered from the triggered table.
 
 Nevertheless, it is strongly advised for users of this project to establish an additional control mechanism on their own systems.
