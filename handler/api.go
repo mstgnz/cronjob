@@ -83,6 +83,14 @@ func (a *Api) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Credentials"})
 	}
 
+	// get auth user in context
+	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
+
+	if !ok {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Credentials"})
+	}
+
+	updateData.ID = cUser.ID
 	queryParts := []string{"UPDATE users SET"}
 	params := []any{}
 	paramCount := 1
@@ -106,7 +114,11 @@ func (a *Api) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	params = append(params, updateData.ID)
 	query := strings.Join(queryParts, " ")
 
-	updateData = updateData.Update(query, params)
+	updateData, err := updateData.Update(query, params)
+
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData})
 }

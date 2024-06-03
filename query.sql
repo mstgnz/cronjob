@@ -29,7 +29,7 @@ SELECT * FROM schedules OFFSET $1 LIMIT $2;
 SELECT * FROM schedules WHERE user_id=$1;
 
 -- SCHEDULE_UPDATE
-UPDATE schedules SET timing=$1, active=$2, running=$3, path=$4, updated_at=$5 WHERE id=$6;
+UPDATE schedules SET timing=$1, active=$2, running=$3, url=$4, updated_at=$5 WHERE id=$6;
 
 -- SCHEDULE_INSERT
 INSERT INTO schedules (timing,active,running,path,send_mail,user_id) VALUES ($1,$2,$3,$4,$5,$6);
@@ -60,3 +60,6 @@ UPDATE schedule_mails SET deleted_at=$1 WHERE id=$1;
 
 -- APP_LOG_INSERT
 INSERT INTO app_logs (error,log) VALUES ($1,$2);
+
+-- GROUP_INSERT
+INSERT INTO groups (uid,name) VALUES ($1,$2);
