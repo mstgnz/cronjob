@@ -112,21 +112,20 @@ func (u *User) GetUserWithMail(email string) *User {
 	return u
 }
 
-func (u *User) Update(query string, params []any) *User {
-	rows, err := config.App().DB.Query(query, params)
+func (u *User) Update(query string, params []any) (*User, error) {
+	rows, err := config.App().DB.Query(query, params...)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	defer func() {
 		_ = rows.Close()
 	}()
 	for rows.Next() {
 		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
-			log.Println("User Scan: ", err)
-			return nil
+			return nil, err
 		}
 	}
-	return u
+	return u, nil
 }
 
 func (u *User) UpdatePassword(password string) *User {

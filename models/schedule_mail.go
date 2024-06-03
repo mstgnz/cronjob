@@ -23,6 +23,6 @@ func (sm ScheduleMail) DeleteScheduleMail(id int) ScheduleMail {
 	return sm
 }
 
-func (sm ScheduleMail) InsertScheduleMail(scheduleId int, email string) ScheduleMail {
+func (sm ScheduleMail) CreateScheduleMail(scheduleId int, email string) ScheduleMail {
 	return sm
 }

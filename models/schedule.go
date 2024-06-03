@@ -5,11 +5,14 @@ import "time"
 type Schedule struct {
 	ID        int        `json:"id"`
 	UserId    int        `json:"user_id"`
+	GroupId   int        `json:"group_id"`
 	Timing    string     `json:"timing"`
 	Active    bool       `json:"active"`
 	Running   bool       `json:"running"`
 	SendMail  bool       `json:"send_mail"`
 	Url       string     `json:"url"`
+	Timeout   int        `json:"timeout"`
+	Retries   int        `json:"retries"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
