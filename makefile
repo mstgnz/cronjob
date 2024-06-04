@@ -31,6 +31,8 @@ db:
 stop:
 	docker stop --time=600 $(APP_NAME)
 	docker rm $(APP_NAME)
+	docker stop $(APP_NAME)-postgres
+	docker rm $(APP_NAME)-postgres
 
 # Run the application inside the Docker container
 exec:
