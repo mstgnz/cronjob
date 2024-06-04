@@ -24,9 +24,9 @@ func (a *Api) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	user := &models.User{}
-	user = user.GetUserWithMail(login.Email)
-	if user.Email == "" {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "User Not Found"})
+	user, err = user.GetUserWithMail(login.Email)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
 	}
 
 	if !config.ComparePassword(user.Password, login.Password) {
@@ -56,14 +56,17 @@ func (a *Api) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	user := &models.User{}
-	user = user.GetUserWithMail(register.Email)
-	if user.Email != "" {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Email Already Exists"})
+	userExists, err := user.Exists(register.Email)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
+	}
+	if userExists {
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Email already exists"})
 	}
 
-	user, err = user.CreateUser(register)
+	err = user.CreateUser(register)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: "Failed Create User"})
+		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
 
 	token, err := config.GenerateToken(user.ID)
@@ -130,7 +133,7 @@ func (a *Api) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	params = append(params, updateData.ID)
 	query := strings.Join(queryParts, " ")
 
-	updateData, err := updateData.Update(query, params)
+	err := updateData.Update(query, params)
 
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})

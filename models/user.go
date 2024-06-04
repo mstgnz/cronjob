@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/mstgnz/cronjob/config"
@@ -44,47 +43,64 @@ func (u *User) GetUsers() []*User {
 	return users
 }
 
-func (u *User) CreateUser(register *UserRegister) (*User, error) {
-	hashPass := config.HashAndSalt(register.Password)
-	rows, err := config.App().DB.Query(config.App().QUERY["USER_INSERT"], register.Fullname, register.Email, hashPass, register.Phone)
+func (u *User) CreateUser(register *UserRegister) error {
+
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_INSERT"])
 	if err != nil {
-		return nil, err
+		return err
+	}
+
+	hashPass := config.HashAndSalt(register.Password)
+	_, err = stmt.Exec(register.Fullname, register.Email, hashPass, register.Phone)
+	if err != nil {
+		return err
 	}
 	defer func() {
-		_ = rows.Close()
+		_ = stmt.Close()
 	}()
-	for rows.Next() {
-		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.Password, &u.Phone, &u.IsAdmin, &u.LastLogin, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt); err != nil {
-			return nil, err
-		}
-	}
-	return u, nil
+
+	return nil
 }
 
-func (u *User) Exists(email string) bool {
+func (u *User) Exists(email string) (bool, error) {
 	exists := 0
-	rows, err := config.App().DB.Query(config.App().QUERY["USER_EXISTS_WITH_EMAIL"], email)
+
+	// prepare
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_EXISTS_WITH_EMAIL"])
 	if err != nil {
-		log.Println("User Exists: ", err)
-		return exists > 0
+		return false, err
+	}
+
+	// query
+	rows, err := stmt.Query(email)
+	if err != nil {
+		return false, err
 	}
 	defer func() {
+		_ = stmt.Close()
 		_ = rows.Close()
 	}()
 	for rows.Next() {
 		if err := rows.Scan(&exists); err != nil {
-			log.Println("User Exists Scan: ", err)
+			return false, err
 		}
 	}
-	return exists > 0
+	return exists > 0, nil
 }
 
 func (u *User) GetUserWithId(id int) (*User, error) {
-	rows, err := config.App().DB.Query(config.App().QUERY["USER_GET_WITH_ID"], id)
+
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_GET_WITH_ID"])
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.Query(id)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
+		_ = stmt.Close()
 		_ = rows.Close()
 	}()
 
@@ -103,51 +119,75 @@ func (u *User) GetUserWithId(id int) (*User, error) {
 	return u, nil
 }
 
-func (u *User) GetUserWithMail(email string) *User {
-	rows, err := config.App().DB.Query(config.App().QUERY["USER_GET_WITH_EMAIL"], email)
-	if err != nil {
-		log.Println("GetUserWithMail: ", err)
-		return nil
-	}
-	defer func() {
-		_ = rows.Close()
-	}()
-	for rows.Next() {
-		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
-			log.Println("User Scan: ", err)
-			return nil
-		}
-	}
-	return u
-}
+func (u *User) GetUserWithMail(email string) (*User, error) {
 
-func (u *User) Update(query string, params []any) (*User, error) {
-	rows, err := config.App().DB.Query(query, params...)
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_GET_WITH_EMAIL"])
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.Query(email)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
+		_ = stmt.Close()
 		_ = rows.Close()
 	}()
+
+	found := false
 	for rows.Next() {
-		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email); err != nil {
+		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
 			return nil, err
 		}
+		found = true
 	}
+
+	if !found {
+		return nil, fmt.Errorf("User Not Found")
+	}
+
 	return u, nil
+}
+
+func (u *User) Update(query string, params []any) error {
+
+	stmt, err := config.App().DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(params...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = stmt.Close()
+	}()
+
+	return nil
 }
 
 func (u *User) UpdatePassword(password string) *User {
 	return u
 }
 
-func (u *User) UpdateLastLogin() *User {
+func (u *User) UpdateLastLogin() error {
 	lastLogin := time.Now().Format("2006-01-02 15:04:05")
-	rows, _ := config.App().DB.Query(config.App().QUERY["USER_LAST_LOGIN"], lastLogin, u.ID)
+
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_LAST_LOGIN"])
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(lastLogin, u.ID)
+	if err != nil {
+		return err
+	}
 	defer func() {
-		_ = rows.Close()
+		_ = stmt.Close()
 	}()
-	return u
+	return nil
 }
 
 func (u *User) DeleteUser(id int) *User {
