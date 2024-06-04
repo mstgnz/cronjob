@@ -202,7 +202,12 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		user := &models.User{}
-		getUser := user.GetUserWithId(user_id)
+		getUser, err := user.GetUserWithId(user_id)
+
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 
 		ctx := context.WithValue(r.Context(), config.CKey("user"), getUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -213,25 +218,30 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
-			_ = config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Token"})
+			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Token"})
 			return
 		}
 		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
 
 		userId, err := config.GetUserIDByToken(tokenString)
 		if err != nil {
-			_ = config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
 			return
 		}
 
 		user_id, err := strconv.Atoi(userId)
 		if err != nil {
-			_ = config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
 			return
 		}
 
 		user := &models.User{}
-		getUser := user.GetUserWithId(user_id)
+		getUser, err := user.GetUserWithId(user_id)
+
+		if err != nil {
+			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
+			return
+		}
 
 		ctx := context.WithValue(r.Context(), config.CKey("user"), getUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
