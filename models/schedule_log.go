@@ -4,9 +4,9 @@ import "time"
 
 type ScheduleLog struct {
 	ID         int        `json:"id"`
-	ScheduleID int        `json:"schedule_id"`
-	Took       float32    `json:"took"`
-	Result     any        `json:"result"`
+	ScheduleID int        `json:"schedule_id" validate:"required"`
+	Took       float32    `json:"took" validate:"required"`
+	Result     any        `json:"result" validate:"required"`
 	StartedAt  *time.Time `json:"started_at,omitempty"`
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
 }

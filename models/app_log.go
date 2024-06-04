@@ -4,8 +4,8 @@ import "time"
 
 type AppLog struct {
 	ID        int        `json:"id"`
-	IsError   bool       `json:"is_error"`
-	Log       string     `json:"log"`
+	IsError   bool       `json:"is_error" validate:"required"`
+	Log       string     `json:"log" validate:"required"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 }
 
