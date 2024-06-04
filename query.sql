@@ -14,7 +14,7 @@ SELECT u.id, u.fullname, s.* FROM users as u JOIN schedules as s ON s.user_id=u.
 UPDATE users SET fullname=$1 updated_at=$2 WHERE id=$3;
 
 -- USER_INSERT
-INSERT INTO users (fullname,email,password,is_admin) VALUES ($1,$2,$3,$4);
+INSERT INTO users (fullname,email,password,phone) VALUES ($1,$2,$3,$4);
 
 -- USER_DELETE
 UPDATE users SET deleted_at=$1 WHERE id=$2;

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
@@ -86,8 +87,8 @@ func (a *Api) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	// get auth user in context
 	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
 
-	if !ok {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Credentials"})
+	if !ok || cUser == nil || cUser.ID == 0 {
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
 	}
 
 	updateData.ID = cUser.ID
@@ -96,19 +97,34 @@ func (a *Api) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	paramCount := 1
 
 	if updateData.Fullname != "" {
-		queryParts = append(queryParts, fmt.Sprintf("fullname=$%d", paramCount))
+		queryParts = append(queryParts, fmt.Sprintf("fullname=$%d,", paramCount))
 		params = append(params, updateData.Fullname)
 		paramCount++
 	}
 	if updateData.Email != "" {
-		queryParts = append(queryParts, fmt.Sprintf("email=$%d", paramCount))
+		queryParts = append(queryParts, fmt.Sprintf("email=$%d,", paramCount))
 		params = append(params, updateData.Email)
+		paramCount++
+	}
+	if updateData.Phone != "" {
+		queryParts = append(queryParts, fmt.Sprintf("phone=$%d,", paramCount))
+		params = append(params, updateData.Phone)
 		paramCount++
 	}
 
 	if len(params) == 0 {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "No fields to update"})
 	}
+
+	// update at
+	updatedAt := time.Now().Format("2006-01-02 15:04:05")
+	queryParts = append(queryParts, fmt.Sprintf("updated_at=$%d", paramCount))
+	params = append(params, updatedAt)
+	paramCount++
+
+	// remove last comma
+	// size := len(queryParts) - 1
+	// queryParts[size] = strings.TrimSuffix(queryParts[size], ",")
 
 	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d", paramCount))
 	params = append(params, updateData.ID)

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -12,6 +13,7 @@ type User struct {
 	Fullname  string     `json:"fullname"`
 	Email     string     `json:"email"`
 	Password  string     `json:"-"`
+	Phone     string     `json:"phone"`
 	IsAdmin   bool       `json:"is_admin"`
 	LastLogin *time.Time `json:"last_login,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
@@ -28,6 +30,7 @@ type UserRegister struct {
 	Fullname string `json:"fullname" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
+	Phone    string `json:"phone"`
 }
 
 type UserPasswordUpdate struct {
@@ -43,7 +46,7 @@ func (u *User) GetUsers() []*User {
 
 func (u *User) CreateUser(register *UserRegister) (*User, error) {
 	hashPass := config.HashAndSalt(register.Password)
-	rows, err := config.App().DB.Query(config.App().QUERY["USER_INSERT"], register.Fullname, register.Email, hashPass, false)
+	rows, err := config.App().DB.Query(config.App().QUERY["USER_INSERT"], register.Fullname, register.Email, hashPass, register.Phone)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +54,7 @@ func (u *User) CreateUser(register *UserRegister) (*User, error) {
 		_ = rows.Close()
 	}()
 	for rows.Next() {
-		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.Password, &u.IsAdmin, &u.LastLogin, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.Password, &u.Phone, &u.IsAdmin, &u.LastLogin, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt); err != nil {
 			return nil, err
 		}
 	}
@@ -76,22 +79,28 @@ func (u *User) Exists(email string) bool {
 	return exists > 0
 }
 
-func (u *User) GetUserWithId(id int) *User {
+func (u *User) GetUserWithId(id int) (*User, error) {
 	rows, err := config.App().DB.Query(config.App().QUERY["USER_GET_WITH_ID"], id)
 	if err != nil {
-		log.Println("GetUserWithId: ", err)
-		return nil
+		return nil, err
 	}
 	defer func() {
 		_ = rows.Close()
 	}()
+
+	found := false
 	for rows.Next() {
 		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
-			log.Println("User Scan: ", err)
-			return nil
+			return nil, err
 		}
+		found = true
 	}
-	return u
+
+	if !found {
+		return nil, fmt.Errorf("User Not Found")
+	}
+
+	return u, nil
 }
 
 func (u *User) GetUserWithMail(email string) *User {
@@ -121,7 +130,7 @@ func (u *User) Update(query string, params []any) (*User, error) {
 		_ = rows.Close()
 	}()
 	for rows.Next() {
-		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
+		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email); err != nil {
 			return nil, err
 		}
 	}
@@ -133,9 +142,8 @@ func (u *User) UpdatePassword(password string) *User {
 }
 
 func (u *User) UpdateLastLogin() *User {
-	currentTime := time.Now()
-	formattedTime := currentTime.Format("2006-01-02 15:04:05")
-	rows, _ := config.App().DB.Query(config.App().QUERY["USER_LAST_LOGIN"], formattedTime, u.ID)
+	lastLogin := time.Now().Format("2006-01-02 15:04:05")
+	rows, _ := config.App().DB.Query(config.App().QUERY["USER_LAST_LOGIN"], lastLogin, u.ID)
 	defer func() {
 		_ = rows.Close()
 	}()
