@@ -1,10 +1,8 @@
 package config
 
 import (
-	"log"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/mstgnz/cronjob/pkg"
 )
@@ -22,6 +20,7 @@ type config struct {
 	DB        *DB
 	Mail      *pkg.Mail
 	Cache     *pkg.Cache
+	Log       *Logger
 	SecretKey string
 	QUERY     map[string]string
 	Running   int
@@ -33,6 +32,7 @@ func App() *config {
 		instance = &config{
 			DB:    &DB{},
 			Cache: pkg.NewCache(),
+			Log:   &Logger{},
 			// the secret key will change every time the application is restarted.
 			SecretKey: "asdf1234", //RandomString(8),
 			Mail: &pkg.Mail{
@@ -65,34 +65,4 @@ func DecrementRunning() {
 	mu.Lock()
 	App().Running--
 	mu.Unlock()
-}
-
-func Logger(fileName string, logger *log.Logger) {
-	logsDir := "logs"
-	if _, err := os.Stat(logsDir); os.IsNotExist(err) {
-		os.Mkdir(logsDir, 0755)
-	}
-
-	lastCheckedDay := time.Now().Day()
-
-	for {
-		currentDay := time.Now().Day()
-		currentTime := time.Now().Format("2006-01-02")
-		logFileName := logsDir + "/" + fileName + "-" + currentTime + ".log"
-
-		_, err := os.Stat(fileName)
-		if currentDay != lastCheckedDay || os.IsNotExist(err) {
-
-			file, err := os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-			if err != nil {
-				log.Println("An error occurred while creating the log file:", err)
-			}
-
-			logger.SetOutput(file)
-
-			lastCheckedDay = currentDay
-
-			_ = file.Close()
-		}
-	}
 }
