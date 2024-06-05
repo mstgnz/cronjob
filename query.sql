@@ -1,3 +1,6 @@
+-- APP_LOG_INSERT
+INSERT INTO app_logs (level,message) VALUES ($1,$2);
+
 -- USER_EXISTS_WITH_EMAIL
 SELECT count(*) FROM users WHERE email=$1;
 
@@ -7,59 +10,22 @@ SELECT id, fullname, email, is_admin, password FROM users WHERE id=$1;
 -- USER_GET_WITH_EMAIL
 SELECT id, fullname, email, is_admin, password FROM users WHERE email=$1;
 
--- USER_GET_WITH_SCHEDULE
-SELECT u.id, u.fullname, s.* FROM users as u JOIN schedules as s ON s.user_id=u.id WHERE email=$1;
-
--- USER_UPDATE
-UPDATE users SET fullname=$1 updated_at=$2 WHERE id=$3;
-
 -- USER_INSERT
-INSERT INTO users (fullname,email,password,phone) VALUES ($1,$2,$3,$4);
+INSERT INTO users (fullname,email,password,phone) VALUES ($1,$2,$3,$4) RETURNING id,fullname,email,phone;
 
--- USER_DELETE
-UPDATE users SET deleted_at=$1 WHERE id=$2;
+-- USER_UPDATE_PASS
+UPDATE users SET password=$1 WHERE id=$2;
 
 -- USER_LAST_LOGIN
 UPDATE users SET last_login=$1 WHERE id=$2;
 
--- SCHEDULES
-SELECT * FROM schedules OFFSET $1 LIMIT $2;
+-- USER_DELETE
+UPDATE users SET deleted_at=$1 WHERE id=$2;
 
--- SCHEDULE_GET_WITH_USER
-SELECT * FROM schedules WHERE user_id=$1;
 
--- SCHEDULE_UPDATE
-UPDATE schedules SET timing=$1, active=$2, running=$3, url=$4, updated_at=$5 WHERE id=$6;
-
--- SCHEDULE_INSERT
-INSERT INTO schedules (timing,active,running,path,send_mail,user_id) VALUES ($1,$2,$3,$4,$5,$6);
-
--- SCHEDULE_DELETE
-UPDATE schedules SET deleted_at=$1 WHERE id=$2;
-
--- SCHEDULE_LOGS
-SELECT * FROM schedule_logs OFFSET $1 LIMIT $2;
-
--- SCHEDULE_LOG_GET_WITH_SCHEDULE
-SELECT * FROM schedule_logs WHERE schedule_id=$1;
-
--- SCHEDULE_LOG_INSERT
-INSERT INTO schedule_logs (schedule_id,started_at,finished_at,took,result) VALUES ($1,$2,$3,$4,$5);
-
--- SCHEDULE_MAIL_GET_WITH_SCHEDULE
-SELECT * FROM schedule_mails WHERE schedule_id=$1;
-
--- SCHEDULE_MAIL_INSERT
-INSERT INTO schedule_mails (schedule_id,email) VALUES ($1,$2);
-
--- SCHEDULE_MAIL_UPDATE
-UPDATE schedule_mails SET email=$1 WHERE id=$2;
-
--- SCHEDULE_MAIL_DELETE
-UPDATE schedule_mails SET deleted_at=$1 WHERE id=$1;
-
--- APP_LOG_INSERT
-INSERT INTO app_logs (error,log) VALUES ($1,$2);
 
 -- GROUP_INSERT
-INSERT INTO groups (uid,name) VALUES ($1,$2);
+INSERT INTO groups (uid, user_id, name) VALUES (CASE WHEN $1 = 0 THEN NULL ELSE $1 END, $2, $3) RETURNING id;
+
+-- GROUP_EXISTS_WITH_USER
+SELECT count(*) FROM groups WHERE name=$1 and user_id=$2;

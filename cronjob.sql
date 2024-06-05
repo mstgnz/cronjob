@@ -4,14 +4,14 @@ CREATE SEQUENCE IF NOT EXISTS app_logs_id_seq;
 -- Table Definition
 CREATE TABLE "public"."app_logs" (
     "id" int8 NOT NULL DEFAULT nextval('app_logs_id_seq'::regclass),
-    "is_error" bool NOT NULL DEFAULT false,
-    "log" text NOT NULL,
+    "level" varchar NOT NULL,
+    "message" text NOT NULL,
     "created_at" timestamp NOT NULL DEFAULT now(),
     PRIMARY KEY ("id")
 );
 
 -- Column Comment
-COMMENT ON COLUMN "public"."app_logs"."is_error" IS 'is error log';
+COMMENT ON COLUMN "public"."app_logs"."level" IS 'info, error, warning, debug';
 
 -- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
 
@@ -22,6 +22,7 @@ CREATE SEQUENCE IF NOT EXISTS groups_id_seq;
 CREATE TABLE "public"."groups" (
     "id" int4 NOT NULL DEFAULT nextval('groups_id_seq'::regclass),
     "uid" int4,
+    "user_id" int4 NOT NULL,
     "name" varchar NOT NULL,
     "active" bool NOT NULL DEFAULT false,
     "created_at" timestamp NOT NULL DEFAULT now(),
@@ -112,6 +113,7 @@ CREATE SEQUENCE IF NOT EXISTS requests_id_seq;
 -- Table Definition
 CREATE TABLE "public"."requests" (
     "id" int4 NOT NULL DEFAULT nextval('requests_id_seq'::regclass),
+    "user_id" int4 NOT NULL,
     "url" varchar NOT NULL,
     "method" varchar NOT NULL CHECK ((method)::text = ANY (ARRAY['GET'::text, 'POST'::text, 'PUT'::text, 'DELETE'::text, 'PATCH'::text])),
     "content" jsonb,
@@ -224,6 +226,7 @@ CREATE TABLE "public"."webhooks" (
 );
 
 ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id");
+ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 ALTER TABLE "public"."notifications" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id");
 ALTER TABLE "public"."notify_email" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
 ALTER TABLE "public"."notify_sms" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
@@ -235,3 +238,4 @@ ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("request_id") REFERENCES "publ
 ALTER TABLE "public"."triggered" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id");
 ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
+ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
