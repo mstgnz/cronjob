@@ -24,7 +24,11 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-var PORT string
+var (
+	PORT       string
+	webHandler handler.Web
+	apiHandler handler.Api
+)
 
 func init() {
 	// Load Env
@@ -44,11 +48,6 @@ func init() {
 
 	PORT = os.Getenv("PORT")
 }
-
-var (
-	webHandler handler.Web
-	apiHandler handler.Api
-)
 
 type HttpHandler func(w http.ResponseWriter, r *http.Request) error
 
@@ -110,16 +109,59 @@ func main() {
 		r.Use(apiAuthMiddleware)
 		r.Route("/api", func(r chi.Router) {
 			r.Use(headerMiddleware)
+			// users
 			r.Get("/user", Catch(apiHandler.UserHandler))
 			r.Put("/user", Catch(apiHandler.UserUpdateHandler))
+			// groups
+			r.Get("/groups", Catch(apiHandler.GroupListHandler))
+			r.Post("/groups", Catch(apiHandler.GroupCreateHandler))
+			r.Put("/groups/{id}", Catch(apiHandler.GroupUpdateHandler))
+			r.Delete("/groups/{id}", Catch(apiHandler.GroupDeleteHandler))
+			// requests
+			r.Get("/requests", Catch(apiHandler.RequestListHandler))
+			r.Post("/requests", Catch(apiHandler.RequestCreateHandler))
+			r.Put("/requests/{id}", Catch(apiHandler.RequestUpdateHandler))
+			r.Delete("/requests/{id}", Catch(apiHandler.RequestDeleteHandler))
+			// request headers
+			r.Get("/request-headers", Catch(apiHandler.RequestHeaderListHandler))
+			r.Post("/request-headers", Catch(apiHandler.RequestHeaderCreateHandler))
+			r.Put("/request-headers/{id}", Catch(apiHandler.RequestHeaderUpdateHandler))
+			r.Delete("/request-headers/{id}", Catch(apiHandler.RequestHeaderDeleteHandler))
+			// notifications
+			r.Get("/notifications", Catch(apiHandler.NotificationListHandler))
+			r.Post("/notifications", Catch(apiHandler.NotificationCreateHandler))
+			r.Put("/notifications/{id}", Catch(apiHandler.NotificationUpdateHandler))
+			r.Delete("/notifications/{id}", Catch(apiHandler.NotificationDeleteHandler))
+			// notification emails
+			r.Get("/notify-emails", Catch(apiHandler.NotifyEmailListHandler))
+			r.Post("/notify-emails", Catch(apiHandler.NotifyEmailCreateHandler))
+			r.Put("/notify-emails/{id}", Catch(apiHandler.NotifyEmailUpdateHandler))
+			r.Delete("/notify-emails/{id}", Catch(apiHandler.NotifyEmailDeleteHandler))
+			// notification sms
+			r.Get("/notify-sms", Catch(apiHandler.NotifySmsListHandler))
+			r.Post("/notify-sms", Catch(apiHandler.NotifySmsCreateHandler))
+			r.Put("/notify-sms/{id}", Catch(apiHandler.NotifySmsUpdateHandler))
+			r.Delete("/notify-sms/{id}", Catch(apiHandler.NotifySmsDeleteHandler))
+			// webhooks
+			r.Get("/webhooks", Catch(apiHandler.WebhookListHandler))
+			r.Post("/webhooks", Catch(apiHandler.WebhookCreateHandler))
+			r.Put("/webhooks/{id}", Catch(apiHandler.WebhookUpdateHandler))
+			r.Delete("/webhooks/{id}", Catch(apiHandler.WebhookDeleteHandler))
+			// schedules
 			r.Get("/schedules", Catch(apiHandler.ScheduleListHandler))
-			r.Post("/schedule", Catch(apiHandler.ScheduleCreateHandler))
-			r.Put("/schedule", Catch(apiHandler.ScheduleUpdateHandler))
-			r.Delete("/schedule/{id}", Catch(apiHandler.ScheduleDeleteHandler))
-			r.Get("/schedule/mail/{schedule_id}", Catch(apiHandler.ScheduleMailListHandler))
-			r.Post("/schedule/mail", Catch(apiHandler.ScheduleMailCreateHandler))
-			r.Put("/schedule/mail", Catch(apiHandler.ScheduleMailUpdateHandler))
-			r.Delete("/schedule/mail/{id}", Catch(apiHandler.ScheduleMailDeleteHandler))
+			r.Post("/schedules", Catch(apiHandler.ScheduleCreateHandler))
+			r.Put("/schedules/{id}", Catch(apiHandler.ScheduleUpdateHandler))
+			r.Delete("/schedules/{id}", Catch(apiHandler.ScheduleDeleteHandler))
+			// schedule logs
+			r.Get("/schedule-logs", Catch(apiHandler.ScheduleLogListHandler))
+			r.Post("/schedule-logs", Catch(apiHandler.ScheduleLogCreateHandler))
+			r.Put("/schedule-logs/{id}", Catch(apiHandler.ScheduleLogUpdateHandler))
+			r.Delete("/schedule-logs/{id}", Catch(apiHandler.ScheduleLogDeleteHandler))
+			// triggered
+			r.Post("/triggered", Catch(apiHandler.TriggeredCreateHandler))
+			r.Delete("/triggered/{id}", Catch(apiHandler.TriggeredDeleteHandler))
+			// app logs
+			r.Post("/app-logs", Catch(apiHandler.AppLogCreateHandler))
 		})
 	})
 
@@ -160,25 +202,6 @@ func main() {
 
 	config.App().DB.CloseDatabase()
 	c.Stop()
-}
-
-func fileServer(r chi.Router, path string, root http.FileSystem) {
-	if strings.ContainsAny(path, "{}*") {
-		panic("FileServer does not permit any URL parameters.")
-	}
-
-	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", http.StatusMovedPermanently).ServeHTTP)
-		path += "/"
-	}
-	path += "*"
-
-	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
-		rctx := chi.RouteContext(r.Context())
-		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
-		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
-		fs.ServeHTTP(w, r)
-	})
 }
 
 func webAuthMiddleware(next http.Handler) http.Handler {
@@ -255,5 +278,24 @@ func headerMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
+	})
+}
+
+func fileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", http.StatusMovedPermanently).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
 	})
 }

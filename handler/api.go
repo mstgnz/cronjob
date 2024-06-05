@@ -142,6 +142,118 @@ func (a *Api) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData})
 }
 
+func (a *Api) GroupListHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) GroupCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) GroupUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) GroupDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) RequestListHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) RequestCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) RequestUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) RequestDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) RequestHeaderListHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) RequestHeaderCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) RequestHeaderUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) RequestHeaderDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotificationListHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotificationCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotificationUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotificationDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotifyEmailListHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotifyEmailCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotifyEmailUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotifyEmailDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotifySmsListHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotifySmsCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotifySmsUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) NotifySmsDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) WebhookListHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) WebhookCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) WebhookUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) WebhookDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
 func (a *Api) ScheduleListHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
@@ -158,18 +270,30 @@ func (a *Api) ScheduleDeleteHandler(w http.ResponseWriter, r *http.Request) erro
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
 
-func (a *Api) ScheduleMailListHandler(w http.ResponseWriter, r *http.Request) error {
+func (a *Api) ScheduleLogListHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
 
-func (a *Api) ScheduleMailCreateHandler(w http.ResponseWriter, r *http.Request) error {
+func (a *Api) ScheduleLogCreateHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
 
-func (a *Api) ScheduleMailUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+func (a *Api) ScheduleLogUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
 
-func (a *Api) ScheduleMailDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+func (a *Api) ScheduleLogDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) TriggeredCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) TriggeredDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+}
+
+func (a *Api) AppLogCreateHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
