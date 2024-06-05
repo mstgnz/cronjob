@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -33,6 +32,7 @@ var (
 func init() {
 	// Load Env
 	if err := godotenv.Load(".env"); err != nil {
+		config.App().Log.Warn(fmt.Sprintf("Load Env Error: %v", err))
 		log.Fatalf("Load Env Error: %v", err)
 	}
 	// init conf
@@ -41,6 +41,7 @@ func init() {
 	// Load Sql
 	config.App().QUERY = make(map[string]string)
 	if query, err := config.LoadSQLQueries(); err != nil {
+		config.App().Log.Warn(fmt.Sprintf("Load Sql Error: %v", err))
 		log.Fatalf("Load Sql Error: %v", err)
 	} else {
 		config.App().QUERY = query
@@ -54,7 +55,7 @@ type HttpHandler func(w http.ResponseWriter, r *http.Request) error
 func Catch(h HttpHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := h(w, r); err != nil {
-			slog.Info("HTTP handler error", "err", err, "path", r.URL.Path)
+			config.App().Log.Info("HTTP Handler Error", "err", err.Error(), "path", r.URL.Path)
 		}
 	}
 }
@@ -112,6 +113,7 @@ func main() {
 			// users
 			r.Get("/user", Catch(apiHandler.UserHandler))
 			r.Put("/user", Catch(apiHandler.UserUpdateHandler))
+			r.Put("/user-change-pass", Catch(apiHandler.UserPassUpdateHandler))
 			// groups
 			r.Get("/groups", Catch(apiHandler.GroupListHandler))
 			r.Post("/groups", Catch(apiHandler.GroupCreateHandler))
@@ -157,11 +159,6 @@ func main() {
 			r.Post("/schedule-logs", Catch(apiHandler.ScheduleLogCreateHandler))
 			r.Put("/schedule-logs/{id}", Catch(apiHandler.ScheduleLogUpdateHandler))
 			r.Delete("/schedule-logs/{id}", Catch(apiHandler.ScheduleLogDeleteHandler))
-			// triggered
-			r.Post("/triggered", Catch(apiHandler.TriggeredCreateHandler))
-			r.Delete("/triggered/{id}", Catch(apiHandler.TriggeredDeleteHandler))
-			// app logs
-			r.Post("/app-logs", Catch(apiHandler.AppLogCreateHandler))
 		})
 	})
 
@@ -173,16 +170,17 @@ func main() {
 	go func() {
 		err := http.ListenAndServe(fmt.Sprintf(":%s", PORT), r)
 		if err != nil && err != http.ErrServerClosed {
+			config.App().Log.Warn("Fatal Error", "err", err.Error())
 			log.Fatal(err.Error())
 		}
 	}()
 
-	log.Printf("Cron is running on %s", PORT)
+	config.App().Log.Info("Cron is running on", PORT)
 
 	// Block until a signal is received
 	<-ctx.Done()
 
-	log.Printf("Cron is shutting on %s", PORT)
+	config.App().Log.Info("Cron is shutting on", PORT)
 
 	// set Shutting
 	config.App().Shutting = true
@@ -190,15 +188,15 @@ func main() {
 	// check Running
 	for {
 		if config.App().Running <= 0 {
-			log.Println("BREAK", config.App().Running)
+			config.App().Log.Info("Cronjobs all done")
 			break
 		} else {
-			log.Printf("Currently %d active jobs in progress. pending completion...", config.App().Running)
+			config.App().Log.Info(fmt.Sprintf("Currently %d active jobs in progress. pending completion...", config.App().Running))
 		}
 		time.Sleep(time.Second * 5)
 	}
 
-	log.Println("Shutting down gracefully...")
+	config.App().Log.Info("Shutting down gracefully...")
 
 	config.App().DB.CloseDatabase()
 	c.Stop()
@@ -225,14 +223,14 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		user := &models.User{}
-		getUser, err := user.GetUserWithId(user_id)
+		err = user.GetWithId(user_id)
 
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), config.CKey("user"), getUser)
+		ctx := context.WithValue(r.Context(), config.CKey("user"), user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -259,14 +257,14 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		user := &models.User{}
-		getUser, err := user.GetUserWithId(user_id)
+		err = user.GetWithId(user_id)
 
 		if err != nil {
 			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), config.CKey("user"), getUser)
+		ctx := context.WithValue(r.Context(), config.CKey("user"), user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

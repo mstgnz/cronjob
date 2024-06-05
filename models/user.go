@@ -33,17 +33,16 @@ type UserRegister struct {
 }
 
 type UserPasswordUpdate struct {
-	ID         uint   `json:"id"`
 	Password   string `json:"password" validate:"required,min=6"`
 	RePassword string `json:"re-password" validate:"required,min=6"`
 }
 
-func (u *User) GetUsers() []*User {
+func (u *User) Users() []*User {
 	users := []*User{}
 	return users
 }
 
-func (u *User) CreateUser(register *UserRegister) error {
+func (u *User) Create(register *UserRegister) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_INSERT"])
 	if err != nil {
@@ -51,13 +50,10 @@ func (u *User) CreateUser(register *UserRegister) error {
 	}
 
 	hashPass := config.HashAndSalt(register.Password)
-	_, err = stmt.Exec(register.Fullname, register.Email, hashPass, register.Phone)
+	err = stmt.QueryRow(register.Fullname, register.Email, hashPass, register.Phone).Scan(&u.ID, &u.Fullname, &u.Email, &u.Phone)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		_ = stmt.Close()
-	}()
 
 	return nil
 }
@@ -88,16 +84,16 @@ func (u *User) Exists(email string) (bool, error) {
 	return exists > 0, nil
 }
 
-func (u *User) GetUserWithId(id int) (*User, error) {
+func (u *User) GetWithId(id int) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_GET_WITH_ID"])
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rows, err := stmt.Query(id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer func() {
 		_ = stmt.Close()
@@ -107,28 +103,28 @@ func (u *User) GetUserWithId(id int) (*User, error) {
 	found := false
 	for rows.Next() {
 		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
-			return nil, err
+			return err
 		}
 		found = true
 	}
 
 	if !found {
-		return nil, fmt.Errorf("User Not Found")
+		return fmt.Errorf("User Not Found")
 	}
 
-	return u, nil
+	return nil
 }
 
-func (u *User) GetUserWithMail(email string) (*User, error) {
+func (u *User) GetWithMail(email string) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_GET_WITH_EMAIL"])
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rows, err := stmt.Query(email)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer func() {
 		_ = stmt.Close()
@@ -138,16 +134,16 @@ func (u *User) GetUserWithMail(email string) (*User, error) {
 	found := false
 	for rows.Next() {
 		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
-			return nil, err
+			return err
 		}
 		found = true
 	}
 
 	if !found {
-		return nil, fmt.Errorf("User Not Found")
+		return fmt.Errorf("User Not Found")
 	}
 
-	return u, nil
+	return nil
 }
 
 func (u *User) Update(query string, params []any) error {
@@ -157,7 +153,7 @@ func (u *User) Update(query string, params []any) error {
 		return err
 	}
 
-	_, err = stmt.Exec(params...)
+	result, err := stmt.Exec(params...)
 	if err != nil {
 		return err
 	}
@@ -165,11 +161,43 @@ func (u *User) Update(query string, params []any) error {
 		_ = stmt.Close()
 	}()
 
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		return fmt.Errorf("User not updated")
+	}
+
 	return nil
 }
 
-func (u *User) UpdatePassword(password string) *User {
-	return u
+func (u *User) UpdatePassword(password string) error {
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_UPDATE_PASS"])
+	if err != nil {
+		return err
+	}
+
+	hashPass := config.HashAndSalt(password)
+	result, err := stmt.Exec(hashPass, u.ID)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = stmt.Close()
+	}()
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		return fmt.Errorf("User password not updated")
+	}
+
+	return nil
 }
 
 func (u *User) UpdateLastLogin() error {
@@ -180,13 +208,22 @@ func (u *User) UpdateLastLogin() error {
 		return err
 	}
 
-	_, err = stmt.Exec(lastLogin, u.ID)
+	result, err := stmt.Exec(lastLogin, u.ID)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		_ = stmt.Close()
 	}()
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		return fmt.Errorf("User last login not updated")
+	}
 	return nil
 }
 

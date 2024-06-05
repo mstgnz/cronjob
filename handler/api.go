@@ -15,44 +15,46 @@ type Api struct{}
 func (a *Api) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	login := &models.UserLogin{}
 	if err := config.ReadJSON(w, r, login); err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Content"})
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid credentials"})
 	}
 
 	err := config.Validate(login)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Failed to process request", Data: err.Error()})
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
 
 	user := &models.User{}
-	user, err = user.GetUserWithMail(login.Email)
+	err = user.GetWithMail(login.Email)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
 	}
 
 	if !config.ComparePassword(user.Password, login.Password) {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid credentials"})
 	}
 
 	token, err := config.GenerateToken(user.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Failed to process request"})
+		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: "Failed to generate token"})
 	}
 
 	// update last_login
 	user.UpdateLastLogin()
 
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Login successful", Data: token})
+	data := make(map[string]any)
+	data["token"] = token
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Login successful", Data: data})
 }
 
 func (a *Api) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 	register := &models.UserRegister{}
 	if err := config.ReadJSON(w, r, register); err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Credentials"})
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid credentials"})
 	}
 
 	err := config.Validate(register)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Failed to process request", Data: err.Error()})
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
 
 	user := &models.User{}
@@ -64,17 +66,20 @@ func (a *Api) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Email already exists"})
 	}
 
-	err = user.CreateUser(register)
+	err = user.Create(register)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
 
 	token, err := config.GenerateToken(user.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Failed to process request"})
+		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: "Failed to generate token"})
 	}
 
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Register successful", Data: token})
+	data := make(map[string]any)
+	data["token"] = token
+	data["user"] = user
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "User created", Data: data})
 }
 
 func (a *Api) UserHandler(w http.ResponseWriter, r *http.Request) error {
@@ -142,12 +147,78 @@ func (a *Api) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData})
 }
 
+func (a *Api) UserPassUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	updateData := &models.UserPasswordUpdate{}
+	if err := config.ReadJSON(w, r, updateData); err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Credentials"})
+	}
+
+	err := config.Validate(updateData)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	if updateData.Password != updateData.RePassword {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Passwords do not match"})
+	}
+
+	// get auth user in context
+	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
+
+	if !ok || cUser == nil || cUser.ID == 0 {
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
+	}
+
+	user := &models.User{}
+	user.ID = cUser.ID
+
+	err = user.UpdatePassword(updateData.Password)
+
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData})
+}
+
 func (a *Api) GroupListHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
 
 func (a *Api) GroupCreateHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+	group := &models.Group{}
+	if err := config.ReadJSON(w, r, group); err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid contents"})
+	}
+
+	err := config.Validate(group)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()})
+	}
+
+	// get auth user in context
+	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
+
+	if !ok || cUser == nil || cUser.ID == 0 {
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
+	}
+
+	group.UserID = cUser.ID
+
+	groupExists, err := group.Exists()
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if groupExists {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Group already exists"})
+	}
+
+	lastInsertId, err := group.Create()
+	if err != nil {
+		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Group created", Data: lastInsertId})
 }
 
 func (a *Api) GroupUpdateHandler(w http.ResponseWriter, r *http.Request) error {
@@ -283,17 +354,5 @@ func (a *Api) ScheduleLogUpdateHandler(w http.ResponseWriter, r *http.Request) e
 }
 
 func (a *Api) ScheduleLogDeleteHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
-}
-
-func (a *Api) TriggeredCreateHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
-}
-
-func (a *Api) TriggeredDeleteHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
-}
-
-func (a *Api) AppLogCreateHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
