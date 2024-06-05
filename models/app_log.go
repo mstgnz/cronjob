@@ -1,24 +1,31 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/mstgnz/cronjob/config"
+)
 
 type AppLog struct {
 	ID        int        `json:"id"`
-	IsError   bool       `json:"is_error" validate:"required"`
-	Log       string     `json:"log" validate:"required"`
+	Level     string     `json:"level"`
+	Message   string     `json:"message"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 }
 
-func (al *AppLog) GetLogs(offset, limit int) []*AppLog {
-	appLogs := []*AppLog{}
-	return appLogs
-}
+func (al AppLog) CreateLog(level, message string) error {
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["APP_LOG_INSERT"])
+	if err != nil {
+		return err
+	}
 
-func (al *AppLog) GetLog(id int) []*AppLog {
-	appLogs := []*AppLog{}
-	return appLogs
-}
+	_, err = stmt.Exec(level, message)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = stmt.Close()
+	}()
 
-func (al AppLog) CreateLog(id int, is_error bool, log string) AppLog {
-	return al
+	return nil
 }

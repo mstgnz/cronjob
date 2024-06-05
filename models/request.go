@@ -4,6 +4,7 @@ import "time"
 
 type Request struct {
 	ID        int        `json:"id"`
+	UserID    int        `json:"user_id"`
 	Url       string     `json:"url"`
 	Method    string     `json:"method"`
 	Content   string     `json:"content"`
