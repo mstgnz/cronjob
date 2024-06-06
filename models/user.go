@@ -179,8 +179,9 @@ func (u *User) UpdatePassword(password string) error {
 		return err
 	}
 
+	updateAt := time.Now().Format("2006-01-02 15:04:05")
 	hashPass := config.HashAndSalt(password)
-	result, err := stmt.Exec(hashPass, u.ID)
+	result, err := stmt.Exec(hashPass, updateAt, u.ID)
 	if err != nil {
 		return err
 	}

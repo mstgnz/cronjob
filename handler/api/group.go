@@ -15,7 +15,24 @@ import (
 type GroupHandler struct{}
 
 func (h *GroupHandler) GroupListHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+	group := &models.Group{}
+
+	// get auth user in context
+	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
+
+	if !ok || cUser == nil || cUser.ID == 0 {
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
+	}
+
+	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	uid, _ := strconv.Atoi(r.URL.Query().Get("uid"))
+
+	groups, err := group.Get(cUser.ID, id, uid)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: groups})
 }
 
 func (h *GroupHandler) GroupCreateHandler(w http.ResponseWriter, r *http.Request) error {
@@ -74,7 +91,7 @@ func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
 	if !groupExists {
-		return config.WriteJSON(w, http.StatusForbidden, config.Response{Status: false, Message: "You don't own the group."})
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
 	}
 
 	queryParts := []string{"UPDATE groups SET"}
@@ -124,5 +141,28 @@ func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (h *GroupHandler) GroupDeleteHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+	// get auth user in context
+	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
+
+	if !ok || cUser == nil || cUser.ID == 0 {
+		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
+	}
+
+	groups := &models.Group{}
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	groupExists, err := groups.IDExists(id, cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if !groupExists {
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
+	}
+
+	err = groups.Delete(id, cUser.ID)
+
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Soft delte success"})
 }
