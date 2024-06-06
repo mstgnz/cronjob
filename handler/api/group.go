@@ -63,12 +63,12 @@ func (h *GroupHandler) GroupCreateHandler(w http.ResponseWriter, r *http.Request
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Group already exists"})
 	}
 
-	lastInsertId, err := group.Create()
+	err = group.Create()
 	if err != nil {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
 
-	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Group created", Data: lastInsertId})
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Group created", Data: group})
 }
 
 func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request) error {

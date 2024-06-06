@@ -31,7 +31,7 @@ SELECT id,uid,name,active,created_at,updated_at FROM groups where user_id=$1 and
 SELECT id,uid,name,active,created_at,updated_at FROM groups where user_id=$1 and id=$2 and deleted_at isnull;
 
 -- GROUP_INSERT
-INSERT INTO groups (uid, user_id, name) VALUES (CASE WHEN $1 = 0 THEN NULL ELSE $1 END, $2, $3) RETURNING id;
+INSERT INTO groups (uid, user_id, name) VALUES (CASE WHEN $1 = 0 THEN NULL ELSE $1 END, $2, $3) RETURNING id,uid,name,active;
 
 -- GROUP_NAME_EXISTS_WITH_USER
 SELECT count(*) FROM groups WHERE name=$1 and user_id=$2 and deleted_at isnull;

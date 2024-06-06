@@ -71,10 +71,10 @@ func (g *Group) Get(userID, id, uid int) ([]Group, error) {
 	return groups, nil
 }
 
-func (g *Group) Create() (int64, error) {
+func (g *Group) Create() error {
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["GROUP_INSERT"])
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	var uid any
@@ -84,13 +84,16 @@ func (g *Group) Create() (int64, error) {
 		uid = g.UID
 	}
 
-	var lastInsertId int64
-	err = stmt.QueryRow(uid, g.UserID, g.Name).Scan(&lastInsertId)
+	var parentID sql.NullInt64
+	err = stmt.QueryRow(uid, g.UserID, g.Name).Scan(&g.ID, &parentID, &g.Name, &g.Active)
 	if err != nil {
-		return 0, err
+		return err
+	}
+	if parentID.Valid {
+		g.UID = int(parentID.Int64)
 	}
 
-	return lastInsertId, nil
+	return nil
 }
 
 func (g *Group) NameExists() (bool, error) {
