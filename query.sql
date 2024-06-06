@@ -27,5 +27,14 @@ UPDATE users SET deleted_at=$1 WHERE id=$2;
 -- GROUP_INSERT
 INSERT INTO groups (uid, user_id, name) VALUES (CASE WHEN $1 = 0 THEN NULL ELSE $1 END, $2, $3) RETURNING id;
 
--- GROUP_EXISTS_WITH_USER
+-- GROUP_NAME_EXISTS_WITH_USER
 SELECT count(*) FROM groups WHERE name=$1 and user_id=$2;
+
+-- GROUP_ID_EXISTS_WITH_USER
+SELECT count(*) FROM groups WHERE id=$1 and user_id=$2;
+
+-- GROUP_UPDATE
+UPDATE groups SET name=$1 WHERE id=$2 AND user_id=$3;
+
+-- GROUP_DELETE
+UPDATE groups SET deleted_at=$1 WHERE id=$2 AND user_id=$3;

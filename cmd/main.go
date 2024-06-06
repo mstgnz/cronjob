@@ -17,7 +17,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"github.com/mstgnz/cronjob/config"
-	"github.com/mstgnz/cronjob/handler"
+	"github.com/mstgnz/cronjob/handler/api"
+	"github.com/mstgnz/cronjob/handler/web"
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/schedule"
 	"github.com/robfig/cron/v3"
@@ -25,8 +26,14 @@ import (
 
 var (
 	PORT       string
-	webHandler handler.Web
-	apiHandler handler.Api
+	webHandler web.Web
+
+	apiUserHandler         api.UserHandler
+	apiGroupHandler        api.GroupHandler
+	apiRequestHandler      api.RequestHandler
+	apiNotificationHandler api.NotificationHandler
+	apiScheduleHandler     api.ScheduleHandler
+	apiWebhookHandler      api.WebhookHandler
 )
 
 func init() {
@@ -102,8 +109,8 @@ func main() {
 	})
 
 	// api without auth
-	r.With(headerMiddleware).Post("/api/login", Catch(apiHandler.LoginHandler))
-	r.With(headerMiddleware).Post("/api/register", Catch(apiHandler.RegisterHandler))
+	r.With(headerMiddleware).Post("/api/login", Catch(apiUserHandler.LoginHandler))
+	r.With(headerMiddleware).Post("/api/register", Catch(apiUserHandler.RegisterHandler))
 
 	// api with auth
 	r.Group(func(r chi.Router) {
@@ -111,54 +118,54 @@ func main() {
 		r.Route("/api", func(r chi.Router) {
 			r.Use(headerMiddleware)
 			// users
-			r.Get("/user", Catch(apiHandler.UserHandler))
-			r.Put("/user", Catch(apiHandler.UserUpdateHandler))
-			r.Put("/user-change-pass", Catch(apiHandler.UserPassUpdateHandler))
+			r.Get("/user", Catch(apiUserHandler.UserHandler))
+			r.Put("/user", Catch(apiUserHandler.UserUpdateHandler))
+			r.Put("/user-change-pass", Catch(apiUserHandler.UserPassUpdateHandler))
 			// groups
-			r.Get("/groups", Catch(apiHandler.GroupListHandler))
-			r.Post("/groups", Catch(apiHandler.GroupCreateHandler))
-			r.Put("/groups/{id}", Catch(apiHandler.GroupUpdateHandler))
-			r.Delete("/groups/{id}", Catch(apiHandler.GroupDeleteHandler))
+			r.Get("/groups", Catch(apiGroupHandler.GroupListHandler))
+			r.Post("/groups", Catch(apiGroupHandler.GroupCreateHandler))
+			r.Put("/groups/{id}", Catch(apiGroupHandler.GroupUpdateHandler))
+			r.Delete("/groups/{id}", Catch(apiGroupHandler.GroupDeleteHandler))
 			// requests
-			r.Get("/requests", Catch(apiHandler.RequestListHandler))
-			r.Post("/requests", Catch(apiHandler.RequestCreateHandler))
-			r.Put("/requests/{id}", Catch(apiHandler.RequestUpdateHandler))
-			r.Delete("/requests/{id}", Catch(apiHandler.RequestDeleteHandler))
+			r.Get("/requests", Catch(apiRequestHandler.RequestListHandler))
+			r.Post("/requests", Catch(apiRequestHandler.RequestCreateHandler))
+			r.Put("/requests/{id}", Catch(apiRequestHandler.RequestUpdateHandler))
+			r.Delete("/requests/{id}", Catch(apiRequestHandler.RequestDeleteHandler))
 			// request headers
-			r.Get("/request-headers", Catch(apiHandler.RequestHeaderListHandler))
-			r.Post("/request-headers", Catch(apiHandler.RequestHeaderCreateHandler))
-			r.Put("/request-headers/{id}", Catch(apiHandler.RequestHeaderUpdateHandler))
-			r.Delete("/request-headers/{id}", Catch(apiHandler.RequestHeaderDeleteHandler))
+			r.Get("/request-headers", Catch(apiRequestHandler.RequestHeaderListHandler))
+			r.Post("/request-headers", Catch(apiRequestHandler.RequestHeaderCreateHandler))
+			r.Put("/request-headers/{id}", Catch(apiRequestHandler.RequestHeaderUpdateHandler))
+			r.Delete("/request-headers/{id}", Catch(apiRequestHandler.RequestHeaderDeleteHandler))
 			// notifications
-			r.Get("/notifications", Catch(apiHandler.NotificationListHandler))
-			r.Post("/notifications", Catch(apiHandler.NotificationCreateHandler))
-			r.Put("/notifications/{id}", Catch(apiHandler.NotificationUpdateHandler))
-			r.Delete("/notifications/{id}", Catch(apiHandler.NotificationDeleteHandler))
+			r.Get("/notifications", Catch(apiNotificationHandler.NotificationListHandler))
+			r.Post("/notifications", Catch(apiNotificationHandler.NotificationCreateHandler))
+			r.Put("/notifications/{id}", Catch(apiNotificationHandler.NotificationUpdateHandler))
+			r.Delete("/notifications/{id}", Catch(apiNotificationHandler.NotificationDeleteHandler))
 			// notification emails
-			r.Get("/notify-emails", Catch(apiHandler.NotifyEmailListHandler))
-			r.Post("/notify-emails", Catch(apiHandler.NotifyEmailCreateHandler))
-			r.Put("/notify-emails/{id}", Catch(apiHandler.NotifyEmailUpdateHandler))
-			r.Delete("/notify-emails/{id}", Catch(apiHandler.NotifyEmailDeleteHandler))
+			r.Get("/notify-emails", Catch(apiNotificationHandler.NotifyEmailListHandler))
+			r.Post("/notify-emails", Catch(apiNotificationHandler.NotifyEmailCreateHandler))
+			r.Put("/notify-emails/{id}", Catch(apiNotificationHandler.NotifyEmailUpdateHandler))
+			r.Delete("/notify-emails/{id}", Catch(apiNotificationHandler.NotifyEmailDeleteHandler))
 			// notification sms
-			r.Get("/notify-sms", Catch(apiHandler.NotifySmsListHandler))
-			r.Post("/notify-sms", Catch(apiHandler.NotifySmsCreateHandler))
-			r.Put("/notify-sms/{id}", Catch(apiHandler.NotifySmsUpdateHandler))
-			r.Delete("/notify-sms/{id}", Catch(apiHandler.NotifySmsDeleteHandler))
+			r.Get("/notify-sms", Catch(apiNotificationHandler.NotifySmsListHandler))
+			r.Post("/notify-sms", Catch(apiNotificationHandler.NotifySmsCreateHandler))
+			r.Put("/notify-sms/{id}", Catch(apiNotificationHandler.NotifySmsUpdateHandler))
+			r.Delete("/notify-sms/{id}", Catch(apiNotificationHandler.NotifySmsDeleteHandler))
 			// webhooks
-			r.Get("/webhooks", Catch(apiHandler.WebhookListHandler))
-			r.Post("/webhooks", Catch(apiHandler.WebhookCreateHandler))
-			r.Put("/webhooks/{id}", Catch(apiHandler.WebhookUpdateHandler))
-			r.Delete("/webhooks/{id}", Catch(apiHandler.WebhookDeleteHandler))
+			r.Get("/webhooks", Catch(apiWebhookHandler.WebhookListHandler))
+			r.Post("/webhooks", Catch(apiWebhookHandler.WebhookCreateHandler))
+			r.Put("/webhooks/{id}", Catch(apiWebhookHandler.WebhookUpdateHandler))
+			r.Delete("/webhooks/{id}", Catch(apiWebhookHandler.WebhookDeleteHandler))
 			// schedules
-			r.Get("/schedules", Catch(apiHandler.ScheduleListHandler))
-			r.Post("/schedules", Catch(apiHandler.ScheduleCreateHandler))
-			r.Put("/schedules/{id}", Catch(apiHandler.ScheduleUpdateHandler))
-			r.Delete("/schedules/{id}", Catch(apiHandler.ScheduleDeleteHandler))
+			r.Get("/schedules", Catch(apiScheduleHandler.ScheduleListHandler))
+			r.Post("/schedules", Catch(apiScheduleHandler.ScheduleCreateHandler))
+			r.Put("/schedules/{id}", Catch(apiScheduleHandler.ScheduleUpdateHandler))
+			r.Delete("/schedules/{id}", Catch(apiScheduleHandler.ScheduleDeleteHandler))
 			// schedule logs
-			r.Get("/schedule-logs", Catch(apiHandler.ScheduleLogListHandler))
-			r.Post("/schedule-logs", Catch(apiHandler.ScheduleLogCreateHandler))
-			r.Put("/schedule-logs/{id}", Catch(apiHandler.ScheduleLogUpdateHandler))
-			r.Delete("/schedule-logs/{id}", Catch(apiHandler.ScheduleLogDeleteHandler))
+			r.Get("/schedule-logs", Catch(apiScheduleHandler.ScheduleLogListHandler))
+			r.Post("/schedule-logs", Catch(apiScheduleHandler.ScheduleLogCreateHandler))
+			r.Put("/schedule-logs/{id}", Catch(apiScheduleHandler.ScheduleLogUpdateHandler))
+			r.Delete("/schedule-logs/{id}", Catch(apiScheduleHandler.ScheduleLogDeleteHandler))
 		})
 	})
 
