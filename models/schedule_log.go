@@ -11,16 +11,16 @@ type ScheduleLog struct {
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
 }
 
-func (sl *ScheduleLog) GetSchedules(offset, limit int) []*ScheduleLog {
+func (m *ScheduleLog) GetSchedules(offset, limit int) []*ScheduleLog {
 	scheduleLogs := []*ScheduleLog{}
 	return scheduleLogs
 }
 
-func (sl *ScheduleLog) GetSchedule(scheduleId int) []*ScheduleLog {
+func (m *ScheduleLog) GetSchedule(scheduleId int) []*ScheduleLog {
 	scheduleLogs := []*ScheduleLog{}
 	return scheduleLogs
 }
 
-func (sl ScheduleLog) CreateScheduleLog(scheduleId int, startedAt, finishedAt time.Time, took float32, result any) ScheduleLog {
-	return sl
+func (m ScheduleLog) CreateScheduleLog(scheduleId int, startedAt, finishedAt time.Time, took float32, result any) ScheduleLog {
+	return m
 }

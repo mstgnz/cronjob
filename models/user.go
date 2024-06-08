@@ -37,12 +37,12 @@ type UserPasswordUpdate struct {
 	RePassword string `json:"re-password" validate:"required,min=6"`
 }
 
-func (u *User) Users() []*User {
+func (m *User) Users() []*User {
 	users := []*User{}
 	return users
 }
 
-func (u *User) Create(register *UserRegister) error {
+func (m *User) Create(register *UserRegister) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_INSERT"])
 	if err != nil {
@@ -50,7 +50,7 @@ func (u *User) Create(register *UserRegister) error {
 	}
 
 	hashPass := config.HashAndSalt(register.Password)
-	err = stmt.QueryRow(register.Fullname, register.Email, hashPass, register.Phone).Scan(&u.ID, &u.Fullname, &u.Email, &u.Phone)
+	err = stmt.QueryRow(register.Fullname, register.Email, hashPass, register.Phone).Scan(&m.ID, &m.Fullname, &m.Email, &m.Phone)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (u *User) Create(register *UserRegister) error {
 	return nil
 }
 
-func (u *User) Exists(email string) (bool, error) {
+func (m *User) Exists(email string) (bool, error) {
 	exists := 0
 
 	// prepare
@@ -84,7 +84,7 @@ func (u *User) Exists(email string) (bool, error) {
 	return exists > 0, nil
 }
 
-func (u *User) GetWithId(id int) error {
+func (m *User) GetWithId(id int) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_GET_WITH_ID"])
 	if err != nil {
@@ -102,7 +102,7 @@ func (u *User) GetWithId(id int) error {
 
 	found := false
 	for rows.Next() {
-		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
+		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.IsAdmin, &m.Password); err != nil {
 			return err
 		}
 		found = true
@@ -115,7 +115,7 @@ func (u *User) GetWithId(id int) error {
 	return nil
 }
 
-func (u *User) GetWithMail(email string) error {
+func (m *User) GetWithMail(email string) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_GET_WITH_EMAIL"])
 	if err != nil {
@@ -133,7 +133,7 @@ func (u *User) GetWithMail(email string) error {
 
 	found := false
 	for rows.Next() {
-		if err := rows.Scan(&u.ID, &u.Fullname, &u.Email, &u.IsAdmin, &u.Password); err != nil {
+		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.IsAdmin, &m.Password); err != nil {
 			return err
 		}
 		found = true
@@ -146,7 +146,7 @@ func (u *User) GetWithMail(email string) error {
 	return nil
 }
 
-func (u *User) Update(query string, params []any) error {
+func (m *User) Update(query string, params []any) error {
 
 	stmt, err := config.App().DB.Prepare(query)
 	if err != nil {
@@ -173,7 +173,7 @@ func (u *User) Update(query string, params []any) error {
 	return nil
 }
 
-func (u *User) UpdatePassword(password string) error {
+func (m *User) UpdatePassword(password string) error {
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_UPDATE_PASS"])
 	if err != nil {
 		return err
@@ -181,7 +181,7 @@ func (u *User) UpdatePassword(password string) error {
 
 	updateAt := time.Now().Format("2006-01-02 15:04:05")
 	hashPass := config.HashAndSalt(password)
-	result, err := stmt.Exec(hashPass, updateAt, u.ID)
+	result, err := stmt.Exec(hashPass, updateAt, m.ID)
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func (u *User) UpdatePassword(password string) error {
 	return nil
 }
 
-func (u *User) UpdateLastLogin() error {
+func (m *User) UpdateLastLogin() error {
 	lastLogin := time.Now().Format("2006-01-02 15:04:05")
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_LAST_LOGIN"])
@@ -209,7 +209,7 @@ func (u *User) UpdateLastLogin() error {
 		return err
 	}
 
-	result, err := stmt.Exec(lastLogin, u.ID)
+	result, err := stmt.Exec(lastLogin, m.ID)
 	if err != nil {
 		return err
 	}
@@ -228,6 +228,30 @@ func (u *User) UpdateLastLogin() error {
 	return nil
 }
 
-func (u *User) DeleteUser(id int) *User {
-	return u
+func (m *User) Delete(userID int) error {
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_DELETE"])
+	if err != nil {
+		return err
+	}
+
+	deleteAndUpdate := time.Now().Format("2006-01-02 15:04:05")
+
+	result, err := stmt.Exec(deleteAndUpdate, deleteAndUpdate, userID)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = stmt.Close()
+	}()
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		return fmt.Errorf("User not deleted")
+	}
+
+	return nil
 }

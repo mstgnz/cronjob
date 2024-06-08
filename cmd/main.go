@@ -44,6 +44,7 @@ func init() {
 	}
 	// init conf
 	_ = config.App()
+	config.CustomValidate()
 
 	// Load Sql
 	config.App().QUERY = make(map[string]string)
@@ -120,6 +121,7 @@ func main() {
 			// users
 			r.Get("/user", Catch(apiUserHandler.UserHandler))
 			r.Put("/user", Catch(apiUserHandler.UserUpdateHandler))
+			r.Delete("/user", Catch(apiUserHandler.UserDeleteHandler))
 			r.Put("/user-change-pass", Catch(apiUserHandler.UserPassUpdateHandler))
 			// groups
 			r.Get("/groups", Catch(apiGroupHandler.GroupListHandler))
@@ -225,7 +227,7 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		user_id, err := strconv.Atoi(userId)
-		if err != nil {
+		if err != nil && user_id == 0 {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -258,7 +260,7 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		user_id, err := strconv.Atoi(userId)
-		if err != nil {
+		if err != nil && user_id == 0 {
 			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
 			return
 		}

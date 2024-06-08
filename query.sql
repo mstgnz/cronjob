@@ -23,7 +23,6 @@ UPDATE users SET last_login=$1 WHERE id=$2;
 UPDATE users SET deleted_at=$1, updated_at=$2 WHERE id=$3;
 
 
-
 -- GROUPS
 SELECT id,uid,name,active,created_at,updated_at FROM groups where user_id=$1 and deleted_at isnull;
 
@@ -41,3 +40,22 @@ SELECT count(*) FROM groups WHERE id=$1 and user_id=$2 and deleted_at isnull;
 
 -- GROUP_DELETE
 UPDATE groups SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
+
+
+-- REQUESTS
+SELECT * FROM requests where user_id=$1 and deleted_at isnull;
+
+-- REQUESTS_WITH_ID
+SELECT * FROM requests where user_id=$1 and id=$2 and deleted_at isnull;
+
+-- REQUEST_INSERT
+INSERT INTO requests (user_id,url,method,content,active) VALUES ($1,$2,$3,$4,$5) RETURNING id,user_id,url,method,content,active;
+
+-- REQUEST_URL_EXISTS_WITH_USER
+SELECT count(*) FROM requests WHERE url=$1 and user_id=$2 and deleted_at isnull;
+
+-- REQUEST_ID_EXISTS_WITH_USER
+SELECT count(*) FROM requests WHERE id=$1 and user_id=$2 and deleted_at isnull;
+
+-- REQUEST_DELETE
+UPDATE requests SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;

@@ -18,11 +18,7 @@ func (h *GroupHandler) GroupListHandler(w http.ResponseWriter, r *http.Request) 
 	group := &models.Group{}
 
 	// get auth user in context
-	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
-
-	if !ok || cUser == nil || cUser.ID == 0 {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
-	}
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
 	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	uid, _ := strconv.Atoi(r.URL.Query().Get("uid"))
@@ -47,11 +43,7 @@ func (h *GroupHandler) GroupCreateHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// get auth user in context
-	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
-
-	if !ok || cUser == nil || cUser.ID == 0 {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
-	}
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
 	group.UserID = cUser.ID
 
@@ -78,11 +70,7 @@ func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// get auth user in context
-	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
-
-	if !ok || cUser == nil || cUser.ID == 0 {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
-	}
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
 	groups := &models.Group{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
@@ -142,11 +130,7 @@ func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request
 
 func (h *GroupHandler) GroupDeleteHandler(w http.ResponseWriter, r *http.Request) error {
 	// get auth user in context
-	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
-
-	if !ok || cUser == nil || cUser.ID == 0 {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
-	}
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
 	groups := &models.Group{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))

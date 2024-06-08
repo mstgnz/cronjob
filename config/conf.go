@@ -4,6 +4,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/mstgnz/cronjob/pkg"
 )
 
@@ -21,6 +22,7 @@ type config struct {
 	Mail      *pkg.Mail
 	Cache     *pkg.Cache
 	Log       *Logger
+	Validador *validator.Validate
 	SecretKey string
 	QUERY     map[string]string
 	Running   int
@@ -30,9 +32,10 @@ type config struct {
 func App() *config {
 	once.Do(func() {
 		instance = &config{
-			DB:    &DB{},
-			Cache: pkg.NewCache(),
-			Log:   &Logger{},
+			DB:        &DB{},
+			Cache:     pkg.NewCache(),
+			Log:       &Logger{},
+			Validador: validator.New(),
 			// the secret key will change every time the application is restarted.
 			SecretKey: "asdf1234", //RandomString(8),
 			Mail: &pkg.Mail{

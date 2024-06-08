@@ -27,23 +27,23 @@ type ScheduleCreate struct {
 	Active    bool   `json:"active"`
 }
 
-func (s *Schedule) GetSchedules(offset, limit int) []*Schedule {
+func (m *Schedule) Get(offset, limit int) []*Schedule {
 	schedules := []*Schedule{}
 	return schedules
 }
 
-func (s *Schedule) GetScheduleWithUserId(userId int) *Schedule {
-	return s
+func (m *Schedule) GetWithUserId(userId int) *Schedule {
+	return m
 }
 
-func (s *Schedule) CreateSchedule(id, user_id int, timing, path string, active, running, send_mail bool) *Schedule {
-	return s
+func (m *Schedule) Create(id, user_id int, timing, path string, active, running, send_mail bool) *Schedule {
+	return m
 }
 
-func (s *Schedule) UpdateSchedule(id, user_id int, timing, path string, active, running, send_mail bool) *Schedule {
-	return s
+func (m *Schedule) Update(id, user_id int, timing, path string, active, running, send_mail bool) *Schedule {
+	return m
 }
 
-func (s *Schedule) DeleteSchedule(id int) *Schedule {
-	return s
+func (m *Schedule) Delete(id int) *Schedule {
+	return m
 }

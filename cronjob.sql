@@ -222,6 +222,10 @@ CREATE TABLE "public"."webhooks" (
     "id" int4 NOT NULL DEFAULT nextval('webhooks_id_seq'::regclass),
     "schedule_id" int4 NOT NULL,
     "request_id" int4 NOT NULL,
+    "active" bool,
+    "created_at" timestamp NOT NULL DEFAULT now(),
+    "updated_at" timestamp,
+    "deleted_at" timestamp,
     PRIMARY KEY ("id")
 );
 

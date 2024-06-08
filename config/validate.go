@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -8,7 +9,7 @@ import (
 )
 
 func Validate(structure any) error {
-	validate := validator.New()
+	validate := App().Validador
 	var errStr string
 	var errSlc []error
 	// returns nil or ValidationErrors ( []FieldError )
@@ -30,4 +31,11 @@ func Validate(structure any) error {
 		return errors.Join(errSlc...)
 	}
 	return nil
+}
+
+func CustomValidate() {
+	App().Validador.RegisterValidation("is-json", func(fl validator.FieldLevel) bool {
+		var js json.RawMessage
+		return json.Unmarshal([]byte(fl.Field().String()), &js) == nil
+	})
 }

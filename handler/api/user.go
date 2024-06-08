@@ -12,7 +12,7 @@ import (
 
 type UserHandler struct{}
 
-func (a *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	login := &models.UserLogin{}
 	if err := config.ReadJSON(w, r, login); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
@@ -46,7 +46,7 @@ func (a *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Login successful", Data: data})
 }
 
-func (a *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 	register := &models.UserRegister{}
 	if err := config.ReadJSON(w, r, register); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
@@ -82,22 +82,18 @@ func (a *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "User created", Data: data})
 }
 
-func (a *UserHandler) UserHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *UserHandler) UserHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: r.Context().Value(config.CKey("user"))})
 }
 
-func (a *UserHandler) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *UserHandler) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	updateData := &models.User{}
 	if err := config.ReadJSON(w, r, updateData); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
 
 	// get auth user in context
-	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
-
-	if !ok || cUser == nil || cUser.ID == 0 {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
-	}
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
 	updateData.ID = cUser.ID
 	queryParts := []string{"UPDATE users SET"}
@@ -147,7 +143,7 @@ func (a *UserHandler) UserUpdateHandler(w http.ResponseWriter, r *http.Request) 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData})
 }
 
-func (a *UserHandler) UserPassUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *UserHandler) UserPassUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	updateData := &models.UserPasswordUpdate{}
 	if err := config.ReadJSON(w, r, updateData); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
@@ -163,11 +159,7 @@ func (a *UserHandler) UserPassUpdateHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// get auth user in context
-	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
-
-	if !ok || cUser == nil || cUser.ID == 0 {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Credentials"})
-	}
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
 	user := &models.User{}
 	user.ID = cUser.ID
@@ -179,4 +171,18 @@ func (a *UserHandler) UserPassUpdateHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData})
+}
+
+func (h *UserHandler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	// get auth user in context
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+	user := &models.User{}
+	err := user.Delete(cUser.ID)
+
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Soft delte success"})
 }

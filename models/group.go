@@ -21,7 +21,7 @@ type Group struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
-func (g *Group) Get(userID, id, uid int) ([]Group, error) {
+func (m *Group) Get(userID, id, uid int) ([]Group, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["GROUPS"], ";")
 
@@ -71,32 +71,32 @@ func (g *Group) Get(userID, id, uid int) ([]Group, error) {
 	return groups, nil
 }
 
-func (g *Group) Create() error {
+func (m *Group) Create() error {
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["GROUP_INSERT"])
 	if err != nil {
 		return err
 	}
 
 	var uid any
-	if g.UID == 0 {
+	if m.UID == 0 {
 		uid = nil
 	} else {
-		uid = g.UID
+		uid = m.UID
 	}
 
 	var parentID sql.NullInt64
-	err = stmt.QueryRow(uid, g.UserID, g.Name).Scan(&g.ID, &parentID, &g.Name, &g.Active)
+	err = stmt.QueryRow(uid, m.UserID, m.Name).Scan(&m.ID, &parentID, &m.Name, &m.Active)
 	if err != nil {
 		return err
 	}
 	if parentID.Valid {
-		g.UID = int(parentID.Int64)
+		m.UID = int(parentID.Int64)
 	}
 
 	return nil
 }
 
-func (g *Group) NameExists() (bool, error) {
+func (m *Group) NameExists() (bool, error) {
 	exists := 0
 
 	// prepare
@@ -106,7 +106,7 @@ func (g *Group) NameExists() (bool, error) {
 	}
 
 	// query
-	rows, err := stmt.Query(g.Name, g.UserID)
+	rows, err := stmt.Query(m.Name, m.UserID)
 	if err != nil {
 		return false, err
 	}
@@ -122,7 +122,7 @@ func (g *Group) NameExists() (bool, error) {
 	return exists > 0, nil
 }
 
-func (g *Group) IDExists(id, userID int) (bool, error) {
+func (m *Group) IDExists(id, userID int) (bool, error) {
 	exists := 0
 
 	// prepare
@@ -148,7 +148,7 @@ func (g *Group) IDExists(id, userID int) (bool, error) {
 	return exists > 0, nil
 }
 
-func (u *Group) Update(query string, params []any) error {
+func (m *Group) Update(query string, params []any) error {
 
 	stmt, err := config.App().DB.Prepare(query)
 	if err != nil {
@@ -175,7 +175,7 @@ func (u *Group) Update(query string, params []any) error {
 	return nil
 }
 
-func (u *Group) Delete(id, userID int) error {
+func (m *Group) Delete(id, userID int) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["GROUP_DELETE"])
 	if err != nil {
@@ -198,7 +198,7 @@ func (u *Group) Delete(id, userID int) error {
 	}
 
 	if affected == 0 {
-		return fmt.Errorf("Group not updated")
+		return fmt.Errorf("Group not deleted")
 	}
 
 	return nil
