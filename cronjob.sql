@@ -6,7 +6,7 @@ CREATE TABLE "public"."app_logs" (
     "id" int8 NOT NULL DEFAULT nextval('app_logs_id_seq'::regclass),
     "level" varchar NOT NULL,
     "message" text NOT NULL,
-    "created_at" timestamp NOT NULL DEFAULT now(),
+    "created_at" timestamp DEFAULT now(),
     PRIMARY KEY ("id")
 );
 
@@ -25,7 +25,7 @@ CREATE TABLE "public"."groups" (
     "user_id" int4 NOT NULL,
     "name" varchar NOT NULL,
     "active" bool NOT NULL DEFAULT true,
-    "created_at" timestamp NOT NULL DEFAULT now(),
+    "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
     PRIMARY KEY ("id")
@@ -48,7 +48,7 @@ CREATE TABLE "public"."notifications" (
     "title" varchar NOT NULL,
     "content" varchar NOT NULL,
     "active" bool NOT NULL DEFAULT true,
-    "created_at" timestamp NOT NULL DEFAULT now(),
+    "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
     PRIMARY KEY ("id")
@@ -64,7 +64,7 @@ CREATE TABLE "public"."notify_email" (
     "id" int4 NOT NULL DEFAULT nextval('notify_email_id_seq'::regclass),
     "notification_id" int4 NOT NULL,
     "email" varchar NOT NULL,
-    "active" bool DEFAULT true,
+    "active" bool NOT NULL DEFAULT true,
     "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
@@ -81,7 +81,7 @@ CREATE TABLE "public"."notify_sms" (
     "id" int4 NOT NULL DEFAULT nextval('notify_sms_id_seq'::regclass),
     "notification_id" int4 NOT NULL,
     "phone" varchar NOT NULL,
-    "active" bool DEFAULT true,
+    "active" bool NOT NULL DEFAULT true,
     "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
@@ -100,7 +100,7 @@ CREATE TABLE "public"."request_headers" (
     "key" varchar NOT NULL,
     "value" varchar NOT NULL,
     "active" bool NOT NULL DEFAULT true,
-    "created_at" timestamp NOT NULL DEFAULT now(),
+    "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
     PRIMARY KEY ("id")
@@ -117,9 +117,9 @@ CREATE TABLE "public"."requests" (
     "user_id" int4 NOT NULL,
     "url" varchar NOT NULL,
     "method" varchar NOT NULL CHECK ((method)::text = ANY (ARRAY['GET'::text, 'POST'::text, 'PUT'::text, 'DELETE'::text, 'PATCH'::text])),
-    "content" jsonb,
+    "content" jsonb NOT NULL,
     "active" bool NOT NULL DEFAULT true,
-    "created_at" timestamp NOT NULL DEFAULT now(),
+    "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
     PRIMARY KEY ("id")
@@ -141,6 +141,7 @@ CREATE TABLE "public"."schedule_logs" (
     "finished_at" timestamp NOT NULL,
     "took" float4 NOT NULL,
     "result" text NOT NULL,
+    "created_at" timestamp DEFAULT now(),
     PRIMARY KEY ("id")
 );
 
@@ -157,14 +158,14 @@ CREATE SEQUENCE IF NOT EXISTS schedules_id_seq;
 CREATE TABLE "public"."schedules" (
     "id" int4 NOT NULL DEFAULT nextval('schedules_id_seq'::regclass),
     "user_id" int4 NOT NULL,
-    "group_id" int2 NOT NULL,
+    "group_id" int4 NOT NULL,
     "request_id" int4 NOT NULL,
     "timing" varchar NOT NULL,
     "timeout" int2 DEFAULT 0,
     "retries" int2 DEFAULT 0,
     "running" bool NOT NULL DEFAULT false,
     "active" bool NOT NULL DEFAULT true,
-    "created_at" timestamp NOT NULL DEFAULT now(),
+    "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
     PRIMARY KEY ("id")
@@ -223,24 +224,24 @@ CREATE TABLE "public"."webhooks" (
     "id" int4 NOT NULL DEFAULT nextval('webhooks_id_seq'::regclass),
     "schedule_id" int4 NOT NULL,
     "request_id" int4 NOT NULL,
-    "active" bool,
-    "created_at" timestamp NOT NULL DEFAULT now(),
+    "active" bool NOT NULL,
+    "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
     PRIMARY KEY ("id")
 );
 
-ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id");
-ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."notifications" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id");
 ALTER TABLE "public"."notify_email" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
 ALTER TABLE "public"."notify_sms" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
-ALTER TABLE "public"."request_headers" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
+ALTER TABLE "public"."request_headers" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 ALTER TABLE "public"."schedule_logs" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
-ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
 ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 ALTER TABLE "public"."triggered" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id");
 ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
-ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
