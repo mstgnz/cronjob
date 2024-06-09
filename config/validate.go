@@ -33,6 +33,7 @@ func Validate(structure any) error {
 	return nil
 }
 
+// example custom validate
 func CustomValidate() {
 	App().Validador.RegisterValidation("is-json", func(fl validator.FieldLevel) bool {
 		var js json.RawMessage
