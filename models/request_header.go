@@ -13,10 +13,17 @@ type RequestHeader struct {
 	RequestID int        `json:"request_id" validate:"required,number"`
 	Key       string     `json:"key" validate:"required"`
 	Value     string     `json:"value" validate:"required"`
-	Active    bool       `json:"active" validate:"required"`
+	Active    bool       `json:"active" validate:"required,boolean"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type RequestHeaderUpdate struct {
+	RequestID int    `json:"request_id" validate:"number"`
+	Key       string `json:"key" validate:"omitempty"`
+	Value     string `json:"value" validate:"omitempty"`
+	Active    *bool  `json:"active" validate:"boolean"`
 }
 
 func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]RequestHeader, error) {
