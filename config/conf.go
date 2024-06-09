@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/mstgnz/cronjob/pkg"
+	"github.com/robfig/cron/v3"
 )
 
 var (
@@ -20,6 +21,7 @@ type CKey string
 type config struct {
 	DB        *DB
 	Mail      *pkg.Mail
+	Cron      *cron.Cron
 	Cache     *pkg.Cache
 	Log       *Logger
 	Validador *validator.Validate
@@ -33,6 +35,7 @@ func App() *config {
 	once.Do(func() {
 		instance = &config{
 			DB:        &DB{},
+			Cron:      cron.New(),
 			Cache:     pkg.NewCache(),
 			Log:       &Logger{},
 			Validador: validator.New(),

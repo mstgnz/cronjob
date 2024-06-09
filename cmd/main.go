@@ -21,7 +21,6 @@ import (
 	"github.com/mstgnz/cronjob/handler/web"
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/schedule"
-	"github.com/robfig/cron/v3"
 )
 
 var (
@@ -74,8 +73,7 @@ func main() {
 	//err := config.App().Mail.SetSubject("cron").SetContent("mail geldi mi?").SetTo("mesutgenez@hotmail.com").SetAttachment(map[string][]byte{"query.sql": []byte("1. dosya içeriği"), "query2.sql": []byte("2. dosya içeriği")}).SendText()
 
 	// Scheduler Call
-	c := cron.New()
-	schedule.CallSchedule(c)
+	schedule.CallSchedule(config.App().Cron)
 	// Start the Cron job scheduler
 	//c.Start()
 
@@ -207,8 +205,8 @@ func main() {
 
 	config.App().Log.Info("Shutting down gracefully...")
 
+	config.App().Cron.Stop()
 	config.App().DB.CloseDatabase()
-	c.Stop()
 }
 
 func webAuthMiddleware(next http.Handler) http.Handler {

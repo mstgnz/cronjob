@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -33,10 +32,16 @@ func Validate(structure any) error {
 	return nil
 }
 
-// example custom validate
+// custom validates are called in main
 func CustomValidate() {
-	App().Validador.RegisterValidation("is-json", func(fl validator.FieldLevel) bool {
-		var js json.RawMessage
-		return json.Unmarshal([]byte(fl.Field().String()), &js) == nil
+	CustomCronSpaceValidate()
+}
+
+// go-playground validator has a “cron” validation mechanism, but it does not work correctly.
+// so we will validate with “robfig/cron parser”.
+func CustomCronSpaceValidate() {
+	App().Validador.RegisterValidation("cron", func(fl validator.FieldLevel) bool {
+		_, err := App().Cron.AddFunc(fl.Field().String(), nil)
+		return err == nil
 	})
 }
