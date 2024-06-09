@@ -141,11 +141,11 @@ func (h *RequestHandler) RequestDeleteHandler(w http.ResponseWriter, r *http.Req
 
 	request := &models.Request{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	groupExists, err := request.IDExists(id, cUser.ID)
+	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
-	if !groupExists {
+	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
 	}
 
@@ -233,11 +233,11 @@ func (h *RequestHandler) RequestHeaderUpdateHandler(w http.ResponseWriter, r *ht
 
 	requestHeader := &models.RequestHeader{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	headerExists, err := requestHeader.IDExists(id, cUser.ID)
+	exists, err := requestHeader.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
-	if !headerExists {
+	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"})
 	}
 
@@ -295,11 +295,11 @@ func (h *RequestHandler) RequestHeaderDeleteHandler(w http.ResponseWriter, r *ht
 
 	request := &models.RequestHeader{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	groupExists, err := request.IDExists(id, cUser.ID)
+	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
-	if !groupExists {
+	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"})
 	}
 

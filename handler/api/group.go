@@ -47,11 +47,11 @@ func (h *GroupHandler) GroupCreateHandler(w http.ResponseWriter, r *http.Request
 
 	group.UserID = cUser.ID
 
-	groupExists, err := group.NameExists()
+	exists, err := group.NameExists()
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
-	if groupExists {
+	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Group already exists"})
 	}
 
@@ -79,11 +79,11 @@ func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request
 
 	groups := &models.Group{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	groupExists, err := groups.IDExists(id, cUser.ID)
+	exists, err := groups.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
-	if !groupExists {
+	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
 	}
 
@@ -136,11 +136,11 @@ func (h *GroupHandler) GroupDeleteHandler(w http.ResponseWriter, r *http.Request
 
 	groups := &models.Group{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	groupExists, err := groups.IDExists(id, cUser.ID)
+	exists, err := groups.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
-	if !groupExists {
+	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
 	}
 

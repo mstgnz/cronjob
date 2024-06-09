@@ -10,7 +10,7 @@ import (
 
 type Request struct {
 	ID        int        `json:"id"`
-	UserID    int        `json:"user_id" validate:"required,number"`
+	UserID    int        `json:"user_id" validate:"number"`
 	Url       string     `json:"url" validate:"required,url"`
 	Method    string     `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
 	Content   string     `json:"content" validate:"required,json"`

@@ -12,7 +12,7 @@ import (
 type Group struct {
 	ID        int        `json:"id"`
 	UID       int        `json:"uid" validate:"number"`
-	UserID    int        `json:"user_id" validate:"required,number"`
+	UserID    int        `json:"user_id" validate:"number"`
 	Name      string     `json:"name" validate:"required"`
 	Active    bool       `json:"active" validate:"required,boolean"`
 	Parent    *Group     `json:"parent,omitempty"`

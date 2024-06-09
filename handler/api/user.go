@@ -58,11 +58,11 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 	}
 
 	user := &models.User{}
-	userExists, err := user.Exists(register.Email)
+	exists, err := user.Exists(register.Email)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
 	}
-	if userExists {
+	if exists {
 		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Email already exists"})
 	}
 
