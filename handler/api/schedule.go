@@ -203,5 +203,30 @@ func (h *ScheduleHandler) ScheduleDeleteHandler(w http.ResponseWriter, r *http.R
 }
 
 func (h *ScheduleHandler) ScheduleLogListHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+	scheduleLog := &models.ScheduleLog{}
+
+	// get auth user in context
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	schedule_id, _ := strconv.Atoi(r.URL.Query().Get("schedule_id"))
+	if schedule_id == 0 {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "schedule_id param required"})
+	}
+
+	schedule := &models.Schedule{}
+	exists, err := schedule.IDExists(schedule_id, cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if !exists {
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Schedule not found"})
+	}
+
+	scheduleLogs, err := scheduleLog.Get(id, schedule_id, cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: scheduleLogs})
 }
