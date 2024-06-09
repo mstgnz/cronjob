@@ -64,9 +64,14 @@ func (h *GroupHandler) GroupCreateHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	var updateData map[string]any
+	updateData := &models.GroupUpdate{}
 	if err := config.ReadJSON(w, r, &updateData); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	err := config.Validate(updateData)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()})
 	}
 
 	// get auth user in context
@@ -86,22 +91,19 @@ func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request
 	params := []any{}
 	paramCount := 1
 
-	value, exists := updateData["name"]
-	if exists {
+	if updateData.Name != "" {
 		queryParts = append(queryParts, fmt.Sprintf("name=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Name)
 		paramCount++
 	}
-	value, exists = updateData["uid"]
-	if exists {
+	if updateData.UID > 0 {
 		queryParts = append(queryParts, fmt.Sprintf("uid=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.UID)
 		paramCount++
 	}
-	value, exists = updateData["active"]
-	if exists {
+	if updateData.Active != nil {
 		queryParts = append(queryParts, fmt.Sprintf("active=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Active)
 		paramCount++
 	}
 

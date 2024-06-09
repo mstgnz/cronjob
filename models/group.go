@@ -11,14 +11,21 @@ import (
 
 type Group struct {
 	ID        int        `json:"id"`
-	UID       int        `json:"uid"`
-	UserID    int        `json:"user_id,omitempty"`
-	Name      string     `json:"name"`
-	Active    bool       `json:"active"`
+	UID       int        `json:"uid" validate:"number"`
+	UserID    int        `json:"user_id" validate:"required,number"`
+	Name      string     `json:"name" validate:"required"`
+	Active    bool       `json:"active" validate:"required,boolean"`
 	Parent    *Group     `json:"parent,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type GroupUpdate struct {
+	UID    int    `json:"uid" validate:"number"`
+	UserID int    `json:"user_id" validate:"number"`
+	Name   string `json:"name" validate:"omitempty"`
+	Active *bool  `json:"active" validate:"boolean"`
 }
 
 func (m *Group) Get(userID, id, uid int) ([]Group, error) {
