@@ -10,14 +10,22 @@ import (
 
 type Request struct {
 	ID        int        `json:"id"`
-	UserID    int        `json:"user_id"`
+	UserID    int        `json:"user_id" validate:"required,number"`
 	Url       string     `json:"url" validate:"required,url"`
-	Method    string     `json:"method" validate:"oneof=GET POST PUT PATCH"`
-	Content   string     `json:"content" validate:"required,is-json"`
-	Active    bool       `json:"active" validate:"required"`
+	Method    string     `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
+	Content   string     `json:"content" validate:"required,json"`
+	Active    bool       `json:"active" validate:"required,boolean"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type RequestUpdate struct {
+	UserID  int    `json:"user_id" validate:"number"`
+	Url     string `json:"url" validate:"omitempty,url"`
+	Method  string `json:"method" validate:"omitempty,oneof=GET POST PUT PATCH"`
+	Content string `json:"content" validate:"omitempty,json"`
+	Active  *bool  `json:"active" validate:"boolean"`
 }
 
 func (m *Request) Get(userID, id int, url string) ([]Request, error) {

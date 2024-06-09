@@ -64,9 +64,14 @@ func (h *RequestHandler) RequestCreateHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (h *RequestHandler) RequestUpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	var updateData map[string]any
+	updateData := &models.RequestUpdate{}
 	if err := config.ReadJSON(w, r, &updateData); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	err := config.Validate(updateData)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()})
 	}
 
 	// get auth user in context
@@ -86,28 +91,24 @@ func (h *RequestHandler) RequestUpdateHandler(w http.ResponseWriter, r *http.Req
 	params := []any{}
 	paramCount := 1
 
-	value, exists := updateData["url"]
-	if exists {
+	if updateData.Url != "" {
 		queryParts = append(queryParts, fmt.Sprintf("url=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Url)
 		paramCount++
 	}
-	value, exists = updateData["method"]
-	if exists {
+	if updateData.Method != "" {
 		queryParts = append(queryParts, fmt.Sprintf("method=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Method)
 		paramCount++
 	}
-	value, exists = updateData["content"]
-	if exists {
+	if updateData.Content != "" {
 		queryParts = append(queryParts, fmt.Sprintf("content=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Content)
 		paramCount++
 	}
-	value, exists = updateData["active"]
-	if exists {
+	if updateData.Active != nil {
 		queryParts = append(queryParts, fmt.Sprintf("active=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Active)
 		paramCount++
 	}
 
@@ -217,9 +218,14 @@ func (h *RequestHandler) RequestHeaderCreateHandler(w http.ResponseWriter, r *ht
 }
 
 func (h *RequestHandler) RequestHeaderUpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	var updateData map[string]any
+	updateData := &models.RequestHeaderUpdate{}
 	if err := config.ReadJSON(w, r, &updateData); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	err := config.Validate(updateData)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()})
 	}
 
 	// get auth user in context
@@ -239,28 +245,24 @@ func (h *RequestHandler) RequestHeaderUpdateHandler(w http.ResponseWriter, r *ht
 	params := []any{}
 	paramCount := 1
 
-	value, exists := updateData["request_id"]
-	if exists {
+	if updateData.RequestID > 0 {
 		queryParts = append(queryParts, fmt.Sprintf("request_id=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.RequestID)
 		paramCount++
 	}
-	value, exists = updateData["key"]
-	if exists {
+	if updateData.Key != "" {
 		queryParts = append(queryParts, fmt.Sprintf("key=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Key)
 		paramCount++
 	}
-	value, exists = updateData["value"]
-	if exists {
+	if updateData.Value != "" {
 		queryParts = append(queryParts, fmt.Sprintf("value=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Value)
 		paramCount++
 	}
-	value, exists = updateData["active"]
-	if exists {
+	if updateData.Active != nil {
 		queryParts = append(queryParts, fmt.Sprintf("active=$%d,", paramCount))
-		params = append(params, value)
+		params = append(params, updateData.Active)
 		paramCount++
 	}
 
