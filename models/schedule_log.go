@@ -1,6 +1,12 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/mstgnz/cronjob/config"
+)
 
 type ScheduleLog struct {
 	ID         int        `json:"id"`
@@ -12,16 +18,55 @@ type ScheduleLog struct {
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
 }
 
-func (m *ScheduleLog) GetSchedules(offset, limit int) []*ScheduleLog {
-	scheduleLogs := []*ScheduleLog{}
-	return scheduleLogs
+func (m *ScheduleLog) GetSchedules(id, schedule_id int) ([]ScheduleLog, error) {
+	query := strings.TrimSuffix(config.App().QUERY["REQUESTS"], ";")
+
+	if id > 0 {
+		query += fmt.Sprintf(" AND id=%v", id)
+	}
+	if schedule_id > 0 {
+		query += fmt.Sprintf(" AND schedule_id=%v", schedule_id)
+	}
+
+	// prepare
+	stmt, err := config.App().DB.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+
+	var scheduleLogs []ScheduleLog
+	for rows.Next() {
+		var scheduleLog ScheduleLog
+		if err := rows.Scan(&scheduleLog.ID, &scheduleLog.ScheduleID, &scheduleLog.StartedAt, &scheduleLog.FinishedAt, &scheduleLog.Took, &scheduleLog.Result, &scheduleLog.CreatedAt); err != nil {
+			return nil, err
+		}
+		scheduleLogs = append(scheduleLogs, scheduleLog)
+	}
+
+	return scheduleLogs, nil
 }
 
-func (m *ScheduleLog) GetSchedule(scheduleId int) []*ScheduleLog {
-	scheduleLogs := []*ScheduleLog{}
-	return scheduleLogs
-}
+func (m *ScheduleLog) Create(scheduleId int) error {
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUEST_INSERT"])
+	if err != nil {
+		return err
+	}
 
-func (m ScheduleLog) CreateScheduleLog(scheduleId int, startedAt, finishedAt time.Time, took float32, result any) ScheduleLog {
-	return m
+	// user_id,url,method,content,active
+	err = stmt.QueryRow(m.ScheduleID, m.StartedAt, m.FinishedAt, m.Took, m.Result).Scan(&m.ID, &m.ScheduleID, &m.StartedAt, &m.FinishedAt, &m.Took, &m.Result, &m.CreatedAt)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

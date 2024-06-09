@@ -96,3 +96,6 @@ SELECT count(*) FROM schedules WHERE id=$1 AND user_id=$2 AND deleted_at isnull;
 
 -- SCHEDULES_DELETE
 UPDATE schedules SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
+
+-- SCHEDULE_LOGS
+SELECT * FROM schedules WHERE schedule_id=$1;
