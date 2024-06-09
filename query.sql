@@ -99,3 +99,23 @@ UPDATE schedules SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 
 -- SCHEDULE_LOGS
 SELECT * FROM schedule_logs sl JOIN schedules s ON s.id=sl.schedule_id WHERE sl.schedule_id=$1 AND s.user_id=$2;
+
+
+-- WEBHOOKS
+SELECT w.* FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE s.user_id=$1 AND w.deleted_at isnull;
+
+-- WEBHOOKS_WITH_ID
+SELECT w.* FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE w.id=$1 AND s.user_id=$2 AND w.deleted_at isnull;
+
+-- WEBHOOK_INSERT
+INSERT INTO webhooks (schedule_id,request_id, active) VALUES ($1,$2,$3) RETURNING id,schedule_id,request_id,active;
+
+-- WEBHOOK_ID_EXISTS_WITH_USER
+SELECT count(*) FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE w.id=$1 AND s.user_id=$2 AND w.deleted_at isnull;
+
+-- WEBHOOK_UNIQ_EXISTS_WITH_USER
+SELECT count(*) FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE w.schedule_id=$1 AND w.request_id=$2 AND s.user_id=$3 AND w.deleted_at isnull;
+
+-- WEBHOOK_DELETE
+UPDATE webhooks SET deleted_at=$1, updated_at=$2 FROM schedules 
+WHERE schedules.id=webhooks.schedule_id AND webhooks.id=$3 AND schedules.user_id=$4;
