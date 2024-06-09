@@ -13,7 +13,7 @@ type AppLog struct {
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 }
 
-func (m *AppLog) CreateLog(level, message string) error {
+func (m *AppLog) Create(level, message string) error {
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["APP_LOG_INSERT"])
 	if err != nil {
 		return err

@@ -54,7 +54,7 @@ func (m *ScheduleLog) Get(id, schedule_id, user_id int) ([]ScheduleLog, error) {
 }
 
 func (m *ScheduleLog) Create(scheduleId int) error {
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUEST_INSERT"])
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["SCHEDULE_LOG_INSERT"])
 	if err != nil {
 		return err
 	}

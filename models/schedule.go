@@ -142,7 +142,7 @@ func (m *Schedule) Update(query string, params []any) error {
 	}
 
 	if affected == 0 {
-		return fmt.Errorf("Request not updated")
+		return fmt.Errorf("Schedule not updated")
 	}
 
 	return nil
@@ -171,7 +171,7 @@ func (m *Schedule) Delete(id, userID int) error {
 	}
 
 	if affected == 0 {
-		return fmt.Errorf("Request not deleted")
+		return fmt.Errorf("Schedule not deleted")
 	}
 
 	return nil

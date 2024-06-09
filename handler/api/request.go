@@ -15,7 +15,7 @@ import (
 type RequestHandler struct{}
 
 func (h *RequestHandler) RequestListHandler(w http.ResponseWriter, r *http.Request) error {
-	req := &models.Request{}
+	request := &models.Request{}
 
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
@@ -23,7 +23,7 @@ func (h *RequestHandler) RequestListHandler(w http.ResponseWriter, r *http.Reque
 	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	url := r.URL.Query().Get("url")
 
-	requests, err := req.Get(cUser.ID, id, url)
+	requests, err := request.Get(cUser.ID, id, url)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
 	}

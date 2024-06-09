@@ -15,7 +15,7 @@ import (
 type RequestHeaderHandler struct{}
 
 func (h *RequestHeaderHandler) RequestHeaderListHandler(w http.ResponseWriter, r *http.Request) error {
-	req := &models.RequestHeader{}
+	requestHeader := &models.RequestHeader{}
 
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
@@ -24,7 +24,7 @@ func (h *RequestHeaderHandler) RequestHeaderListHandler(w http.ResponseWriter, r
 	requestID, _ := strconv.Atoi(r.URL.Query().Get("request_id"))
 	key := r.URL.Query().Get("key")
 
-	requests, err := req.Get(cUser.ID, id, requestID, key)
+	requests, err := requestHeader.Get(cUser.ID, id, requestID, key)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
 	}
@@ -149,9 +149,9 @@ func (h *RequestHeaderHandler) RequestHeaderDeleteHandler(w http.ResponseWriter,
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
-	request := &models.RequestHeader{}
+	requestHeader := &models.RequestHeader{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	exists, err := request.IDExists(id, cUser.ID)
+	exists, err := requestHeader.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
@@ -159,7 +159,7 @@ func (h *RequestHeaderHandler) RequestHeaderDeleteHandler(w http.ResponseWriter,
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"})
 	}
 
-	err = request.Delete(id, cUser.ID)
+	err = requestHeader.Delete(id, cUser.ID)
 
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
