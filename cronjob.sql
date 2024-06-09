@@ -97,7 +97,8 @@ CREATE SEQUENCE IF NOT EXISTS request_headers_id_seq;
 CREATE TABLE "public"."request_headers" (
     "id" int4 NOT NULL DEFAULT nextval('request_headers_id_seq'::regclass),
     "request_id" int4 NOT NULL,
-    "header" varchar NOT NULL,
+    "key" varchar NOT NULL,
+    "value" varchar NOT NULL,
     "active" bool NOT NULL DEFAULT true,
     "created_at" timestamp NOT NULL DEFAULT now(),
     "updated_at" timestamp,

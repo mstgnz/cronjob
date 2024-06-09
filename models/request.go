@@ -50,7 +50,7 @@ func (m *Request) Get(userID, id int, url string) ([]Request, error) {
 	var requests []Request
 	for rows.Next() {
 		var request Request
-		if err := rows.Scan(&request.ID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.UpdatedAt); err != nil {
+		if err := rows.Scan(&request.ID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt); err != nil {
 			return nil, err
 		}
 		requests = append(requests, request)
@@ -176,7 +176,7 @@ func (m *Request) Delete(id, userID int) error {
 	}
 
 	if affected == 0 {
-		return fmt.Errorf("Group not deleted")
+		return fmt.Errorf("Request not deleted")
 	}
 
 	return nil

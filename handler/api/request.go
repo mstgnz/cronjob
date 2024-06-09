@@ -74,11 +74,11 @@ func (h *RequestHandler) RequestUpdateHandler(w http.ResponseWriter, r *http.Req
 
 	request := &models.Request{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	groupExists, err := request.IDExists(id, cUser.ID)
+	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
-	if !groupExists {
+	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
 	}
 
@@ -158,17 +158,154 @@ func (h *RequestHandler) RequestDeleteHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (h *RequestHandler) RequestHeaderListHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+	req := &models.RequestHeader{}
+
+	// get auth user in context
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	requestID, _ := strconv.Atoi(r.URL.Query().Get("request_id"))
+	key := r.URL.Query().Get("key")
+
+	requests, err := req.Get(cUser.ID, id, requestID, key)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests})
 }
 
 func (h *RequestHandler) RequestHeaderCreateHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+	requestHeader := &models.RequestHeader{}
+	if err := config.ReadJSON(w, r, requestHeader); err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	err := config.Validate(requestHeader)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()})
+	}
+
+	// get auth user in context
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+	// check request
+	request := &models.Request{}
+	exists, err := request.IDExists(requestHeader.RequestID, cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if !exists {
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
+	}
+
+	// check header key
+	exists, err = requestHeader.HeaderExists(cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if exists {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Header already exists"})
+	}
+
+	err = requestHeader.Create()
+	if err != nil {
+		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Request Header created", Data: requestHeader})
 }
 
 func (h *RequestHandler) RequestHeaderUpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+	var updateData map[string]any
+	if err := config.ReadJSON(w, r, &updateData); err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	// get auth user in context
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+	requestHeader := &models.RequestHeader{}
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	headerExists, err := requestHeader.IDExists(id, cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if !headerExists {
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"})
+	}
+
+	queryParts := []string{"UPDATE request_headers SET"}
+	params := []any{}
+	paramCount := 1
+
+	value, exists := updateData["request_id"]
+	if exists {
+		queryParts = append(queryParts, fmt.Sprintf("request_id=$%d,", paramCount))
+		params = append(params, value)
+		paramCount++
+	}
+	value, exists = updateData["key"]
+	if exists {
+		queryParts = append(queryParts, fmt.Sprintf("key=$%d,", paramCount))
+		params = append(params, value)
+		paramCount++
+	}
+	value, exists = updateData["value"]
+	if exists {
+		queryParts = append(queryParts, fmt.Sprintf("value=$%d,", paramCount))
+		params = append(params, value)
+		paramCount++
+	}
+	value, exists = updateData["active"]
+	if exists {
+		queryParts = append(queryParts, fmt.Sprintf("active=$%d,", paramCount))
+		params = append(params, value)
+		paramCount++
+	}
+
+	if len(params) == 0 {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "No fields to update"})
+	}
+
+	// update at
+	updatedAt := time.Now().Format("2006-01-02 15:04:05")
+	queryParts = append(queryParts, fmt.Sprintf("updated_at=$%d", paramCount))
+	params = append(params, updatedAt)
+	paramCount++
+
+	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d", paramCount))
+	params = append(params, id)
+	query := strings.Join(queryParts, " ")
+
+	err = requestHeader.Update(query, params)
+
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData})
 }
 
 func (h *RequestHandler) RequestHeaderDeleteHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
+	// get auth user in context
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+	request := &models.RequestHeader{}
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	groupExists, err := request.IDExists(id, cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if !groupExists {
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"})
+	}
+
+	err = request.Delete(id, cUser.ID)
+
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Soft delte success"})
 }
