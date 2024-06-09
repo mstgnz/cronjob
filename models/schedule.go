@@ -17,14 +17,14 @@ type Schedule struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
-type ScheduleCreate struct {
+type ScheduleUpdate struct {
 	GroupID   int    `json:"group_id" validate:"required"`
 	RequestID int    `json:"request_id" validate:"required"`
 	Timing    string `json:"timing" validate:"required"`
 	Timeout   int    `json:"timeout"`
 	Retries   int    `json:"retries"`
-	Running   bool   `json:"running"`
-	Active    bool   `json:"active"`
+	Running   *bool  `json:"running"`
+	Active    *bool  `json:"active"`
 }
 
 func (m *Schedule) Get(offset, limit int) []*Schedule {

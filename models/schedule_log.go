@@ -9,6 +9,7 @@ type ScheduleLog struct {
 	Result     any        `json:"result" validate:"required"`
 	StartedAt  *time.Time `json:"started_at,omitempty"`
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
+	CreatedAt  *time.Time `json:"created_at,omitempty"`
 }
 
 func (m *ScheduleLog) GetSchedules(offset, limit int) []*ScheduleLog {
