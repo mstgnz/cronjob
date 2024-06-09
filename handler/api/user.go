@@ -87,15 +87,19 @@ func (h *UserHandler) UserHandler(w http.ResponseWriter, r *http.Request) error 
 }
 
 func (h *UserHandler) UserUpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	updateData := &models.User{}
+	updateData := &models.UserUpdate{}
 	if err := config.ReadJSON(w, r, updateData); err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	err := config.Validate(updateData)
+	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
 
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
-	updateData.ID = cUser.ID
 	queryParts := []string{"UPDATE users SET"}
 	params := []any{}
 	paramCount := 1
@@ -131,10 +135,11 @@ func (h *UserHandler) UserUpdateHandler(w http.ResponseWriter, r *http.Request) 
 	// queryParts[size] = strings.TrimSuffix(queryParts[size], ",")
 
 	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d", paramCount))
-	params = append(params, updateData.ID)
+	params = append(params, cUser.ID)
 	query := strings.Join(queryParts, " ")
 
-	err := updateData.Update(query, params)
+	user := &models.User{}
+	err = user.Update(query, params)
 
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})

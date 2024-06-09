@@ -9,15 +9,21 @@ import (
 
 type User struct {
 	ID        int        `json:"id"`
-	Fullname  string     `json:"fullname"`
-	Email     string     `json:"email"`
-	Password  string     `json:"-"`
-	Phone     string     `json:"phone"`
+	Fullname  string     `json:"fullname" validate:"required"`
+	Email     string     `json:"email" validate:"required,email"`
+	Password  string     `json:"-" validate:"required"`
+	Phone     string     `json:"phone" validate:"required,e164"`
 	IsAdmin   bool       `json:"is_admin"`
 	LastLogin *time.Time `json:"last_login,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type UserUpdate struct {
+	Fullname string `json:"fullname" validate:"omitempty"`
+	Email    string `json:"email" validate:"omitempty,email"`
+	Phone    string `json:"phone" validate:"omitempty,e164"`
 }
 
 type UserLogin struct {
