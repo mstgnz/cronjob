@@ -27,12 +27,15 @@ var (
 	PORT       string
 	webHandler web.Web
 
-	apiUserHandler         api.UserHandler
-	apiGroupHandler        api.GroupHandler
-	apiRequestHandler      api.RequestHandler
-	apiNotificationHandler api.NotificationHandler
-	apiScheduleHandler     api.ScheduleHandler
-	apiWebhookHandler      api.WebhookHandler
+	apiUserHandler           api.UserHandler
+	apiGroupHandler          api.GroupHandler
+	apiRequestHandler        api.RequestHandler
+	apiRequestHeadderHandler api.RequestHeaderHandler
+	apiNotificationHandler   api.NotificationHandler
+	apiNotifyEmailHandler    api.NotifyEmailHandler
+	apiNotifySmsHandler      api.NotifySmsHandler
+	apiScheduleHandler       api.ScheduleHandler
+	apiWebhookHandler        api.WebhookHandler
 )
 
 func init() {
@@ -132,25 +135,25 @@ func main() {
 			r.Put("/requests/{id}", Catch(apiRequestHandler.RequestUpdateHandler))
 			r.Delete("/requests/{id}", Catch(apiRequestHandler.RequestDeleteHandler))
 			// request headers
-			r.Get("/request-headers", Catch(apiRequestHandler.RequestHeaderListHandler))
-			r.Post("/request-headers", Catch(apiRequestHandler.RequestHeaderCreateHandler))
-			r.Put("/request-headers/{id}", Catch(apiRequestHandler.RequestHeaderUpdateHandler))
-			r.Delete("/request-headers/{id}", Catch(apiRequestHandler.RequestHeaderDeleteHandler))
+			r.Get("/request-headers", Catch(apiRequestHeadderHandler.RequestHeaderListHandler))
+			r.Post("/request-headers", Catch(apiRequestHeadderHandler.RequestHeaderCreateHandler))
+			r.Put("/request-headers/{id}", Catch(apiRequestHeadderHandler.RequestHeaderUpdateHandler))
+			r.Delete("/request-headers/{id}", Catch(apiRequestHeadderHandler.RequestHeaderDeleteHandler))
 			// notifications
 			r.Get("/notifications", Catch(apiNotificationHandler.NotificationListHandler))
 			r.Post("/notifications", Catch(apiNotificationHandler.NotificationCreateHandler))
 			r.Put("/notifications/{id}", Catch(apiNotificationHandler.NotificationUpdateHandler))
 			r.Delete("/notifications/{id}", Catch(apiNotificationHandler.NotificationDeleteHandler))
 			// notification emails
-			r.Get("/notify-emails", Catch(apiNotificationHandler.NotifyEmailListHandler))
-			r.Post("/notify-emails", Catch(apiNotificationHandler.NotifyEmailCreateHandler))
-			r.Put("/notify-emails/{id}", Catch(apiNotificationHandler.NotifyEmailUpdateHandler))
-			r.Delete("/notify-emails/{id}", Catch(apiNotificationHandler.NotifyEmailDeleteHandler))
+			r.Get("/notify-emails", Catch(apiNotifyEmailHandler.NotifyEmailListHandler))
+			r.Post("/notify-emails", Catch(apiNotifyEmailHandler.NotifyEmailCreateHandler))
+			r.Put("/notify-emails/{id}", Catch(apiNotifyEmailHandler.NotifyEmailUpdateHandler))
+			r.Delete("/notify-emails/{id}", Catch(apiNotifyEmailHandler.NotifyEmailDeleteHandler))
 			// notification sms
-			r.Get("/notify-sms", Catch(apiNotificationHandler.NotifySmsListHandler))
-			r.Post("/notify-sms", Catch(apiNotificationHandler.NotifySmsCreateHandler))
-			r.Put("/notify-sms/{id}", Catch(apiNotificationHandler.NotifySmsUpdateHandler))
-			r.Delete("/notify-sms/{id}", Catch(apiNotificationHandler.NotifySmsDeleteHandler))
+			r.Get("/notify-sms", Catch(apiNotifySmsHandler.NotifySmsListHandler))
+			r.Post("/notify-sms", Catch(apiNotifySmsHandler.NotifySmsCreateHandler))
+			r.Put("/notify-sms/{id}", Catch(apiNotifySmsHandler.NotifySmsUpdateHandler))
+			r.Delete("/notify-sms/{id}", Catch(apiNotifySmsHandler.NotifySmsDeleteHandler))
 			// webhooks
 			r.Get("/webhooks", Catch(apiWebhookHandler.WebhookListHandler))
 			r.Post("/webhooks", Catch(apiWebhookHandler.WebhookCreateHandler))
@@ -163,9 +166,6 @@ func main() {
 			r.Delete("/schedules/{id}", Catch(apiScheduleHandler.ScheduleDeleteHandler))
 			// schedule logs
 			r.Get("/schedule-logs", Catch(apiScheduleHandler.ScheduleLogListHandler))
-			r.Post("/schedule-logs", Catch(apiScheduleHandler.ScheduleLogCreateHandler))
-			r.Put("/schedule-logs/{id}", Catch(apiScheduleHandler.ScheduleLogUpdateHandler))
-			r.Delete("/schedule-logs/{id}", Catch(apiScheduleHandler.ScheduleLogDeleteHandler))
 		})
 	})
 

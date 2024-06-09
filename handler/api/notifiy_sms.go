@@ -6,20 +6,20 @@ import (
 	"github.com/mstgnz/cronjob/config"
 )
 
-type NotificationHandler struct{}
+type NotifySmsHandler struct{}
 
-func (h *NotificationHandler) NotificationListHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *NotifySmsHandler) NotifySmsListHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
 
-func (h *NotificationHandler) NotificationCreateHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
 
-func (h *NotificationHandler) NotificationUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *NotifySmsHandler) NotifySmsUpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
 
-func (h *NotificationHandler) NotificationDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *NotifySmsHandler) NotifySmsDeleteHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success"})
 }
