@@ -18,14 +18,11 @@ type ScheduleLog struct {
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
 }
 
-func (m *ScheduleLog) GetSchedules(id, schedule_id int) ([]ScheduleLog, error) {
+func (m *ScheduleLog) GetSchedules(id, schedule_id, user_id int) ([]ScheduleLog, error) {
 	query := strings.TrimSuffix(config.App().QUERY["REQUESTS"], ";")
 
 	if id > 0 {
 		query += fmt.Sprintf(" AND id=%v", id)
-	}
-	if schedule_id > 0 {
-		query += fmt.Sprintf(" AND schedule_id=%v", schedule_id)
 	}
 
 	// prepare
@@ -35,7 +32,7 @@ func (m *ScheduleLog) GetSchedules(id, schedule_id int) ([]ScheduleLog, error) {
 	}
 
 	// query
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(schedule_id, user_id)
 	if err != nil {
 		return nil, err
 	}
