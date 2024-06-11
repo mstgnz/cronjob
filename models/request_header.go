@@ -20,10 +20,10 @@ type RequestHeader struct {
 }
 
 type RequestHeaderUpdate struct {
-	RequestID int    `json:"request_id" validate:"number"`
+	RequestID int    `json:"request_id" validate:"omitempty,number"`
 	Key       string `json:"key" validate:"omitempty"`
 	Value     string `json:"value" validate:"omitempty"`
-	Active    *bool  `json:"active" validate:"boolean"`
+	Active    *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
 func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]RequestHeader, error) {
