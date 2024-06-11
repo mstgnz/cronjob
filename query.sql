@@ -119,3 +119,26 @@ SELECT count(*) FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE w.s
 -- WEBHOOK_DELETE
 UPDATE webhooks SET deleted_at=$1, updated_at=$2 FROM schedules 
 WHERE schedules.id=webhooks.schedule_id AND webhooks.id=$3 AND schedules.user_id=$4;
+
+
+-- NOTIFICATIONS
+SELECT n.* FROM notifications n JOIN schedules s ON s.id=n.schedule_id WHERE s.user_id=$1 AND n.deleted_at isnull;
+
+-- NOTIFICATIONS_WITH_ID
+SELECT n.* FROM notifications n JOIN schedules s ON s.id=n.schedule_id WHERE s.user_id=$1 AND n.id=$2 AND n.deleted_at isnull;
+
+-- NOTIFICATION_INSERT
+INSERT INTO notifications 
+(schedule_id,is_sms,is_mail,title,content,active) 
+VALUES 
+($1,$2,$3,$4,$5,$6) RETURNING id,schedule_id,is_sms,is_mail,title,content,active;
+
+-- NOTIFICATION_TITLE_EXISTS_WITH_USER_AND_SCHEDULE
+SELECT count(*) FROM notifications n JOIN schedules s ON s.id=n.schedule_id WHERE s.user_id=$1 AND n.title=$2 AND n.schedule_id=$3 AND n.deleted_at isnull;
+
+-- NOTIFICATION_ID_EXISTS_WITH_USER
+SELECT count(*) FROM notifications n JOIN schedules s ON s.id=n.schedule_id WHERE n.id=$1 AND s.user_id=$2 AND n.deleted_at isnull;
+
+-- NOTIFICATION_DELETE
+UPDATE notifications SET deleted_at=$1, updated_at=$2 FROM schedules 
+WHERE schedules.id=notifications.schedule_id AND notifications.id=$3 AND schedules.user_id=$4;
