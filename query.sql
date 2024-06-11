@@ -175,3 +175,36 @@ WHERE ne.id=$1 AND s.user_id=$2 AND ne.deleted_at isnull;
 UPDATE notify_email SET deleted_at=$1, updated_at=$2 FROM notifications 
 JOIN schedules ON schedules.id=notifications.schedule_id 
 WHERE notifications.id=notify_email.notification_id AND notify_email.id=$3 AND schedules.user_id=$4;
+
+
+-- NOTIFICATION_SMS
+SELECT ns.* FROM notify_sms ns 
+JOIN notifications n ON n.id=ns.notification_id 
+JOIN schedules s ON s.id=n.schedule_id 
+WHERE s.user_id=$1 AND ns.deleted_at isnull;
+
+-- NOTIFICATION_SMS_WITH_ID
+SELECT ns.* FROM notify_sms ns 
+JOIN notifications n ON n.id=ns.notification_id 
+JOIN schedules s ON s.id=n.schedule_id 
+WHERE s.user_id=$1 AND ns.id=$2 AND ns.deleted_at isnull;
+
+-- NOTIFICATION_SMS_INSERT
+INSERT INTO notify_sms (notification_id,phone,active) VALUES ($1,$2,$3) RETURNING id,notification_id,phone,active;
+
+-- NOTIFICATION_SMS_PHONE_EXISTS_WITH_USER
+SELECT count(*) FROM notify_sms ns 
+JOIN notifications n ON n.id=ns.notification_id 
+JOIN schedules s ON s.id=n.schedule_id 
+WHERE s.user_id=$1 AND ns.phone=$2 AND n.id=$3 AND ns.deleted_at isnull;
+
+-- NOTIFICATION_SMS_ID_EXISTS_WITH_USER
+SELECT count(*) FROM notify_sms ns 
+JOIN notifications n ON n.id=ns.notification_id 
+JOIN schedules s ON s.id=n.schedule_id 
+WHERE ns.id=$1 AND s.user_id=$2 AND ns.deleted_at isnull;
+
+-- NOTIFICATION_SMS_DELETE
+UPDATE notify_sms SET deleted_at=$1, updated_at=$2 FROM notifications 
+JOIN schedules ON schedules.id=notifications.schedule_id 
+WHERE notifications.id=notify_sms.notification_id AND notify_sms.id=$3 AND schedules.user_id=$4;
