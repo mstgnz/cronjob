@@ -22,10 +22,10 @@ type Group struct {
 }
 
 type GroupUpdate struct {
-	UID    int    `json:"uid" validate:"number"`
-	UserID int    `json:"user_id" validate:"number"`
+	UID    int    `json:"uid" validate:"omitempty,number"`
+	UserID int    `json:"user_id" validate:"omitempty,number"`
 	Name   string `json:"name" validate:"omitempty"`
-	Active *bool  `json:"active" validate:"boolean"`
+	Active *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
 func (m *Group) Get(userID, id, uid int) ([]Group, error) {
