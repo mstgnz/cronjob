@@ -27,9 +27,9 @@ type ScheduleUpdate struct {
 	GroupID   int    `json:"group_id" validate:"omitempty,number"`
 	RequestID int    `json:"request_id" validate:"omitempty,number"`
 	Timing    string `json:"timing" validate:"omitempty,cron"`
-	Timeout   *int   `json:"timeout" validate:"omitempty,number"`
-	Retries   *int   `json:"retries" validate:"omitempty,number"`
-	Active    *bool  `json:"active" validate:"omitempty,boolean"`
+	Timeout   *int   `json:"timeout" validate:"omitnil,number"`
+	Retries   *int   `json:"retries" validate:"omitnil,number"`
+	Active    *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
 func (m *Schedule) Get(id, userID, groupID, requestID int, timing string) ([]Schedule, error) {
