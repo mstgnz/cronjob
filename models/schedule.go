@@ -9,30 +9,32 @@ import (
 )
 
 type Schedule struct {
-	ID        int        `json:"id"`
-	UserID    int        `json:"user_id" validate:"number"`
-	GroupID   int        `json:"group_id" validate:"required,number"`
-	RequestID int        `json:"request_id" validate:"required,number"`
-	Timing    string     `json:"timing" validate:"required,cron"` // https://crontab.guru/
-	Timeout   int        `json:"timeout" validate:"number"`
-	Retries   int        `json:"retries" validate:"number"`
-	Running   bool       `json:"running" validate:"boolean"`
-	Active    bool       `json:"active" validate:"required,boolean"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	ID             int        `json:"id"`
+	UserID         int        `json:"user_id" validate:"number"`
+	GroupID        int        `json:"group_id" validate:"required,number"`
+	RequestID      int        `json:"request_id" validate:"required,number"`
+	NotificationID int        `json:"notification_id" validate:"required,number"`
+	Timing         string     `json:"timing" validate:"required,cron"` // https://crontab.guru/
+	Timeout        int        `json:"timeout" validate:"number"`
+	Retries        int        `json:"retries" validate:"number"`
+	Running        bool       `json:"running" validate:"boolean"`
+	Active         bool       `json:"active" validate:"required,boolean"`
+	CreatedAt      *time.Time `json:"created_at,omitempty"`
+	UpdatedAt      *time.Time `json:"updated_at,omitempty"`
+	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
 }
 
 type ScheduleUpdate struct {
-	GroupID   int    `json:"group_id" validate:"omitempty,number"`
-	RequestID int    `json:"request_id" validate:"omitempty,number"`
-	Timing    string `json:"timing" validate:"omitempty,cron"`
-	Timeout   *int   `json:"timeout" validate:"omitnil,number"`
-	Retries   *int   `json:"retries" validate:"omitnil,number"`
-	Active    *bool  `json:"active" validate:"omitnil,boolean"`
+	GroupID        int    `json:"group_id" validate:"omitempty,number"`
+	RequestID      int    `json:"request_id" validate:"omitempty,number"`
+	NotificationID int    `json:"notification_id" validate:"omitempty,number"`
+	Timing         string `json:"timing" validate:"omitempty,cron"`
+	Timeout        *int   `json:"timeout" validate:"omitnil,number"`
+	Retries        *int   `json:"retries" validate:"omitnil,number"`
+	Active         *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
-func (m *Schedule) Get(id, userID, groupID, requestID int, timing string) ([]Schedule, error) {
+func (m *Schedule) Get(id, userID, groupID, requestID, NotificationID int, timing string) ([]Schedule, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["SCHEDULES"], ";")
 
@@ -47,6 +49,9 @@ func (m *Schedule) Get(id, userID, groupID, requestID int, timing string) ([]Sch
 	}
 	if requestID > 0 {
 		query += fmt.Sprintf(" AND request_id=%v", requestID)
+	}
+	if NotificationID > 0 {
+		query += fmt.Sprintf(" AND notification_id=%v", NotificationID)
 	}
 	if timing != "" {
 		query += fmt.Sprintf(" AND timing=%v", timing)
@@ -71,7 +76,7 @@ func (m *Schedule) Get(id, userID, groupID, requestID int, timing string) ([]Sch
 	var schedules []Schedule
 	for rows.Next() {
 		var schedule Schedule
-		if err := rows.Scan(&schedule.ID, &schedule.UserID, &schedule.GroupID, &schedule.RequestID, &schedule.Timing, &schedule.Timeout, &schedule.Retries, &schedule.Running, &schedule.Active, &schedule.CreatedAt, &schedule.UpdatedAt, &schedule.DeletedAt); err != nil {
+		if err := rows.Scan(&schedule.ID, &schedule.UserID, &schedule.GroupID, &schedule.RequestID, &schedule.NotificationID, &schedule.Timing, &schedule.Timeout, &schedule.Retries, &schedule.Running, &schedule.Active, &schedule.CreatedAt, &schedule.UpdatedAt, &schedule.DeletedAt); err != nil {
 			return nil, err
 		}
 		schedules = append(schedules, schedule)
@@ -87,7 +92,7 @@ func (m *Schedule) Create() error {
 	}
 
 	// user_id,group_id,request_id,timing,timeout,retries,running,active;
-	err = stmt.QueryRow(m.UserID, m.GroupID, m.RequestID, m.Timing, m.Timeout, m.Retries, m.Active).Scan(&m.ID, &m.UserID, &m.GroupID, &m.RequestID, &m.Timing, &m.Timeout, &m.Retries, &m.Running, &m.Active)
+	err = stmt.QueryRow(m.UserID, m.GroupID, m.RequestID, m.NotificationID, m.Timing, m.Timeout, m.Retries, m.Active).Scan(&m.ID, &m.UserID, &m.GroupID, &m.RequestID, &m.NotificationID, &m.Timing, &m.Timeout, &m.Retries, &m.Running, &m.Active)
 	if err != nil {
 		return err
 	}

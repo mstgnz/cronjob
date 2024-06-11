@@ -23,9 +23,10 @@ func (h *ScheduleHandler) ScheduleListHandler(w http.ResponseWriter, r *http.Req
 	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	group_id, _ := strconv.Atoi(r.URL.Query().Get("group_id"))
 	request_id, _ := strconv.Atoi(r.URL.Query().Get("request_id"))
+	notification_id, _ := strconv.Atoi(r.URL.Query().Get("notification_id"))
 	timing := r.URL.Query().Get("timing")
 
-	requests, err := schedule.Get(id, cUser.ID, group_id, request_id, timing)
+	requests, err := schedule.Get(id, cUser.ID, group_id, request_id, notification_id, timing)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
 	}
@@ -69,12 +70,22 @@ func (h *ScheduleHandler) ScheduleCreateHandler(w http.ResponseWriter, r *http.R
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
 	}
 
+	// notification check
+	notification := &models.Notification{}
+	exists, err = notification.IDExists(schedule.NotificationID, cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if !exists {
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
+	}
+
 	err = schedule.Create()
 	if err != nil {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
 
-	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Request created", Data: schedule})
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Schedule created", Data: schedule})
 }
 
 func (h *ScheduleHandler) ScheduleUpdateHandler(w http.ResponseWriter, r *http.Request) error {
@@ -133,6 +144,21 @@ func (h *ScheduleHandler) ScheduleUpdateHandler(w http.ResponseWriter, r *http.R
 		// add query
 		queryParts = append(queryParts, fmt.Sprintf("request_id=$%d,", paramCount))
 		params = append(params, updateData.RequestID)
+		paramCount++
+	}
+	if updateData.NotificationID > 0 {
+		// request check
+		notification := &models.Notification{}
+		exists, err = notification.IDExists(schedule.NotificationID, cUser.ID)
+		if err != nil {
+			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		}
+		if !exists {
+			return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
+		}
+		// add query
+		queryParts = append(queryParts, fmt.Sprintf("notification_id=$%d,", paramCount))
+		params = append(params, updateData.NotificationID)
 		paramCount++
 	}
 	if updateData.Timing != "" {
