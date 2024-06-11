@@ -10,7 +10,7 @@ import (
 
 type Request struct {
 	ID        int        `json:"id"`
-	UserID    int        `json:"user_id" validate:"number"`
+	UserID    int        `json:"user_id" validate:"required,number"`
 	Url       string     `json:"url" validate:"required,url"`
 	Method    string     `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
 	Content   string     `json:"content" validate:"required,json"`
@@ -21,11 +21,11 @@ type Request struct {
 }
 
 type RequestUpdate struct {
-	UserID  int    `json:"user_id" validate:"number"`
+	UserID  int    `json:"user_id" validate:"omitempty,number"`
 	Url     string `json:"url" validate:"omitempty,url"`
 	Method  string `json:"method" validate:"omitempty,oneof=GET POST PUT PATCH"`
 	Content string `json:"content" validate:"omitempty,json"`
-	Active  *bool  `json:"active" validate:"boolean"`
+	Active  *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
 func (m *Request) Get(userID, id int, url string) ([]Request, error) {
