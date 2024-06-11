@@ -142,3 +142,36 @@ SELECT count(*) FROM notifications n JOIN schedules s ON s.id=n.schedule_id WHER
 -- NOTIFICATION_DELETE
 UPDATE notifications SET deleted_at=$1, updated_at=$2 FROM schedules 
 WHERE schedules.id=notifications.schedule_id AND notifications.id=$3 AND schedules.user_id=$4;
+
+
+-- NOTIFICATION_EMAILS
+SELECT ne.* FROM notify_email ne 
+JOIN notifications n ON n.id=ne.notification_id 
+JOIN schedules s ON s.id=n.schedule_id 
+WHERE s.user_id=$1 AND ne.deleted_at isnull;
+
+-- NOTIFICATION_EMAILS_WITH_ID
+SELECT ne.* FROM notify_email ne 
+JOIN notifications n ON n.id=ne.notification_id 
+JOIN schedules s ON s.id=n.schedule_id 
+WHERE s.user_id=$1 AND ne.id=$2 AND ne.deleted_at isnull;
+
+-- NOTIFICATION_EMAIL_INSERT
+INSERT INTO notify_email (notification_id,email,active) VALUES ($1,$2,$3) RETURNING id,notification_id,email,active;
+
+-- NOTIFICATION_EMAIL_EXISTS_WITH_USER
+SELECT count(*) FROM notify_email ne 
+JOIN notifications n ON n.id=ne.notification_id 
+JOIN schedules s ON s.id=n.schedule_id 
+WHERE s.user_id=$1 AND ne.email=$2 AND n.id=$3 AND ne.deleted_at isnull;
+
+-- NOTIFICATION_EMAIL_ID_EXISTS_WITH_USER
+SELECT count(*) FROM notify_email ne 
+JOIN notifications n ON n.id=ne.notification_id 
+JOIN schedules s ON s.id=n.schedule_id 
+WHERE ne.id=$1 AND s.user_id=$2 AND ne.deleted_at isnull;
+
+-- NOTIFICATION_EMAIL_DELETE
+UPDATE notify_email SET deleted_at=$1, updated_at=$2 FROM notifications 
+JOIN schedules ON schedules.id=notifications.schedule_id 
+WHERE notifications.id=notify_email.notification_id AND notify_email.id=$3 AND schedules.user_id=$4;
