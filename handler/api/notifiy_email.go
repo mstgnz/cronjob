@@ -67,7 +67,7 @@ func (h *NotifyEmailHandler) NotifyEmailCreateHandler(w http.ResponseWriter, r *
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
 
-	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notify email created", Data: notification})
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notify email created", Data: notifyEmail})
 }
 
 func (h *NotifyEmailHandler) NotifyEmailUpdateHandler(w http.ResponseWriter, r *http.Request) error {
@@ -94,7 +94,7 @@ func (h *NotifyEmailHandler) NotifyEmailUpdateHandler(w http.ResponseWriter, r *
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify email not found"})
 	}
 
-	queryParts := []string{"UPDATE notify_email SET"}
+	queryParts := []string{"UPDATE notify_emails SET"}
 	params := []any{}
 	paramCount := 1
 

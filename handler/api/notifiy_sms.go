@@ -15,7 +15,7 @@ import (
 type NotifySmsHandler struct{}
 
 func (h *NotifySmsHandler) NotifySmsListHandler(w http.ResponseWriter, r *http.Request) error {
-	notifyS := &models.NotifySms{}
+	notifySms := &models.NotifySms{}
 
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
@@ -23,12 +23,12 @@ func (h *NotifySmsHandler) NotifySmsListHandler(w http.ResponseWriter, r *http.R
 	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	phone := r.URL.Query().Get("phone")
 
-	notifySms, err := notifyS.Get(cUser.ID, id, phone)
+	notifySmses, err := notifySms.Get(cUser.ID, id, phone)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
 	}
 
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifySms})
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifySmses})
 }
 
 func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http.Request) error {
@@ -67,7 +67,7 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
 
-	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notify sms created", Data: notification})
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notify sms created", Data: notifySms})
 }
 
 func (h *NotifySmsHandler) NotifySmsUpdateHandler(w http.ResponseWriter, r *http.Request) error {
@@ -94,7 +94,7 @@ func (h *NotifySmsHandler) NotifySmsUpdateHandler(w http.ResponseWriter, r *http
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify sms not found"})
 	}
 
-	queryParts := []string{"UPDATE notify_sms SET"}
+	queryParts := []string{"UPDATE notify_smses SET"}
 	params := []any{}
 	paramCount := 1
 

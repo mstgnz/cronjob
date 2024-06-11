@@ -45,16 +45,9 @@ func (h *NotificationHandler) NotificationCreateHandler(w http.ResponseWriter, r
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
-	schedule := &models.Schedule{}
-	exists, err := schedule.IDExists(notification.ScheduleID, cUser.ID)
-	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
-	}
-	if !exists {
-		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Schedule not found"})
-	}
+	notification.UserID = cUser.ID
 
-	exists, err = notification.TitleExists(cUser.ID)
+	exists, err := notification.TitleExists()
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
@@ -98,21 +91,6 @@ func (h *NotificationHandler) NotificationUpdateHandler(w http.ResponseWriter, r
 	params := []any{}
 	paramCount := 1
 
-	if updateData.ScheduleID > 0 {
-		queryParts = append(queryParts, fmt.Sprintf("schedule_id=$%d,", paramCount))
-		params = append(params, updateData.ScheduleID)
-		paramCount++
-	}
-	if updateData.IsSms != nil {
-		queryParts = append(queryParts, fmt.Sprintf("is_sms=$%d,", paramCount))
-		params = append(params, updateData.IsSms)
-		paramCount++
-	}
-	if updateData.IsMail != nil {
-		queryParts = append(queryParts, fmt.Sprintf("is_mail=$%d,", paramCount))
-		params = append(params, updateData.IsMail)
-		paramCount++
-	}
 	if updateData.Title != "" {
 		queryParts = append(queryParts, fmt.Sprintf("title=$%d,", paramCount))
 		params = append(params, updateData.Title)
@@ -121,6 +99,16 @@ func (h *NotificationHandler) NotificationUpdateHandler(w http.ResponseWriter, r
 	if updateData.Content != "" {
 		queryParts = append(queryParts, fmt.Sprintf("content=$%d,", paramCount))
 		params = append(params, updateData.Content)
+		paramCount++
+	}
+	if updateData.IsMail != nil {
+		queryParts = append(queryParts, fmt.Sprintf("is_mail=$%d,", paramCount))
+		params = append(params, updateData.IsMail)
+		paramCount++
+	}
+	if updateData.IsSms != nil {
+		queryParts = append(queryParts, fmt.Sprintf("is_sms=$%d,", paramCount))
+		params = append(params, updateData.IsSms)
 		paramCount++
 	}
 	if updateData.Active != nil {
@@ -139,8 +127,8 @@ func (h *NotificationHandler) NotificationUpdateHandler(w http.ResponseWriter, r
 	params = append(params, updatedAt)
 	paramCount++
 
-	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d", paramCount))
-	params = append(params, id)
+	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d AND user_id=$%d", paramCount, paramCount+1))
+	params = append(params, id, cUser.ID)
 	query := strings.Join(queryParts, " ")
 
 	err = notification.Update(query, params)
