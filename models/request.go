@@ -10,7 +10,7 @@ import (
 
 type Request struct {
 	ID        int        `json:"id"`
-	UserID    int        `json:"user_id" validate:"required,number"`
+	UserID    int        `json:"user_id" validate:"number"`
 	Url       string     `json:"url" validate:"required,url"`
 	Method    string     `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
 	Content   string     `json:"content" validate:"required,json"`
@@ -58,7 +58,7 @@ func (m *Request) Get(userID, id int, url string) ([]Request, error) {
 	var requests []Request
 	for rows.Next() {
 		var request Request
-		if err := rows.Scan(&request.ID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt); err != nil {
+		if err := rows.Scan(&request.ID, &request.UserID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt); err != nil {
 			return nil, err
 		}
 		requests = append(requests, request)
