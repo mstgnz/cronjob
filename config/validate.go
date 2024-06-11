@@ -34,12 +34,12 @@ func Validate(structure any) error {
 
 // custom validates are called in main
 func CustomValidate() {
-	CustomCronSpaceValidate()
+	CustomCronValidate()
 }
 
 // go-playground validator has a “cron” validation mechanism, but it does not work correctly.
 // so we will validate with “robfig/cron parser”.
-func CustomCronSpaceValidate() {
+func CustomCronValidate() {
 	App().Validador.RegisterValidation("cron", func(fl validator.FieldLevel) bool {
 		_, err := App().Cron.AddFunc(fl.Field().String(), nil)
 		return err == nil
