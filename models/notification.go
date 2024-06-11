@@ -10,11 +10,11 @@ import (
 
 type Notification struct {
 	ID          int            `json:"id"`
-	ScheduleID  int            `json:"schedule_id" validate:"required,number"`
-	IsSms       bool           `json:"is_sms" validate:"boolean"`
-	IsMail      bool           `json:"is_mail" validate:"boolean"`
+	UserID      int            `json:"user_id" validate:"number"`
 	Title       string         `json:"title" validate:"required"`
 	Content     string         `json:"content" validate:"required"`
+	IsMail      bool           `json:"is_mail" validate:"boolean"`
+	IsSms       bool           `json:"is_sms" validate:"boolean"`
 	Active      bool           `json:"active" validate:"boolean"`
 	NotifyEmail []*NotifyEmail `json:"emails,omitempty"`
 	NotifySms   []*NotifySms   `json:"sms,omitempty"`
@@ -24,12 +24,12 @@ type Notification struct {
 }
 
 type NotificationUpdate struct {
-	ScheduleID int    `json:"schedule_id" validate:"omitempty,number"`
-	IsSms      *bool  `json:"is_sms" validate:"omitnil,boolean"`
-	IsMail     *bool  `json:"is_mail" validate:"omitnil,boolean"`
-	Title      string `json:"title" validate:"omitempty"`
-	Content    string `json:"content" validate:"omitempty"`
-	Active     *bool  `json:"active" validate:"omitnil,boolean"`
+	UserID  int    `json:"user_id" validate:"omitempty,number"`
+	Title   string `json:"title" validate:"omitempty"`
+	Content string `json:"content" validate:"omitempty"`
+	IsSms   *bool  `json:"is_sms" validate:"omitnil,boolean"`
+	IsMail  *bool  `json:"is_mail" validate:"omitnil,boolean"`
+	Active  *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
 func (m *Notification) Get(userID, id int, title string) ([]Notification, error) {
@@ -37,10 +37,10 @@ func (m *Notification) Get(userID, id int, title string) ([]Notification, error)
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATIONS"], ";")
 
 	if id > 0 {
-		query += fmt.Sprintf(" AND n.id=%v", id)
+		query += fmt.Sprintf(" AND id=%v", id)
 	}
 	if title != "" {
-		query += fmt.Sprintf(" AND n.title=%v", title)
+		query += fmt.Sprintf(" AND title=%v", title)
 	}
 
 	// prepare
@@ -62,7 +62,7 @@ func (m *Notification) Get(userID, id int, title string) ([]Notification, error)
 	var notifications []Notification
 	for rows.Next() {
 		var notification Notification
-		if err := rows.Scan(&notification.ID, &notification.ScheduleID, &notification.IsSms, &notification.IsMail, &notification.Title, &notification.Content, &notification.Active, &notification.CreatedAt, &notification.UpdatedAt, &notification.DeletedAt); err != nil {
+		if err := rows.Scan(&notification.ID, &notification.UserID, &notification.Title, &notification.Content, &notification.IsMail, &notification.IsSms, &notification.Active, &notification.CreatedAt, &notification.UpdatedAt, &notification.DeletedAt); err != nil {
 			return nil, err
 		}
 		notifications = append(notifications, notification)
@@ -78,7 +78,7 @@ func (m *Notification) Create() error {
 	}
 
 	// user_id,url,method,content,active
-	err = stmt.QueryRow(m.ScheduleID, m.IsSms, m.IsMail, m.Title, m.Content, m.Active).Scan(&m.ID, &m.ScheduleID, &m.IsSms, &m.IsMail, &m.Title, &m.Content, &m.Active)
+	err = stmt.QueryRow(m.UserID, m.Title, m.Content, m.IsMail, m.IsSms, m.Active).Scan(&m.ID, &m.UserID, &m.Title, &m.Content, &m.IsMail, &m.IsSms, &m.Active)
 	if err != nil {
 		return err
 	}
@@ -86,17 +86,17 @@ func (m *Notification) Create() error {
 	return nil
 }
 
-func (m *Notification) TitleExists(userID int) (bool, error) {
+func (m *Notification) TitleExists() (bool, error) {
 	exists := 0
 
 	// prepare
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_TITLE_EXISTS_WITH_USER_AND_SCHEDULE"])
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_TITLE_EXISTS_WITH_USER"])
 	if err != nil {
 		return false, err
 	}
 
 	// query
-	rows, err := stmt.Query(userID, m.Title, m.ScheduleID)
+	rows, err := stmt.Query(m.UserID, m.Title)
 	if err != nil {
 		return false, err
 	}

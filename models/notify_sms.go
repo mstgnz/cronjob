@@ -51,16 +51,16 @@ func (m *NotifySms) Get(userID, id int, phone string) ([]NotifySms, error) {
 		_ = rows.Close()
 	}()
 
-	var notifySms []NotifySms
+	var notifySmses []NotifySms
 	for rows.Next() {
-		var notifyS NotifySms
-		if err := rows.Scan(&notifyS.ID, &notifyS.NotificationID, &notifyS.Phone, &notifyS.Active, &notifyS.CreatedAt, &notifyS.UpdatedAt, &notifyS.DeletedAt); err != nil {
+		var notifySms NotifySms
+		if err := rows.Scan(&notifySms.ID, &notifySms.NotificationID, &notifySms.Phone, &notifySms.Active, &notifySms.CreatedAt, &notifySms.UpdatedAt, &notifySms.DeletedAt); err != nil {
 			return nil, err
 		}
-		notifySms = append(notifySms, notifyS)
+		notifySmses = append(notifySmses, notifySms)
 	}
 
-	return notifySms, nil
+	return notifySmses, nil
 }
 
 func (m *NotifySms) Create() error {
