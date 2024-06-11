@@ -42,11 +42,11 @@ CREATE SEQUENCE IF NOT EXISTS notifications_id_seq;
 -- Table Definition
 CREATE TABLE "public"."notifications" (
     "id" int4 NOT NULL DEFAULT nextval('notifications_id_seq'::regclass),
-    "schedule_id" int4 NOT NULL,
-    "is_sms" bool NOT NULL DEFAULT false,
-    "is_mail" bool NOT NULL DEFAULT false,
+    "user_id" int4 NOT NULL,
     "title" varchar NOT NULL,
     "content" varchar NOT NULL,
+    "is_mail" bool NOT NULL DEFAULT false,
+    "is_sms" bool NOT NULL DEFAULT false,
     "active" bool NOT NULL DEFAULT true,
     "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
@@ -57,11 +57,11 @@ CREATE TABLE "public"."notifications" (
 -- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
 
 -- Sequence and defined type
-CREATE SEQUENCE IF NOT EXISTS notify_email_id_seq;
+CREATE SEQUENCE IF NOT EXISTS notify_emails_id_seq;
 
 -- Table Definition
-CREATE TABLE "public"."notify_email" (
-    "id" int4 NOT NULL DEFAULT nextval('notify_email_id_seq'::regclass),
+CREATE TABLE "public"."notify_emails" (
+    "id" int4 NOT NULL DEFAULT nextval('notify_emails_id_seq'::regclass),
     "notification_id" int4 NOT NULL,
     "email" varchar NOT NULL,
     "active" bool NOT NULL DEFAULT true,
@@ -74,11 +74,11 @@ CREATE TABLE "public"."notify_email" (
 -- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
 
 -- Sequence and defined type
-CREATE SEQUENCE IF NOT EXISTS notify_sms_id_seq;
+CREATE SEQUENCE IF NOT EXISTS notify_smses_id_seq;
 
 -- Table Definition
-CREATE TABLE "public"."notify_sms" (
-    "id" int4 NOT NULL DEFAULT nextval('notify_sms_id_seq'::regclass),
+CREATE TABLE "public"."notify_smses" (
+    "id" int4 NOT NULL DEFAULT nextval('notify_smses_id_seq'::regclass),
     "notification_id" int4 NOT NULL,
     "phone" varchar NOT NULL,
     "active" bool NOT NULL DEFAULT true,
@@ -160,10 +160,11 @@ CREATE TABLE "public"."schedules" (
     "user_id" int4 NOT NULL,
     "group_id" int4 NOT NULL,
     "request_id" int4 NOT NULL,
+    "notification_id" int4,
     "timing" varchar NOT NULL,
     "timeout" int2 DEFAULT 0,
     "retries" int2 DEFAULT 0,
-    "running" bool NOT NULL DEFAULT false,
+    "running" bool DEFAULT false,
     "active" bool NOT NULL DEFAULT true,
     "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
@@ -233,14 +234,15 @@ CREATE TABLE "public"."webhooks" (
 
 ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."notifications" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id");
-ALTER TABLE "public"."notify_email" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
-ALTER TABLE "public"."notify_sms" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
+ALTER TABLE "public"."notifications" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+ALTER TABLE "public"."notify_emails" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
+ALTER TABLE "public"."notify_smses" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
 ALTER TABLE "public"."request_headers" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 ALTER TABLE "public"."schedule_logs" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
 ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
 ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 ALTER TABLE "public"."triggered" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id");
