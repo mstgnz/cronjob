@@ -55,7 +55,7 @@ func (h *GroupHandler) GroupCreateHandler(w http.ResponseWriter, r *http.Request
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Group already exists"})
 	}
 
-	err = group.Create()
+	err = group.Create(config.App().DB.DB)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}

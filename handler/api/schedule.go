@@ -28,7 +28,7 @@ func (h *ScheduleHandler) ScheduleListHandler(w http.ResponseWriter, r *http.Req
 
 	requests, err := schedule.Get(id, cUser.ID, group_id, request_id, notification_id, timing)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests})
@@ -54,7 +54,7 @@ func (h *ScheduleHandler) ScheduleCreateHandler(w http.ResponseWriter, r *http.R
 	groups := &models.Group{}
 	exists, err := groups.IDExists(schedule.GroupID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
@@ -64,7 +64,7 @@ func (h *ScheduleHandler) ScheduleCreateHandler(w http.ResponseWriter, r *http.R
 	request := &models.Request{}
 	exists, err = request.IDExists(schedule.RequestID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
@@ -74,13 +74,22 @@ func (h *ScheduleHandler) ScheduleCreateHandler(w http.ResponseWriter, r *http.R
 	notification := &models.Notification{}
 	exists, err = notification.IDExists(schedule.NotificationID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
 	}
 
-	err = schedule.Create()
+	// timinng check with request
+	exists, err = schedule.TimingExists(cUser.ID)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+	if !exists {
+		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: "Timing already exists"})
+	}
+
+	err = schedule.Create(config.App().DB.DB)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
@@ -106,7 +115,7 @@ func (h *ScheduleHandler) ScheduleUpdateHandler(w http.ResponseWriter, r *http.R
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := schedule.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Schedule not found"})
@@ -118,10 +127,10 @@ func (h *ScheduleHandler) ScheduleUpdateHandler(w http.ResponseWriter, r *http.R
 
 	if updateData.GroupID > 0 {
 		// group check
-		groups := &models.Group{}
-		exists, err := groups.IDExists(schedule.GroupID, cUser.ID)
+		group := &models.Group{}
+		exists, err := group.IDExists(schedule.GroupID, cUser.ID)
 		if err != nil {
-			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 		}
 		if !exists {
 			return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
@@ -136,7 +145,7 @@ func (h *ScheduleHandler) ScheduleUpdateHandler(w http.ResponseWriter, r *http.R
 		request := &models.Request{}
 		exists, err = request.IDExists(schedule.RequestID, cUser.ID)
 		if err != nil {
-			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 		}
 		if !exists {
 			return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
@@ -151,7 +160,7 @@ func (h *ScheduleHandler) ScheduleUpdateHandler(w http.ResponseWriter, r *http.R
 		notification := &models.Notification{}
 		exists, err = notification.IDExists(schedule.NotificationID, cUser.ID)
 		if err != nil {
-			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 		}
 		if !exists {
 			return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
@@ -213,7 +222,7 @@ func (h *ScheduleHandler) ScheduleDeleteHandler(w http.ResponseWriter, r *http.R
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := schedule.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Schedule not found"})
@@ -243,7 +252,7 @@ func (h *ScheduleHandler) ScheduleLogListHandler(w http.ResponseWriter, r *http.
 	schedule := &models.Schedule{}
 	exists, err := schedule.IDExists(schedule_id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Schedule not found"})
@@ -251,8 +260,244 @@ func (h *ScheduleHandler) ScheduleLogListHandler(w http.ResponseWriter, r *http.
 
 	scheduleLogs, err := scheduleLog.Get(id, schedule_id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: scheduleLogs})
+}
+
+func (h *ScheduleHandler) ScheduleBulkHandler(w http.ResponseWriter, r *http.Request) error {
+	bulk := &models.ScheduleBulk{}
+	if err := config.ReadJSON(w, r, bulk); err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	err := config.Validate(bulk)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()})
+	}
+
+	// get auth user in context
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+	schedule := &models.Schedule{
+		UserID:         cUser.ID,
+		GroupID:        bulk.GroupID,
+		RequestID:      bulk.RequestID,
+		NotificationID: bulk.NotificationID,
+		Timing:         bulk.Timing,
+		Timeout:        bulk.Timeout,
+		Retries:        bulk.Retries,
+		Active:         bulk.Active,
+	}
+
+	tx, err := config.App().DB.Begin()
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	// group check
+	group := &models.Group{
+		UserID: cUser.ID,
+	}
+	if schedule.GroupID > 0 {
+		exists, err := group.IDExists(schedule.GroupID, cUser.ID)
+		if err != nil {
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		if !exists {
+			return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
+		}
+	} else {
+		if bulk.Group == nil {
+			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Group or Group ID required"})
+		}
+
+		group.Name = bulk.Group.Name
+		group.Active = bulk.Group.Active
+
+		err = group.Create(tx)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		schedule.GroupID = group.ID
+	}
+
+	// request check
+	request := &models.Request{
+		UserID: cUser.ID,
+	}
+	if schedule.RequestID > 0 {
+		exists, err := request.IDExists(schedule.RequestID, cUser.ID)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		if !exists {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
+		}
+	} else {
+		if bulk.Request == nil {
+			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Request or Request ID required"})
+		}
+
+		request.Url = bulk.Request.Url
+		request.Method = bulk.Request.Method
+		request.Content = bulk.Request.Content
+		request.Active = bulk.Request.Active
+
+		exists, err := request.UrlExists()
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		if exists {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Url already exists"})
+		}
+		err = request.Create(tx)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		for _, header := range bulk.Request.RequestHeaders {
+			requestHeader := &models.RequestHeader{
+				RequestID: request.ID,
+				Key:       header.Key,
+				Value:     header.Value,
+				Active:    header.Active,
+			}
+
+			// check header key
+			exists, err = requestHeader.HeaderExists(tx, cUser.ID)
+			if err != nil || exists {
+				continue
+			}
+
+			err = requestHeader.Create(tx)
+			if err != nil {
+				continue
+			}
+		}
+		schedule.RequestID = request.ID
+	}
+
+	// notification check
+	notification := &models.Notification{
+		UserID: cUser.ID,
+	}
+
+	if schedule.NotificationID > 0 {
+		exists, err := notification.IDExists(schedule.NotificationID, cUser.ID)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		if !exists {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
+		}
+	} else {
+		if bulk.Notification == nil {
+			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Notification or Notification ID required"})
+		}
+
+		notification.Title = bulk.Notification.Title
+		notification.Content = bulk.Notification.Content
+		notification.IsMail = bulk.Notification.IsMail
+		notification.IsSms = bulk.Notification.IsSms
+		notification.Active = bulk.Notification.Active
+
+		exists, err := notification.TitleExists()
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		if exists {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Title already exists"})
+		}
+		err = notification.Create(tx)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+			}
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		for _, email := range bulk.Notification.NotifyEmails {
+			notifyEmail := &models.NotifyEmail{
+				NotificationID: notification.ID,
+				Email:          email.Email,
+				Active:         email.Active,
+			}
+
+			// check header key
+			exists, err = notifyEmail.EmailExists(tx, cUser.ID)
+			if err != nil || exists {
+				continue
+			}
+
+			err = notifyEmail.Create(tx)
+			if err != nil {
+				continue
+			}
+		}
+
+		for _, sms := range bulk.Notification.NotifySmses {
+			notifySms := &models.NotifySms{
+				NotificationID: notification.ID,
+				Phone:          sms.Phone,
+				Active:         sms.Active,
+			}
+
+			// check header key
+			exists, err = notifySms.PhoneExists(tx, cUser.ID)
+			if err != nil || exists {
+				continue
+			}
+
+			err = notifySms.Create(tx)
+			if err != nil {
+				continue
+			}
+		}
+		schedule.NotificationID = notification.ID
+	}
+
+	err = schedule.Create(tx)
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Schedule created", Data: schedule})
 }

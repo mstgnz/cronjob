@@ -101,6 +101,9 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,user_id,group_id,request_id,notifi
 -- SCHEDULES_ID_EXISTS_WITH_USER
 SELECT count(*) FROM schedules WHERE id=$1 AND user_id=$2 AND deleted_at isnull;
 
+-- SCHEDULES_TIMING_EXISTS_WITH_USER
+SELECT count(*) FROM schedules WHERE user_id=$1 AND request_id=$2 AND timing=$3 AND deleted_at isnull;
+
 -- SCHEDULES_DELETE
 UPDATE schedules SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 

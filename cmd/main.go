@@ -164,6 +164,7 @@ func main() {
 			// schedules
 			r.Get("/schedules", Catch(apiScheduleHandler.ScheduleListHandler))
 			r.Post("/schedules", Catch(apiScheduleHandler.ScheduleCreateHandler))
+			r.Post("/schedules/bulk", Catch(apiScheduleHandler.ScheduleBulkHandler))
 			r.Put("/schedules/{id}", Catch(apiScheduleHandler.ScheduleUpdateHandler))
 			r.Delete("/schedules/{id}", Catch(apiScheduleHandler.ScheduleDeleteHandler))
 			// schedule logs

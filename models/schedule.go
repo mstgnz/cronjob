@@ -18,7 +18,7 @@ type Schedule struct {
 	Timeout        int        `json:"timeout" validate:"number"`
 	Retries        int        `json:"retries" validate:"number"`
 	Running        bool       `json:"running" validate:"boolean"`
-	Active         bool       `json:"active" validate:"required,boolean"`
+	Active         bool       `json:"active" validate:"boolean"`
 	CreatedAt      *time.Time `json:"created_at,omitempty"`
 	UpdatedAt      *time.Time `json:"updated_at,omitempty"`
 	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
@@ -32,6 +32,21 @@ type ScheduleUpdate struct {
 	Timeout        *int   `json:"timeout" validate:"omitnil,number"`
 	Retries        *int   `json:"retries" validate:"omitnil,number"`
 	Active         *bool  `json:"active" validate:"omitnil,boolean"`
+}
+
+type ScheduleBulk struct {
+	UserID         int               `json:"user_id" validate:"number"`
+	GroupID        int               `json:"group_id" validate:"number"`
+	RequestID      int               `json:"request_id" validate:"number"`
+	NotificationID int               `json:"notification_id" validate:"number"`
+	Timing         string            `json:"timing" validate:"required,cron"`
+	Timeout        int               `json:"timeout" validate:"number"`
+	Retries        int               `json:"retries" validate:"number"`
+	Running        bool              `json:"running" validate:"boolean"`
+	Active         bool              `json:"active" validate:"boolean"`
+	Group          *Group            `json:"group" validate:"omitempty"`
+	Request        *RequestBulk      `json:"request" validate:"omitempty"`
+	Notification   *NotificationBulk `json:"notification" validate:"omitempty"`
 }
 
 func (m *Schedule) Get(id, userID, groupID, requestID, NotificationID int, timing string) ([]Schedule, error) {
@@ -85,8 +100,8 @@ func (m *Schedule) Get(id, userID, groupID, requestID, NotificationID int, timin
 	return schedules, nil
 }
 
-func (m *Schedule) Create() error {
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["SCHEDULES_INSERT"])
+func (m *Schedule) Create(exec any) error {
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["SCHEDULES_INSERT"])
 	if err != nil {
 		return err
 	}
@@ -111,6 +126,32 @@ func (m *Schedule) IDExists(id, userID int) (bool, error) {
 
 	// query
 	rows, err := stmt.Query(id, userID)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&exists); err != nil {
+			return false, err
+		}
+	}
+	return exists > 0, nil
+}
+
+func (m *Schedule) TimingExists(userID int) (bool, error) {
+	exists := 0
+
+	// prepare
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["SCHEDULES_TIMING_EXISTS_WITH_USER"])
+	if err != nil {
+		return false, err
+	}
+
+	// query
+	rows, err := stmt.Query(userID, m.RequestID, m.Timing)
 	if err != nil {
 		return false, err
 	}

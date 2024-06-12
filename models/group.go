@@ -78,8 +78,8 @@ func (m *Group) Get(userID, id, uid int) ([]Group, error) {
 	return groups, nil
 }
 
-func (m *Group) Create() error {
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["GROUP_INSERT"])
+func (m *Group) Create(exec any) error {
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["GROUP_INSERT"])
 	if err != nil {
 		return err
 	}
