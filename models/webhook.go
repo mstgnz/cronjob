@@ -12,7 +12,7 @@ type Webhook struct {
 	ID         int        `json:"id"`
 	ScheduleID int        `json:"schedule_id" validate:"required,number"`
 	RequestID  int        `json:"request_id" validate:"required,number"`
-	Active     bool       `json:"active" validate:"required,boolean"`
+	Active     bool       `json:"active" validate:"boolean"`
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 	DeletedAt  *time.Time `json:"deleted_at,omitempty"`
