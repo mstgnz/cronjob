@@ -42,3 +42,14 @@ func (db *DB) CloseDatabase() {
 		log.Println("DB Connection Closed")
 	}
 }
+
+func (db *DB) RunPrepare(exec any, query string, args ...any) (*sql.Stmt, error) {
+	switch e := exec.(type) {
+	case *sql.DB:
+		return e.Prepare(query)
+	case *sql.Tx:
+		return e.Prepare(query)
+	default:
+		return nil, fmt.Errorf("unsupported exec type")
+	}
+}

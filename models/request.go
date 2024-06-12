@@ -14,7 +14,7 @@ type Request struct {
 	Url       string     `json:"url" validate:"required,url"`
 	Method    string     `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
 	Content   string     `json:"content" validate:"required,json"`
-	Active    bool       `json:"active" validate:"required,boolean"`
+	Active    bool       `json:"active" validate:"boolean"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
@@ -26,6 +26,15 @@ type RequestUpdate struct {
 	Method  string `json:"method" validate:"omitempty,oneof=GET POST PUT PATCH"`
 	Content string `json:"content" validate:"omitempty,json"`
 	Active  *bool  `json:"active" validate:"omitnil,boolean"`
+}
+
+type RequestBulk struct {
+	UserID        int                  `json:"user_id" validate:"number"`
+	Url           string               `json:"url" validate:"required,url"`
+	Method        string               `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
+	Content       string               `json:"content" validate:"required,json"`
+	Active        bool                 `json:"active" validate:"boolean"`
+	RequestHeader []*RequestHeaderBulk `json:"request_headers" validate:"required,nonempty,dive"`
 }
 
 func (m *Request) Get(userID, id int, url string) ([]Request, error) {
@@ -67,8 +76,8 @@ func (m *Request) Get(userID, id int, url string) ([]Request, error) {
 	return requests, nil
 }
 
-func (m *Request) Create() error {
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUEST_INSERT"])
+func (m *Request) Create(exec any) error {
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["REQUEST_INSERT"])
 	if err != nil {
 		return err
 	}

@@ -13,10 +13,17 @@ type RequestHeader struct {
 	RequestID int        `json:"request_id" validate:"required,number"`
 	Key       string     `json:"key" validate:"required"`
 	Value     string     `json:"value" validate:"required"`
-	Active    bool       `json:"active" validate:"required,boolean"`
+	Active    bool       `json:"active" validate:"boolean"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type RequestHeaderBulk struct {
+	RequestID int    `json:"request_id" validate:"number"`
+	Key       string `json:"key" validate:"required"`
+	Value     string `json:"value" validate:"required"`
+	Active    bool   `json:"active" validate:"boolean"`
 }
 
 type RequestHeaderUpdate struct {
@@ -68,8 +75,8 @@ func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]RequestHea
 	return requestHeaders, nil
 }
 
-func (m *RequestHeader) Create() error {
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUEST_HEADER_INSERT"])
+func (m *RequestHeader) Create(exec any) error {
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["REQUEST_HEADER_INSERT"])
 	if err != nil {
 		return err
 	}
@@ -83,17 +90,17 @@ func (m *RequestHeader) Create() error {
 	return nil
 }
 
-func (m *RequestHeader) HeaderExists(userID int) (bool, error) {
+func (m *RequestHeader) HeaderExists(exec any, userID int) (bool, error) {
 	exists := 0
 
 	// prepare
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUEST_HEADER_EXISTS_WITH_USER"])
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["REQUEST_HEADER_EXISTS_WITH_USER"])
 	if err != nil {
 		return false, err
 	}
 
 	// query
-	rows, err := stmt.Query(m.Key, userID)
+	rows, err := stmt.Query(m.Key, userID, m.RequestID)
 	if err != nil {
 		return false, err
 	}

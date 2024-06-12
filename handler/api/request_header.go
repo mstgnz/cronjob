@@ -57,7 +57,7 @@ func (h *RequestHeaderHandler) RequestHeaderCreateHandler(w http.ResponseWriter,
 	}
 
 	// check header key
-	exists, err = requestHeader.HeaderExists(cUser.ID)
+	exists, err = requestHeader.HeaderExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
@@ -65,7 +65,7 @@ func (h *RequestHeaderHandler) RequestHeaderCreateHandler(w http.ResponseWriter,
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Header already exists"})
 	}
 
-	err = requestHeader.Create()
+	err = requestHeader.Create(config.App().DB.DB)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}

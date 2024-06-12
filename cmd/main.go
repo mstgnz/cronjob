@@ -132,6 +132,7 @@ func main() {
 			// requests
 			r.Get("/requests", Catch(apiRequestHandler.RequestListHandler))
 			r.Post("/requests", Catch(apiRequestHandler.RequestCreateHandler))
+			r.Post("/requests/bulk", Catch(apiRequestHandler.RequestBulkHandler))
 			r.Put("/requests/{id}", Catch(apiRequestHandler.RequestUpdateHandler))
 			r.Delete("/requests/{id}", Catch(apiRequestHandler.RequestDeleteHandler))
 			// request headers

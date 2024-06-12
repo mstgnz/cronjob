@@ -77,7 +77,8 @@ SELECT rh.* FROM request_headers rh JOIN requests r ON r.id=rh.request_id WHERE 
 INSERT INTO request_headers (request_id,key,value,active) VALUES ($1,$2,$3,$4) RETURNING id,request_id,key,value,active;
 
 -- REQUEST_HEADER_EXISTS_WITH_USER
-SELECT count(*) FROM request_headers rh JOIN requests r ON r.id=rh.request_id WHERE rh.key=$1 AND r.user_id=$2 AND rh.deleted_at isnull;
+SELECT count(*) FROM request_headers rh JOIN requests r ON r.id=rh.request_id 
+WHERE rh.key=$1 AND r.user_id=$2 AND r.id=$3 AND rh.deleted_at isnull;
 
 -- REQUEST_HEADER_ID_EXISTS_WITH_USER
 SELECT count(*) FROM request_headers rh JOIN requests r ON r.id=rh.request_id WHERE rh.id=$1 AND r.user_id=$2 AND rh.deleted_at isnull;
