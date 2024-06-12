@@ -12,7 +12,7 @@ type NotifyEmail struct {
 	ID             int        `json:"id"`
 	NotificationID int        `json:"notification_id" validate:"required,number"`
 	Email          string     `json:"email" validate:"required,email"`
-	Active         bool       `json:"active" validate:"required,boolean"`
+	Active         bool       `json:"active" validate:"boolean"`
 	CreatedAt      *time.Time `json:"created_at,omitempty"`
 	UpdatedAt      *time.Time `json:"updated_at,omitempty"`
 	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
