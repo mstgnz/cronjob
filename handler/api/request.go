@@ -13,7 +13,9 @@ import (
 	"github.com/mstgnz/cronjob/services"
 )
 
-type RequestHandler struct{}
+type RequestHandler struct {
+	*services.RequestService
+}
 
 func (h *RequestHandler) RequestListHandler(w http.ResponseWriter, r *http.Request) error {
 	request := &models.Request{}
@@ -160,7 +162,6 @@ func (h *RequestHandler) RequestDeleteHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (h *RequestHandler) RequestBulkHandler(w http.ResponseWriter, r *http.Request) error {
-	requestService := services.RequestService{}
-	statusCode, response := requestService.RequestBulkService(w, r)
+	statusCode, response := h.RequestBulkService(w, r)
 	return config.WriteJSON(w, statusCode, response)
 }
