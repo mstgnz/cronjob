@@ -25,12 +25,12 @@ func (h *WebhookHandler) WebhookListHandler(w http.ResponseWriter, r *http.Reque
 	request_id, _ := strconv.Atoi(r.URL.Query().Get("request_id"))
 
 	if schedule_id == 0 {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: "schedule_id param required"})
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "schedule_id param required"})
 	}
 
 	requests, err := webhook.Get(id, schedule_id, request_id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests})
@@ -54,7 +54,7 @@ func (h *WebhookHandler) WebhookCreateHandler(w http.ResponseWriter, r *http.Req
 	schedule := &models.Schedule{}
 	exists, err := schedule.IDExists(webhook.ScheduleID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Schedule not found"})
@@ -64,7 +64,7 @@ func (h *WebhookHandler) WebhookCreateHandler(w http.ResponseWriter, r *http.Req
 	request := &models.Request{}
 	exists, err = request.IDExists(webhook.RequestID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
@@ -73,7 +73,7 @@ func (h *WebhookHandler) WebhookCreateHandler(w http.ResponseWriter, r *http.Req
 	// check schedule_id and request_id
 	exists, err = webhook.UniqExists(webhook.ScheduleID, webhook.RequestID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Webhook already exists"})
@@ -81,7 +81,7 @@ func (h *WebhookHandler) WebhookCreateHandler(w http.ResponseWriter, r *http.Req
 
 	err = webhook.Create()
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Webhook created", Data: webhook})
@@ -105,7 +105,7 @@ func (h *WebhookHandler) WebhookUpdateHandler(w http.ResponseWriter, r *http.Req
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := webhook.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Webhook not found"})
@@ -162,7 +162,7 @@ func (h *WebhookHandler) WebhookDeleteHandler(w http.ResponseWriter, r *http.Req
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := webhook.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Webhook not found"})

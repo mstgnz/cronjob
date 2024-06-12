@@ -25,7 +25,7 @@ func (h *NotifySmsHandler) NotifySmsListHandler(w http.ResponseWriter, r *http.R
 
 	notifySmses, err := notifySms.Get(cUser.ID, id, phone)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifySmses})
@@ -48,7 +48,7 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 	notification := &models.Notification{}
 	exists, err := notification.IDExists(notifySms.NotificationID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
@@ -56,7 +56,7 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 
 	exists, err = notifySms.PhoneExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Phone already exists"})
@@ -64,7 +64,7 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 
 	err = notifySms.Create(config.App().DB.DB)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notify sms created", Data: notifySms})
@@ -88,7 +88,7 @@ func (h *NotifySmsHandler) NotifySmsUpdateHandler(w http.ResponseWriter, r *http
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notifySms.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify sms not found"})
@@ -145,7 +145,7 @@ func (h *NotifySmsHandler) NotifySmsDeleteHandler(w http.ResponseWriter, r *http
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notifySms.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify sms not found"})

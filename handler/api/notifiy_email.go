@@ -25,7 +25,7 @@ func (h *NotifyEmailHandler) NotifyEmailListHandler(w http.ResponseWriter, r *ht
 
 	notifyEmails, err := notifyEmail.Get(cUser.ID, id, email)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifyEmails})
@@ -48,7 +48,7 @@ func (h *NotifyEmailHandler) NotifyEmailCreateHandler(w http.ResponseWriter, r *
 	notification := &models.Notification{}
 	exists, err := notification.IDExists(notifyEmail.NotificationID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
@@ -56,7 +56,7 @@ func (h *NotifyEmailHandler) NotifyEmailCreateHandler(w http.ResponseWriter, r *
 
 	exists, err = notifyEmail.EmailExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Email already exists"})
@@ -64,7 +64,7 @@ func (h *NotifyEmailHandler) NotifyEmailCreateHandler(w http.ResponseWriter, r *
 
 	err = notifyEmail.Create(config.App().DB.DB)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notify email created", Data: notifyEmail})
@@ -88,7 +88,7 @@ func (h *NotifyEmailHandler) NotifyEmailUpdateHandler(w http.ResponseWriter, r *
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notifyEmail.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify email not found"})
@@ -145,7 +145,7 @@ func (h *NotifyEmailHandler) NotifyEmailDeleteHandler(w http.ResponseWriter, r *
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notifyEmail.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify email not found"})

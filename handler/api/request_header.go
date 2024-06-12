@@ -26,7 +26,7 @@ func (h *RequestHeaderHandler) RequestHeaderListHandler(w http.ResponseWriter, r
 
 	requests, err := requestHeader.Get(cUser.ID, id, requestID, key)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests})
@@ -50,7 +50,7 @@ func (h *RequestHeaderHandler) RequestHeaderCreateHandler(w http.ResponseWriter,
 	request := &models.Request{}
 	exists, err := request.IDExists(requestHeader.RequestID, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
@@ -59,7 +59,7 @@ func (h *RequestHeaderHandler) RequestHeaderCreateHandler(w http.ResponseWriter,
 	// check header key
 	exists, err = requestHeader.HeaderExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Header already exists"})
@@ -67,7 +67,7 @@ func (h *RequestHeaderHandler) RequestHeaderCreateHandler(w http.ResponseWriter,
 
 	err = requestHeader.Create(config.App().DB.DB)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Request Header created", Data: requestHeader})
@@ -91,7 +91,7 @@ func (h *RequestHeaderHandler) RequestHeaderUpdateHandler(w http.ResponseWriter,
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := requestHeader.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"})
@@ -153,7 +153,7 @@ func (h *RequestHeaderHandler) RequestHeaderDeleteHandler(w http.ResponseWriter,
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := requestHeader.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"})

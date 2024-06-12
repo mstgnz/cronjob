@@ -25,7 +25,7 @@ func (h *RequestHandler) RequestListHandler(w http.ResponseWriter, r *http.Reque
 
 	requests, err := request.Get(cUser.ID, id, url)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests})
@@ -49,7 +49,7 @@ func (h *RequestHandler) RequestCreateHandler(w http.ResponseWriter, r *http.Req
 
 	exists, err := request.UrlExists()
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Url already exists"})
@@ -57,7 +57,7 @@ func (h *RequestHandler) RequestCreateHandler(w http.ResponseWriter, r *http.Req
 
 	err = request.Create(config.App().DB.DB)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Request created", Data: request})
@@ -81,7 +81,7 @@ func (h *RequestHandler) RequestUpdateHandler(w http.ResponseWriter, r *http.Req
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
@@ -143,7 +143,7 @@ func (h *RequestHandler) RequestDeleteHandler(w http.ResponseWriter, r *http.Req
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
@@ -182,7 +182,7 @@ func (h *RequestHandler) RequestBulkHandler(w http.ResponseWriter, r *http.Reque
 
 	exists, err := request.UrlExists()
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Url already exists"})
@@ -198,7 +198,7 @@ func (h *RequestHandler) RequestBulkHandler(w http.ResponseWriter, r *http.Reque
 		if err := tx.Rollback(); err != nil {
 			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 		}
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	for _, header := range bulk.RequestHeaders {
@@ -226,5 +226,5 @@ func (h *RequestHandler) RequestBulkHandler(w http.ResponseWriter, r *http.Reque
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "test", Data: bulk})
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "test", Data: bulk})
 }

@@ -25,7 +25,7 @@ func (h *NotificationHandler) NotificationListHandler(w http.ResponseWriter, r *
 
 	notifications, err := notification.Get(cUser.ID, id, title)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifications})
@@ -49,7 +49,7 @@ func (h *NotificationHandler) NotificationCreateHandler(w http.ResponseWriter, r
 
 	exists, err := notification.TitleExists()
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Title already exists"})
@@ -57,7 +57,7 @@ func (h *NotificationHandler) NotificationCreateHandler(w http.ResponseWriter, r
 
 	err = notification.Create(config.App().DB.DB)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notification created", Data: notification})
@@ -81,7 +81,7 @@ func (h *NotificationHandler) NotificationUpdateHandler(w http.ResponseWriter, r
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notification.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
@@ -148,7 +148,7 @@ func (h *NotificationHandler) NotificationDeleteHandler(w http.ResponseWriter, r
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notification.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
@@ -188,7 +188,7 @@ func (h *NotificationHandler) NotificationBulkHandler(w http.ResponseWriter, r *
 
 	exists, err := notification.TitleExists()
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Title already exists"})
@@ -204,7 +204,7 @@ func (h *NotificationHandler) NotificationBulkHandler(w http.ResponseWriter, r *
 		if err := tx.Rollback(); err != nil {
 			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 		}
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	for _, email := range bulk.NotifyEmails {

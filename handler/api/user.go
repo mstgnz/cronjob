@@ -60,7 +60,7 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 	user := &models.User{}
 	exists, err := user.Exists(register.Email)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Email already exists"})
@@ -68,7 +68,7 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 
 	err = user.Create(register)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	token, err := config.GenerateToken(user.ID)

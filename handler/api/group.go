@@ -25,7 +25,7 @@ func (h *GroupHandler) GroupListHandler(w http.ResponseWriter, r *http.Request) 
 
 	groups, err := group.Get(cUser.ID, id, uid)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusOK, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: groups})
@@ -49,7 +49,7 @@ func (h *GroupHandler) GroupCreateHandler(w http.ResponseWriter, r *http.Request
 
 	exists, err := group.NameExists()
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if exists {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Group already exists"})
@@ -57,7 +57,7 @@ func (h *GroupHandler) GroupCreateHandler(w http.ResponseWriter, r *http.Request
 
 	err = group.Create()
 	if err != nil {
-		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
 	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Group created", Data: group})
@@ -81,7 +81,7 @@ func (h *GroupHandler) GroupUpdateHandler(w http.ResponseWriter, r *http.Request
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := groups.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
@@ -138,7 +138,7 @@ func (h *GroupHandler) GroupDeleteHandler(w http.ResponseWriter, r *http.Request
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := groups.IDExists(id, cUser.ID)
 	if err != nil {
-		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Group not found"})
