@@ -9,15 +9,16 @@ import (
 )
 
 type Request struct {
-	ID        int        `json:"id"`
-	UserID    int        `json:"user_id" validate:"number"`
-	Url       string     `json:"url" validate:"required,url"`
-	Method    string     `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
-	Content   string     `json:"content" validate:"required,json"`
-	Active    bool       `json:"active" validate:"boolean"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	ID             int              `json:"id"`
+	UserID         int              `json:"user_id" validate:"number"`
+	Url            string           `json:"url" validate:"required,url"`
+	Method         string           `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
+	Content        string           `json:"content" validate:"required,json"`
+	Active         bool             `json:"active" validate:"boolean"`
+	RequestHeaders []*RequestHeader `json:"request_headers,omitempty"`
+	CreatedAt      *time.Time       `json:"created_at,omitempty"`
+	UpdatedAt      *time.Time       `json:"updated_at,omitempty"`
+	DeletedAt      *time.Time       `json:"deleted_at,omitempty"`
 }
 
 type RequestUpdate struct {
