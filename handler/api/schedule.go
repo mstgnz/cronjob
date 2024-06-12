@@ -345,6 +345,14 @@ func (h *ScheduleHandler) ScheduleBulkHandler(w http.ResponseWriter, r *http.Req
 			return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Request not found"})
 		}
 	} else {
+		/* requestHandler := RequestHandler{}
+		bodyBytes, err := json.Marshal(bulk.Request)
+		if err != nil {
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		requestHandler.RequestBulkHandler(w, r) */
+
 		if bulk.Request == nil {
 			return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Request or Request ID required"})
 		}
