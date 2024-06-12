@@ -201,7 +201,7 @@ func (h *RequestHandler) RequestBulkHandler(w http.ResponseWriter, r *http.Reque
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
 
-	for _, header := range bulk.RequestHeader {
+	for _, header := range bulk.RequestHeaders {
 		requestHeader := &models.RequestHeader{
 			RequestID: request.ID,
 			Key:       header.Key,
