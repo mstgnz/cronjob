@@ -24,6 +24,12 @@ type NotifySmsUpdate struct {
 	Active         *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
+type NotifySmsBulk struct {
+	NotificationID int    `json:"notification_id" validate:"number"`
+	Phone          string `json:"phone" validate:"required,e164"`
+	Active         bool   `json:"active" validate:"boolean"`
+}
+
 func (m *NotifySms) Get(userID, id int, phone string) ([]NotifySms, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATION_SMS"], ";")
@@ -63,8 +69,8 @@ func (m *NotifySms) Get(userID, id int, phone string) ([]NotifySms, error) {
 	return notifySmses, nil
 }
 
-func (m *NotifySms) Create() error {
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_SMS_INSERT"])
+func (m *NotifySms) Create(exec any) error {
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["NOTIFICATION_SMS_INSERT"])
 	if err != nil {
 		return err
 	}
@@ -78,11 +84,11 @@ func (m *NotifySms) Create() error {
 	return nil
 }
 
-func (m *NotifySms) PhoneExists(userID int) (bool, error) {
+func (m *NotifySms) PhoneExists(exec any, userID int) (bool, error) {
 	exists := 0
 
 	// prepare
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_SMS_PHONE_EXISTS_WITH_USER"])
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["NOTIFICATION_SMS_PHONE_EXISTS_WITH_USER"])
 	if err != nil {
 		return false, err
 	}

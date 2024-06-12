@@ -143,6 +143,7 @@ func main() {
 			// notifications
 			r.Get("/notifications", Catch(apiNotificationHandler.NotificationListHandler))
 			r.Post("/notifications", Catch(apiNotificationHandler.NotificationCreateHandler))
+			r.Post("/notifications/bulk", Catch(apiNotificationHandler.NotificationBulkHandler))
 			r.Put("/notifications/{id}", Catch(apiNotificationHandler.NotificationUpdateHandler))
 			r.Delete("/notifications/{id}", Catch(apiNotificationHandler.NotificationDeleteHandler))
 			// notification emails

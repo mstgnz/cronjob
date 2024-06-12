@@ -55,7 +55,7 @@ func (h *NotificationHandler) NotificationCreateHandler(w http.ResponseWriter, r
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Title already exists"})
 	}
 
-	err = notification.Create()
+	err = notification.Create(config.App().DB.DB)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
@@ -161,4 +161,94 @@ func (h *NotificationHandler) NotificationDeleteHandler(w http.ResponseWriter, r
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Soft delte success"})
+}
+
+func (h *NotificationHandler) NotificationBulkHandler(w http.ResponseWriter, r *http.Request) error {
+	bulk := &models.NotificationBulk{}
+	if err := config.ReadJSON(w, r, bulk); err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+
+	err := config.Validate(bulk)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()})
+	}
+
+	// get auth user in context
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+	notification := &models.Notification{
+		UserID:  cUser.ID,
+		Title:   bulk.Title,
+		Content: bulk.Content,
+		IsMail:  bulk.IsMail,
+		IsSms:   bulk.IsSms,
+		Active:  bulk.Active,
+	}
+
+	exists, err := notification.TitleExists()
+	if err != nil {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
+	}
+	if exists {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Title already exists"})
+	}
+
+	tx, err := config.App().DB.Begin()
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	err = notification.Create(tx)
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
+	}
+
+	for _, email := range bulk.NotifyEmails {
+		notifyEmail := &models.NotifyEmail{
+			NotificationID: notification.ID,
+			Email:          email.Email,
+			Active:         email.Active,
+		}
+
+		// check header key
+		exists, err = notifyEmail.EmailExists(tx, cUser.ID)
+		if err != nil || exists {
+			continue
+		}
+
+		err = notifyEmail.Create(tx)
+		if err != nil {
+			continue
+		}
+	}
+
+	for _, sms := range bulk.NotifySmses {
+		notifySms := &models.NotifySms{
+			NotificationID: notification.ID,
+			Phone:          sms.Phone,
+			Active:         sms.Active,
+		}
+
+		// check header key
+		exists, err = notifySms.PhoneExists(tx, cUser.ID)
+		if err != nil || exists {
+			continue
+		}
+
+		err = notifySms.Create(tx)
+		if err != nil {
+			continue
+		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notification created", Data: notification})
 }

@@ -54,7 +54,7 @@ func (h *NotifyEmailHandler) NotifyEmailCreateHandler(w http.ResponseWriter, r *
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
 	}
 
-	exists, err = notifyEmail.EmailExists(cUser.ID)
+	exists, err = notifyEmail.EmailExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
@@ -62,7 +62,7 @@ func (h *NotifyEmailHandler) NotifyEmailCreateHandler(w http.ResponseWriter, r *
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Email already exists"})
 	}
 
-	err = notifyEmail.Create()
+	err = notifyEmail.Create(config.App().DB.DB)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}

@@ -24,6 +24,12 @@ type NotifyEmailUpdate struct {
 	Active         *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
+type NotifyEmailBulk struct {
+	NotificationID int    `json:"notification_id" validate:"number"`
+	Email          string `json:"email" validate:"required,email"`
+	Active         bool   `json:"active" validate:"boolean"`
+}
+
 func (m *NotifyEmail) Get(userID, id int, email string) ([]NotifyEmail, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATION_EMAILS"], ";")
@@ -63,8 +69,8 @@ func (m *NotifyEmail) Get(userID, id int, email string) ([]NotifyEmail, error) {
 	return notifyEmails, nil
 }
 
-func (m *NotifyEmail) Create() error {
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_EMAIL_INSERT"])
+func (m *NotifyEmail) Create(exec any) error {
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["NOTIFICATION_EMAIL_INSERT"])
 	if err != nil {
 		return err
 	}
@@ -78,11 +84,11 @@ func (m *NotifyEmail) Create() error {
 	return nil
 }
 
-func (m *NotifyEmail) EmailExists(userID int) (bool, error) {
+func (m *NotifyEmail) EmailExists(exec any, userID int) (bool, error) {
 	exists := 0
 
 	// prepare
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_EMAIL_EXISTS_WITH_USER"])
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["NOTIFICATION_EMAIL_EXISTS_WITH_USER"])
 	if err != nil {
 		return false, err
 	}

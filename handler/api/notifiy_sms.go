@@ -54,7 +54,7 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
 	}
 
-	exists, err = notifySms.PhoneExists(cUser.ID)
+	exists, err = notifySms.PhoneExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
@@ -62,7 +62,7 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Phone already exists"})
 	}
 
-	err = notifySms.Create()
+	err = notifySms.Create(config.App().DB.DB)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: err.Error()})
 	}
