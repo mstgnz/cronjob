@@ -14,7 +14,7 @@ type Group struct {
 	UID       int        `json:"uid" validate:"number"`
 	UserID    int        `json:"user_id" validate:"number"`
 	Name      string     `json:"name" validate:"required"`
-	Active    bool       `json:"active" validate:"required,boolean"`
+	Active    bool       `json:"active" validate:"boolean"`
 	Parent    *Group     `json:"parent,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
