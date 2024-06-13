@@ -1,7 +1,7 @@
 include .env
 
 # Makefile for building and running the Docker image and container
-.PHONY: run live build db stop cleanI cleanC exec test
+.PHONY: run live build db redis stop cleanI cleanC exec test
 .DEFAULT_GOAL:= run
 
 # Build the Docker image and run the container
@@ -19,12 +19,16 @@ build:
 # Postgres
 db:
 	docker volume create $(APP_NAME)-postgres
-	docker run --name $(APP_NAME)-postgres \
+	docker run -d --name $(APP_NAME)-postgres \
 		-p $(DB_PORT):5432  \
 		-e POSTGRES_DB=$(DB_NAME) \
 		-e POSTGRES_PASSWORD=$(DB_PASS) \
-		-v $(APP_NAME)-postgres:/var/lib/postgresql/data -d \
+		-v $(APP_NAME)-postgres:/var/lib/postgresql/data \
 		postgres
+
+# Redis
+redis:
+	docker run -d --name $(APP_NAME)-redis -p 6379:6379 --restart always redis:latest
 
 # Stop and remove the Docker container
 # --time=600 for waiting running job
@@ -36,7 +40,7 @@ stop:
 
 # Run the application inside the Docker container
 exec:
-	docker exec -it $(APP_NAME) bash
+	docker exec -it $(APP_NAME) $(CMD)
 
 # Clean up the Docker image
 cleanI:
@@ -46,11 +50,15 @@ cleanI:
 cleanC:
 	@CONTAINER_EXISTS=$$(docker ps -aq --filter name=$(APP_NAME)); \
 	if [ -n "$$CONTAINER_EXISTS" ]; then \
-		echo "Stopping and removing container $(APP_NAME)"; \
-		docker stop $(APP_NAME); \
-		docker rm $(APP_NAME); \
+		echo "Stopping and removing containers starting with $(APP_NAME)"; \
+		CONTAINERS=$$(docker ps -aq --filter name=$(APP_NAME)); \
+		for container in $$CONTAINERS; do \
+			echo "Stopping and removing container $$container"; \
+			docker stop $$container; \
+			docker rm $$container; \
+		done; \
 	else \
-		echo "No such container: $(APP_NAME)"; \
+		echo "No such containers starting with: $(APP_NAME)"; \
 	fi
 
 test: 
