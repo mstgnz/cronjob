@@ -5,8 +5,15 @@ include .env
 .DEFAULT_GOAL:= run
 
 # Build the Docker image and run the container
-run: cleanC build
-	docker run -d --name $(APP_NAME) -p $(PORT):$(PORT) --env-file .env $(APP_NAME)
+run: cleanC create_network connect build
+	docker run -d \
+		--env-file .env \
+		--restart always \
+		--log-driver none \
+		--name $(APP_NAME) \
+		--network $(APP_NAME) \
+		--port $(APP_PORT):$(APP_PORT) \
+		$(APP_NAME)
 
 live:
 #	find . -type f \( -name '*.go' -o -name '*.gohtml' \) | entr -r sh -c 'make && docker logs --follow $(APP_NAME)'
@@ -16,19 +23,41 @@ live:
 build:
 	docker build -t $(APP_NAME) .
 
+connect:
+ifeq ($(APP_ENV),prod)
+	$(MAKE) db
+	$(MAKE) redis
+else
+	@echo "Skipping db target since APP_ENV is not 'prod'"
+endif
+
 # Postgres
-db:
-	docker volume create $(APP_NAME)-postgres
+db: create_volume
 	docker run -d --name $(APP_NAME)-postgres \
 		-p $(DB_PORT):5432  \
+		--network $(APP_NAME) \
 		-e POSTGRES_DB=$(DB_NAME) \
 		-e POSTGRES_PASSWORD=$(DB_PASS) \
-		-v $(APP_NAME)-postgres:/var/lib/postgresql/data \
+		-v $(APP_NAME):/var/lib/postgresql/data \
 		postgres
 
 # Redis
 redis:
-	docker run -d --name $(APP_NAME)-redis -p 6379:6379 --restart always redis:latest
+	docker run -d --name $(APP_NAME)-redis -p 6379:6379 --restart always --network $(APP_NAME) redis:latest
+
+create_network:
+	@if ! docker network inspect $(APP_NAME) >/dev/null 2>&1; then \
+		docker network create $(APP_NAME); \
+	else \
+		echo "Network '$(APP_NAME)' already exists, using existing network."; \
+	fi
+
+create_volume:
+	@if ! docker volume inspect $(APP_NAME) >/dev/null 2>&1; then \
+		docker volume create $(APP_NAME); \
+	else \
+		echo "Volume '$(APP_NAME)' already exists, skipping creation."; \
+	fi
 
 # Stop and remove the Docker container
 # --time=600 for waiting running job
