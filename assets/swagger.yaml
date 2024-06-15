@@ -1267,3 +1267,141 @@ paths:
                 status: true
                 message: "Soft delte success"
                 data: null
+  /api/webhooks:
+    get:
+      summary: "Get Webhooks"
+      operationId: "GetWebhooks"
+      tags:
+        - "Webhook"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "query"
+          description: "Webhook ID"
+          schema:
+            type: integer
+        - name: "request_id"
+          in: "query"
+          description: "Request ID"
+          schema:
+            type: integer
+        - name: "schedule_id"
+          in: "query"
+          required: true
+          description: "Schedule ID"
+          schema:
+            type: integer
+      responses:
+        200:
+          description: "List of Webhooks"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                result:
+                  [
+                    {
+                      "id": 1,
+                      "schedule_id": 1,
+                      "request_id": 1,
+                      "active": true,
+                      "created_at": "2024-06-15T22:20:18.54651Z",
+                    },
+                  ]
+    post:
+      summary: "Create Webhook"
+      operationId: "CreateWebhook"
+      tags:
+        - "Webhook"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - schedule_id
+                - request_id
+                - active
+              properties:
+                schedule_id:
+                  type: integer
+                request_id:
+                  type: integer
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Webhook Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  { "id": 1, "schedule_id": 1, "request_id": 1, "active": true }
+  /api/webhooks/{id}:
+    put:
+      summary: "Update Webhook"
+      operationId: "UpdateWebhook"
+      tags:
+        - "Webhook"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Webhook ID"
+          schema:
+            type: "integer"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schedule_id:
+                  type: integer
+                request_id:
+                  type: integer
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Webhook Update"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  { "id": 1, "schedule_id": 1, "request_id": 1, "active": true }
+    delete:
+      summary: "Delete Webhook"
+      operationId: "DeleteWebhook"
+      tags:
+        - "Webhook"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Webhook ID"
+          schema:
+            type: "integer"
+          required: true
+      responses:
+        200:
+          description: "Webhook Delete"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Soft delte success"
+                data: null
