@@ -117,7 +117,7 @@ CREATE TABLE "public"."requests" (
     "user_id" int4 NOT NULL,
     "url" varchar NOT NULL,
     "method" varchar NOT NULL CHECK ((method)::text = ANY (ARRAY['GET'::text, 'POST'::text, 'PUT'::text, 'DELETE'::text, 'PATCH'::text])),
-    "content" jsonb NOT NULL,
+    "content" jsonb,
     "active" bool NOT NULL DEFAULT true,
     "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,

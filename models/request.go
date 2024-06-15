@@ -13,7 +13,7 @@ type Request struct {
 	UserID         int              `json:"user_id" validate:"number"`
 	Url            string           `json:"url" validate:"required,url"`
 	Method         string           `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
-	Content        string           `json:"content" validate:"required,json"`
+	Content        string           `json:"content" validate:"omitempty,json"`
 	Active         bool             `json:"active" validate:"boolean"`
 	RequestHeaders []*RequestHeader `json:"request_headers,omitempty"`
 	CreatedAt      *time.Time       `json:"created_at,omitempty"`
@@ -33,7 +33,7 @@ type RequestBulk struct {
 	UserID         int                  `json:"user_id" validate:"number"`
 	Url            string               `json:"url" validate:"required,url"`
 	Method         string               `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
-	Content        string               `json:"content" validate:"required,json"`
+	Content        string               `json:"content" validate:"omitempty,json"`
 	Active         bool                 `json:"active" validate:"boolean"`
 	RequestHeaders []*RequestHeaderBulk `json:"request_headers" validate:"required,nonempty,dive"`
 }

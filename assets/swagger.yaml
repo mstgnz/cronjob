@@ -356,14 +356,14 @@ paths:
                       "user_id": 1,
                       "url": "https://request.net.tr",
                       "method": "POST",
-                      "content": '{"Content-Type": "application/json"}',
+                      "content": '{"abc": "def"}',
                       "active": true,
                       "created_at": "2024-06-15T20:51:22.067506Z",
                     },
                   ]
     post:
       summary: "Create Request"
-      operationId: "Create Request"
+      operationId: "CreateRequest"
       tags:
         - "Request"
       security:
@@ -402,7 +402,7 @@ paths:
                     "user_id": 1,
                     "url": "https://request.net.tr",
                     "method": "POST",
-                    "content": '{"Content-Type": "application/json"}',
+                    "content": '{"abc": "def"}',
                     "active": true,
                   }
   /api/requests/{id}:
@@ -448,7 +448,7 @@ paths:
                     "user_id": 1,
                     "url": "https://request.net.tr",
                     "method": "POST",
-                    "content": '{"Content-Type": "application/json"}',
+                    "content": '{"abc": "def"}',
                     "active": false,
                   }
     delete:
@@ -665,7 +665,7 @@ paths:
                     },
                   ]
     post:
-      summary: "Create Notifications"
+      summary: "Create Notification"
       operationId: "CreateNotification"
       tags:
         - "Notification"
@@ -679,7 +679,6 @@ paths:
               type: object
               required:
                 - title
-                - content
                 - is_mail
                 - is_message
                 - active
@@ -687,7 +686,7 @@ paths:
                 title:
                   type: string
                 content:
-                  type: string
+                  type: object
                 is_mail:
                   type: boolean
                 is_message:
@@ -737,7 +736,7 @@ paths:
                 title:
                   type: string
                 content:
-                  type: string
+                  type: object
                 is_mail:
                   type: boolean
                 is_message:
@@ -1405,3 +1404,279 @@ paths:
                 status: true
                 message: "Soft delte success"
                 data: null
+  /api/requests/bulk:
+    post:
+      summary: "Create Request BULK"
+      operationId: "CreateRequestBulk"
+      tags:
+        - "Request"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - method
+                - content
+                - active
+                - request_headers
+              properties:
+                url:
+                  type: string
+                method:
+                  type: string
+                content:
+                  type: string
+                active:
+                  type: boolean
+                request_headers:
+                  type: object
+                  required:
+                    - key
+                    - value
+                    - active
+                  properties:
+                    key:
+                      type: string
+                    value:
+                      type: string
+                    active:
+                      type: boolean
+      responses:
+        200:
+          description: "Request Bulk Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "user_id": 0,
+                    "url": "https://test.com.tr",
+                    "method": "POST",
+                    "content": '{"abc":"def"}',
+                    "active": true,
+                    "request_headers":
+                      [
+                        {
+                          "request_id": 0,
+                          "key": "gokalp",
+                          "value": "genez",
+                          "active": false,
+                        },
+                        {
+                          "request_id": 0,
+                          "key": "feza",
+                          "value": "genez",
+                          "active": true,
+                        },
+                      ],
+                  }
+  /api/notifications/bulk:
+    post:
+      summary: "Create Notification Bulk"
+      operationId: "CreateNotificationBulk"
+      tags:
+        - "Notification"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - is_mail
+                - is_message
+                - active
+              properties:
+                title:
+                  type: string
+                content:
+                  type: object
+                is_mail:
+                  type: boolean
+                is_message:
+                  type: boolean
+                active:
+                  type: boolean
+                notify_emails:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - email
+                    properties:
+                      email:
+                        type: string
+                notify_messages:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - phone
+                    properties:
+                      phone:
+                        type: string
+              oneOf:
+                - required: ["notify_emails"]
+                - required: ["notify_messages"]
+      responses:
+        200:
+          description: "Notification Bulk Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 3,
+                    "user_id": 1,
+                    "title": "title bulks",
+                    "content": "content",
+                    "is_mail": false,
+                    "is_message": false,
+                    "active": true,
+                  }
+  /api/schedules/bulk:
+    post:
+      summary: "Create Schedule Bulk"
+      operationId: "CreateScheduleBulk"
+      tags:
+        - "Schedule"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - timing
+                - timeout
+                - retries
+                - active
+              properties:
+                group_id:
+                  type: integer
+                request_id:
+                  type: integer
+                notification_id:
+                  type: integer
+                timing:
+                  type: string
+                timeout:
+                  type: integer
+                retries:
+                  type: integer
+                active:
+                  type: boolean
+                group:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                request:
+                  type: object
+                  required:
+                    - url
+                    - method
+                    - active
+                  properties:
+                    url:
+                      type: string
+                    method:
+                      type: string
+                    content:
+                      type: object
+                    active:
+                      type: boolean
+                    request_headers:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - key
+                          - value
+                          - active
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                          active:
+                            type: boolean
+                notification:
+                  type: object
+                  required:
+                    - title
+                    - is_mail
+                    - is_message
+                    - active
+                  properties:
+                    title:
+                      type: string
+                    content:
+                      type: object
+                    is_mail:
+                      type: boolean
+                    is_message:
+                      type: boolean
+                    active:
+                      type: boolean
+                    notify_emails:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - email
+                        properties:
+                          email:
+                            type: string
+                    notify_messages:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - phone
+                        properties:
+                          phone:
+                            type: string
+                  oneOf:
+                    - required: ["notify_emails"]
+                    - required: ["notify_messages"]
+              oneOf:
+                - required: ["group_id", "request_id", "notification_id"]
+                - required: ["group", "request", "notification"]
+      responses:
+        200:
+          description: "Schedule Create Bulk"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 2,
+                    "user_id": 1,
+                    "group_id": 4,
+                    "request_id": 4,
+                    "notification_id": 1,
+                    "timing": "23 0-20/2 * 10/3 *",
+                    "timeout": 20,
+                    "retries": 2,
+                    "running": false,
+                    "active": true,
+                  }
