@@ -741,3 +741,137 @@ paths:
                 status: true
                 message: "Soft delte success"
                 data: null
+  /api/notify-emails:
+    get:
+      summary: "Get Notify Emails"
+      operationId: "GetNotifyEmails"
+      tags:
+        - "Notify Email"
+      security:
+        - BearerAuth: ["Authorization"]
+      responses:
+        200:
+          description: "List of Notify Emails"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                result:
+                  [
+                    {
+                      "id": 1,
+                      "user_id": 1,
+                      "title": "title 4",
+                      "content": "content",
+                      "is_mail": false,
+                      "is_sms": true,
+                      "active": true,
+                      "created_at": "2024-06-15T21:10:01.713764Z",
+                    },
+                  ]
+    post:
+      summary: "Create Notify Email"
+      operationId: "CreateNotifyEmail"
+      tags:
+        - "Notify Email"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - notification_id
+                - email
+                - active
+              properties:
+                notification_id:
+                  type: integer
+                email:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Notify Email Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "notification_id": 1,
+                    "email": "abcd@defa.com",
+                    "active": true,
+                  }
+  /api/notify-emails/{id}:
+    put:
+      summary: "Update Notify Email"
+      operationId: "UpdateNotifyEmail"
+      tags:
+        - "Notify Email"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Notify Email ID"
+          schema:
+            type: "integer"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notification_id:
+                  type: integer
+                email:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Notify Email Update"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "notification_id": 1,
+                    "email": "abcd@defa.com",
+                    "active": true,
+                  }
+    delete:
+      summary: "Delete Notify Email"
+      operationId: "DeleteNotifyEmail"
+      tags:
+        - "Notify Email"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Notify Email ID"
+          schema:
+            type: "integer"
+          required: true
+      responses:
+        200:
+          description: "Notify Email Delete"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Soft delte success"
+                data: null
