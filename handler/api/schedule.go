@@ -85,7 +85,7 @@ func (h *ScheduleHandler) ScheduleCreateHandler(w http.ResponseWriter, r *http.R
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
-	if !exists {
+	if exists {
 		return config.WriteJSON(w, http.StatusCreated, config.Response{Status: false, Message: "Timing already exists"})
 	}
 
