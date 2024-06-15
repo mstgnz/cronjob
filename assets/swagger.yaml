@@ -591,3 +591,153 @@ paths:
                 status: true
                 message: "Soft delte success"
                 data: null
+  /api/notifications:
+    get:
+      summary: "Get Notifications"
+      operationId: "GetNotifications"
+      tags:
+        - "Notification"
+      security:
+        - BearerAuth: ["Authorization"]
+      responses:
+        200:
+          description: "List of Notifications"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                result:
+                  [
+                    {
+                      "id": 1,
+                      "user_id": 1,
+                      "title": "title 4",
+                      "content": "content",
+                      "is_mail": false,
+                      "is_sms": true,
+                      "active": true,
+                      "created_at": "2024-06-15T21:10:01.713764Z",
+                    },
+                  ]
+    post:
+      summary: "Create Notifications"
+      operationId: "CreateNotification"
+      tags:
+        - "Notification"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+                - is_mail
+                - is_sms
+                - active
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                is_mail:
+                  type: boolean
+                is_sms:
+                  type: boolean
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Notification Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "user_id": 1,
+                    "title": "title 4",
+                    "content": "content",
+                    "is_mail": false,
+                    "is_sms": true,
+                    "active": true,
+                  }
+  /api/notifications/{id}:
+    put:
+      summary: "Update Notification"
+      operationId: "UpdateNotification"
+      tags:
+        - "Notification"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Notification ID"
+          schema:
+            type: "integer"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                is_mail:
+                  type: boolean
+                is_sms:
+                  type: boolean
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Notification Update"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "user_id": 1,
+                    "title": "title 4",
+                    "content": "content",
+                    "is_mail": false,
+                    "is_sms": true,
+                    "active": true,
+                  }
+    delete:
+      summary: "Delete Notification"
+      operationId: "DeleteNotification"
+      tags:
+        - "Notification"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Notification ID"
+          schema:
+            type: "integer"
+          required: true
+      responses:
+        200:
+          description: "Notification Delete"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Soft delte success"
+                data: null
