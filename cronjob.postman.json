@@ -107,12 +107,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -151,12 +146,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"fullname\": \"Gökalp Feza GENEZ\",\n    \"phone\": \"+905436486592\",\n    \"email\": \"mesutgenez@hotmail.com\"\n}",
@@ -195,12 +185,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"password\": \"asdf1234\",\n    \"re-password\": \"asdf1234\"\n}",
@@ -239,12 +224,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -287,12 +267,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -343,12 +318,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"name\": \"cronjob2\",\n    \"active\":true\n}",
@@ -387,12 +357,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"active\": false\n}",
@@ -432,12 +397,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -480,12 +440,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -536,12 +491,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"url\": \"https://request.net.tr\",\n    \"method\":\"POST\",\n    \"content\":\"{\\\"test\\\":\\\"deneme\\\"}\",\n    \"active\":true\n}",
@@ -580,12 +530,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"url\": \"https://gokalp.com.tr\",\n    \"method\": \"POST\",\n    \"content\": \"{\\\"test\\\":\\\"deneme\\\"}\",\n    \"active\": true,\n    \"request_headers\": [\n        {\n            \"key\": \"gokalp\",\n            \"value\": \"genez\",\n            \"active\": false\n        },\n        {\n            \"key\": \"feza\",\n            \"value\": \"genez\",\n            \"active\": true\n        }\n    ]\n}",
@@ -625,12 +570,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"active\": false,\n    \"method\":\"GET\"\n}",
@@ -670,12 +610,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -718,12 +653,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -774,12 +704,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"request_id\":1,\n    \"key\":\"access\",\n    \"value\":\"token\",\n    \"active\":true\n}",
@@ -818,12 +743,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"key\":\"Content-Type\",\n    \"value\":\"application/json\",\n    \"active\": false\n}",
@@ -863,12 +783,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -911,12 +826,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -982,12 +892,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"group_id\":2,\n    \"request_id\":1,\n    \"notification_id\":1,\n    \"timing\":\"23 0-21/2 * 10/3 *\",\n    \"timeout\":20,\n    \"retries\":2,\n    \"active\":true\n}",
@@ -1026,12 +931,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"timing\": \"23 0-20/2 * 10/3 *\",\n    \"timeout\": 20,\n    \"retries\": 2,\n    \"active\": true,\n    \"group\": {\n        \"name\": \"group\"\n    },\n    \"request\": {\n        \"url\": \"https://mes.com.tr\",\n        \"method\": \"POST\",\n        \"content\": \"{\\\"test\\\":\\\"deneme\\\"}\",\n        \"active\": true,\n        \"request_headers\": [\n            {\n                \"key\": \"turkey\",\n                \"value\": \"turvalue\",\n                \"active\": false\n            },\n            {\n                \"key\": \"turkey\",\n                \"value\": \"turvalue\",\n                \"active\": true\n            }\n        ]\n    }\n}",
@@ -1071,12 +971,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n   \"timing\":\"* * * * *\"\n}",
@@ -1116,12 +1011,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1164,12 +1054,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1222,12 +1107,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1282,12 +1162,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"schedule_id\":1,\n    \"request_id\":1,\n    \"active\":true\n}",
@@ -1326,12 +1201,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"active\": false\n}",
@@ -1371,12 +1241,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1419,12 +1284,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1475,12 +1335,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"title\":\"title\",\n    \"content\":\"content\",\n    \"is_mail\": false,\n    \"is_message\": true,\n    \"active\":true\n}",
@@ -1519,12 +1374,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"title\":\"title bulks\",\n    \"content\":\"content\",\n    \"is_mail\": false,\n    \"is_sms\": true,\n    \"active\":true,\n    \"notify_emails\":[\n        {\n            \"email\":\"bulk@bulk.net\"\n        },\n        {\n            \"email\":\"bulk@bulk.com\"\n        }\n    ],\n    \"notify_messages\":[\n        {\n            \"phone\":\"+90435345345435\"\n        },\n        {\n            \"phone\":\"+90342342342342\"\n        }\n    ]\n}",
@@ -1564,12 +1414,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"is_mail\": true\n}",
@@ -1609,12 +1454,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1657,12 +1497,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1713,12 +1548,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"notification_id\":1,\n    \"email\": \"abcd@defa.com\",\n    \"active\":true\n}",
@@ -1757,12 +1587,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"active\": false\n}",
@@ -1802,12 +1627,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1850,12 +1670,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -1906,12 +1721,7 @@
 					]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"notification_id\":1,\n    \"phone\": \"+905433411493\",\n    \"active\":true\n}",
@@ -1950,12 +1760,7 @@
 					]
 				},
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"phone\": \"+905424343439\"\n}",
@@ -1995,12 +1800,7 @@
 					]
 				},
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",

@@ -281,7 +281,8 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 
 func headerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Content-Type") != "application/json" {
+		checkMethod := r.Method == "POST" || r.Method == "PUT" || r.Method == "PATCH"
+		if checkMethod && r.Header.Get("Content-Type") != "application/json" {
 			_ = config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Content-Type"})
 			return
 		}
