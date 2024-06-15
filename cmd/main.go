@@ -57,7 +57,7 @@ func init() {
 		config.App().QUERY = query
 	}
 
-	PORT = os.Getenv("PORT")
+	PORT = os.Getenv("APP_PORT")
 }
 
 type HttpHandler func(w http.ResponseWriter, r *http.Request) error
