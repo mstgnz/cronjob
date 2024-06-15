@@ -97,6 +97,7 @@ func (h *UserHandler) UserUpdateHandler(w http.ResponseWriter, r *http.Request) 
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
 
+	user := &models.User{}
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
@@ -110,6 +111,14 @@ func (h *UserHandler) UserUpdateHandler(w http.ResponseWriter, r *http.Request) 
 		paramCount++
 	}
 	if updateData.Email != "" {
+		// check email
+		exists, err := user.Exists(updateData.Email)
+		if err != nil {
+			return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+		}
+		if exists {
+			return config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Email already exists"})
+		}
 		queryParts = append(queryParts, fmt.Sprintf("email=$%d,", paramCount))
 		params = append(params, updateData.Email)
 		paramCount++
@@ -138,7 +147,6 @@ func (h *UserHandler) UserUpdateHandler(w http.ResponseWriter, r *http.Request) 
 	params = append(params, cUser.ID)
 	query := strings.Join(queryParts, " ")
 
-	user := &models.User{}
 	err = user.Update(query, params)
 
 	if err != nil {
