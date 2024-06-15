@@ -7,6 +7,9 @@ INSERT INTO triggered (schedule_id) VALUES ($1);
 -- TRIGGERED_DELETE
 DELETE FROM triggered WHERE schedule_id=$1;
 
+-- USER_EXISTS_WITH_ID
+SELECT count(*) FROM users WHERE id=$1;
+
 -- USER_EXISTS_WITH_EMAIL
 SELECT count(*) FROM users WHERE email=$1;
 

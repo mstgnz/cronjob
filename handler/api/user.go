@@ -3,9 +3,11 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
 )
@@ -190,11 +192,29 @@ func (h *UserHandler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) 
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
+	if !cUser.IsAdmin {
+		return config.WriteJSON(w, http.StatusForbidden, config.Response{Status: false, Message: "You're not a admin!"})
+	}
 	user := &models.User{}
-	err := user.Delete(cUser.ID)
 
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	exists, err := user.IDExists(id)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+	if !exists {
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "User not found"})
+	}
+
+	err = user.Delete(id)
+	if err != nil {
+		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
+	}
+	if user.ID == cUser.ID {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "You can't erase yourself!"})
+	}
+	if user.IsAdmin {
+		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Admin cannot delete admin!"})
 	}
 
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Soft delte success"})

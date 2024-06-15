@@ -122,7 +122,7 @@ func main() {
 			// users
 			r.Get("/user", Catch(apiUserHandler.UserHandler))
 			r.Put("/user", Catch(apiUserHandler.UserUpdateHandler))
-			r.Delete("/user", Catch(apiUserHandler.UserDeleteHandler))
+			r.Delete("/user/{id}", Catch(apiUserHandler.UserDeleteHandler))
 			r.Put("/user-change-pass", Catch(apiUserHandler.UserPassUpdateHandler))
 			// groups
 			r.Get("/groups", Catch(apiGroupHandler.GroupListHandler))

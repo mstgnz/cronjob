@@ -90,6 +90,32 @@ func (m *User) Exists(email string) (bool, error) {
 	return exists > 0, nil
 }
 
+func (m *User) IDExists(id int) (bool, error) {
+	exists := 0
+
+	// prepare
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_EXISTS_WITH_ID"])
+	if err != nil {
+		return false, err
+	}
+
+	// query
+	rows, err := stmt.Query(id)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&exists); err != nil {
+			return false, err
+		}
+	}
+	return exists > 0, nil
+}
+
 func (m *User) GetWithId(id int) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_GET_WITH_ID"])
