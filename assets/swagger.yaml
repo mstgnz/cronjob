@@ -45,8 +45,8 @@ paths:
                   }
   /api/register:
     post:
-      summary: "User Register"
-      operationId: "UserRegister"
+      summary: "User Create"
+      operationId: "UserCreate"
       tags:
         - "Auth"
       requestBody:
@@ -199,7 +199,7 @@ paths:
         - BearerAuth: ["Authorization"]
       responses:
         200:
-          description: "List of groups"
+          description: "List of Groups"
           content:
             application/json:
               example:
@@ -217,8 +217,8 @@ paths:
                     },
                   ]
     post:
-      summary: "Group Register"
-      operationId: "GroupRegister"
+      summary: "Create Group"
+      operationId: "CreateGroup"
       tags:
         - "Group"
       security:
@@ -255,8 +255,8 @@ paths:
                   }
   /api/groups/{id}:
     put:
-      summary: "Group Update"
-      operationId: "GroupUpdate"
+      summary: "Update Group"
+      operationId: "UpdateGroup"
       tags:
         - "Group"
       security:
@@ -274,9 +274,6 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - name
-                - active
               properties:
                 name:
                   type: string
@@ -292,8 +289,8 @@ paths:
                 message: "Success"
                 data: { "uid": 0, "user_id": 0, "name": "", "active": false }
     delete:
-      summary: "Group Delete"
-      operationId: "GroupDelete"
+      summary: "Delete Group"
+      operationId: "DeleteGroup"
       tags:
         - "Group"
       security:
@@ -308,6 +305,286 @@ paths:
       responses:
         200:
           description: "Group Delete"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Soft delte success"
+                data: null
+  /api/requests:
+    get:
+      summary: "Get Requests"
+      operationId: "GetRequests"
+      tags:
+        - "Request"
+      security:
+        - BearerAuth: ["Authorization"]
+      responses:
+        200:
+          description: "List of Requests"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                result:
+                  [
+                    {
+                      "id": 1,
+                      "user_id": 1,
+                      "url": "https://request.net.tr",
+                      "method": "POST",
+                      "content": '{"Content-Type": "application/json"}',
+                      "active": true,
+                      "created_at": "2024-06-15T20:51:22.067506Z",
+                    },
+                  ]
+    post:
+      summary: "Create Request"
+      operationId: "Create Request"
+      tags:
+        - "Request"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - method
+                - content
+                - active
+              properties:
+                url:
+                  type: string
+                method:
+                  type: string
+                content:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Request Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "user_id": 1,
+                    "url": "https://request.net.tr",
+                    "method": "POST",
+                    "content": '{"Content-Type": "application/json"}',
+                    "active": true,
+                  }
+  /api/requests/{id}:
+    put:
+      summary: "Update Request"
+      operationId: "UpdateRequest"
+      tags:
+        - "Request"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Request ID"
+          schema:
+            type: "integer"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                method:
+                  type: string
+                content:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Request Update"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "user_id": 1,
+                    "url": "https://request.net.tr",
+                    "method": "POST",
+                    "content": '{"Content-Type": "application/json"}',
+                    "active": false,
+                  }
+    delete:
+      summary: "Delete Request"
+      operationId: "Delete Request"
+      tags:
+        - "Request"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Request ID"
+          schema:
+            type: "integer"
+          required: true
+      responses:
+        200:
+          description: "Request Delete"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Soft delte success"
+                data: null
+  /api/request-headers:
+    get:
+      summary: "Get Request Headers"
+      operationId: "GetRequestHeaders"
+      tags:
+        - "Request Header"
+      security:
+        - BearerAuth: ["Authorization"]
+      responses:
+        200:
+          description: "List of Request Headers"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                result:
+                  [
+                    {
+                      "id": 1,
+                      "request_id": 1,
+                      "key": "access",
+                      "value": "token",
+                      "active": true,
+                      "created_at": "2024-06-15T21:02:36.767472Z",
+                    },
+                  ]
+    post:
+      summary: "Create Request Headers"
+      operationId: "CreateRequestHeader"
+      tags:
+        - "Request Header"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request_id
+                - key
+                - value
+                - active
+              properties:
+                request_id:
+                  type: integer
+                key:
+                  type: string
+                value:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Request Header Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "request_id": 1,
+                    "key": "access",
+                    "value": "token",
+                    "active": true,
+                  }
+  /api/request-headers/{id}:
+    put:
+      summary: "Update Request Header"
+      operationId: "UpdateRequestHeader"
+      tags:
+        - "Request Header"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Request Header ID"
+          schema:
+            type: "integer"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request_id:
+                  type: integer
+                key:
+                  type: string
+                value:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Request Header Update"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "request_id": 1,
+                    "key": "access",
+                    "value": "token",
+                    "active": true,
+                  }
+    delete:
+      summary: "Delete Request Header"
+      operationId: "DeleteRequestHeader"
+      tags:
+        - "Request Header"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Request Header ID"
+          schema:
+            type: "integer"
+          required: true
+      responses:
+        200:
+          description: "Request Header Delete"
           content:
             application/json:
               example:
