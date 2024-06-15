@@ -24,12 +24,12 @@ func (s *NotificationService) NotificationBulkService(w http.ResponseWriter, r *
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
 	notification := &models.Notification{
-		UserID:  cUser.ID,
-		Title:   bulk.Title,
-		Content: bulk.Content,
-		IsMail:  bulk.IsMail,
-		IsSms:   bulk.IsSms,
-		Active:  bulk.Active,
+		UserID:    cUser.ID,
+		Title:     bulk.Title,
+		Content:   bulk.Content,
+		IsMail:    bulk.IsMail,
+		IsMessage: bulk.IsMessage,
+		Active:    bulk.Active,
 	}
 
 	exists, err := notification.TitleExists()
@@ -72,20 +72,20 @@ func (s *NotificationService) NotificationBulkService(w http.ResponseWriter, r *
 		}
 	}
 
-	for _, sms := range bulk.NotifySmses {
-		notifySms := &models.NotifySms{
+	for _, message := range bulk.NotifyMessages {
+		notifyMessage := &models.NotifyMessage{
 			NotificationID: notification.ID,
-			Phone:          sms.Phone,
-			Active:         sms.Active,
+			Phone:          message.Phone,
+			Active:         message.Active,
 		}
 
 		// check header key
-		exists, err = notifySms.PhoneExists(tx, cUser.ID)
+		exists, err = notifyMessage.PhoneExists(tx, cUser.ID)
 		if err != nil || exists {
 			continue
 		}
 
-		err = notifySms.Create(tx)
+		err = notifyMessage.Create(tx)
 		if err != nil {
 			continue
 		}

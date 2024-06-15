@@ -12,10 +12,10 @@ import (
 	"github.com/mstgnz/cronjob/models"
 )
 
-type NotifySmsHandler struct{}
+type NotifyMessageHandler struct{}
 
-func (h *NotifySmsHandler) NotifySmsListHandler(w http.ResponseWriter, r *http.Request) error {
-	notifySms := &models.NotifySms{}
+func (h *NotifyMessageHandler) NotifyMessageListHandler(w http.ResponseWriter, r *http.Request) error {
+	notifyMessage := &models.NotifyMessage{}
 
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
@@ -23,21 +23,21 @@ func (h *NotifySmsHandler) NotifySmsListHandler(w http.ResponseWriter, r *http.R
 	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	phone := r.URL.Query().Get("phone")
 
-	notifySmses, err := notifySms.Get(cUser.ID, id, phone)
+	notifyMessages, err := notifyMessage.Get(cUser.ID, id, phone)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifySmses})
+	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifyMessages})
 }
 
-func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http.Request) error {
-	notifySms := &models.NotifySms{}
-	if err := config.ReadJSON(w, r, notifySms); err != nil {
+func (h *NotifyMessageHandler) NotifyMessageCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	notifyMessage := &models.NotifyMessage{}
+	if err := config.ReadJSON(w, r, notifyMessage); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
 
-	err := config.Validate(notifySms)
+	err := config.Validate(notifyMessage)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()})
 	}
@@ -46,7 +46,7 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
 	notification := &models.Notification{}
-	exists, err := notification.IDExists(notifySms.NotificationID, cUser.ID)
+	exists, err := notification.IDExists(notifyMessage.NotificationID, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
@@ -54,7 +54,7 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"})
 	}
 
-	exists, err = notifySms.PhoneExists(config.App().DB.DB, cUser.ID)
+	exists, err = notifyMessage.PhoneExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
@@ -62,16 +62,16 @@ func (h *NotifySmsHandler) NotifySmsCreateHandler(w http.ResponseWriter, r *http
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Phone already exists"})
 	}
 
-	err = notifySms.Create(config.App().DB.DB)
+	err = notifyMessage.Create(config.App().DB.DB)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 
-	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notify sms created", Data: notifySms})
+	return config.WriteJSON(w, http.StatusCreated, config.Response{Status: true, Message: "Notify message created", Data: notifyMessage})
 }
 
-func (h *NotifySmsHandler) NotifySmsUpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	updateData := &models.NotifySmsUpdate{}
+func (h *NotifyMessageHandler) NotifyMessageUpdateHandler(w http.ResponseWriter, r *http.Request) error {
+	updateData := &models.NotifyMessageUpdate{}
 	if err := config.ReadJSON(w, r, &updateData); err != nil {
 		return config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: err.Error()})
 	}
@@ -84,17 +84,17 @@ func (h *NotifySmsHandler) NotifySmsUpdateHandler(w http.ResponseWriter, r *http
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
-	notifySms := &models.NotifySms{}
+	notifyMessage := &models.NotifyMessage{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	exists, err := notifySms.IDExists(id, cUser.ID)
+	exists, err := notifyMessage.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
-		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify sms not found"})
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify message not found"})
 	}
 
-	queryParts := []string{"UPDATE notify_smses SET"}
+	queryParts := []string{"UPDATE notify_messages SET"}
 	params := []any{}
 	paramCount := 1
 
@@ -128,7 +128,7 @@ func (h *NotifySmsHandler) NotifySmsUpdateHandler(w http.ResponseWriter, r *http
 	params = append(params, id)
 	query := strings.Join(queryParts, " ")
 
-	err = notifySms.Update(query, params)
+	err = notifyMessage.Update(query, params)
 
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
@@ -137,21 +137,21 @@ func (h *NotifySmsHandler) NotifySmsUpdateHandler(w http.ResponseWriter, r *http
 	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData})
 }
 
-func (h *NotifySmsHandler) NotifySmsDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *NotifyMessageHandler) NotifyMessageDeleteHandler(w http.ResponseWriter, r *http.Request) error {
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
-	notifySms := &models.NotifySms{}
+	notifyMessage := &models.NotifyMessage{}
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	exists, err := notifySms.IDExists(id, cUser.ID)
+	exists, err := notifyMessage.IDExists(id, cUser.ID)
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})
 	}
 	if !exists {
-		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify sms not found"})
+		return config.WriteJSON(w, http.StatusNotFound, config.Response{Status: false, Message: "Notify message not found"})
 	}
 
-	err = notifySms.Delete(id, cUser.ID)
+	err = notifyMessage.Delete(id, cUser.ID)
 
 	if err != nil {
 		return config.WriteJSON(w, http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()})

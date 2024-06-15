@@ -9,38 +9,38 @@ import (
 )
 
 type Notification struct {
-	ID           int            `json:"id"`
-	UserID       int            `json:"user_id" validate:"number"`
-	Title        string         `json:"title" validate:"required"`
-	Content      string         `json:"content" validate:"required"`
-	IsMail       bool           `json:"is_mail" validate:"boolean"`
-	IsSms        bool           `json:"is_sms" validate:"boolean"`
-	Active       bool           `json:"active" validate:"boolean"`
-	NotifyEmails []*NotifyEmail `json:"emails,omitempty"`
-	NotifySmses  []*NotifySms   `json:"smses,omitempty"`
-	CreatedAt    *time.Time     `json:"created_at,omitempty"`
-	UpdatedAt    *time.Time     `json:"updated_at,omitempty"`
-	DeletedAt    *time.Time     `json:"deleted_at,omitempty"`
+	ID             int              `json:"id"`
+	UserID         int              `json:"user_id" validate:"number"`
+	Title          string           `json:"title" validate:"required"`
+	Content        string           `json:"content" validate:"required"`
+	IsMail         bool             `json:"is_mail" validate:"boolean"`
+	IsMessage      bool             `json:"is_message" validate:"boolean"`
+	Active         bool             `json:"active" validate:"boolean"`
+	NotifyEmails   []*NotifyEmail   `json:"emails,omitempty"`
+	NotifyMessages []*NotifyMessage `json:"messages,omitempty"`
+	CreatedAt      *time.Time       `json:"created_at,omitempty"`
+	UpdatedAt      *time.Time       `json:"updated_at,omitempty"`
+	DeletedAt      *time.Time       `json:"deleted_at,omitempty"`
 }
 
 type NotificationUpdate struct {
-	UserID  int    `json:"user_id" validate:"omitempty,number"`
-	Title   string `json:"title" validate:"omitempty"`
-	Content string `json:"content" validate:"omitempty"`
-	IsSms   *bool  `json:"is_sms" validate:"omitnil,boolean"`
-	IsMail  *bool  `json:"is_mail" validate:"omitnil,boolean"`
-	Active  *bool  `json:"active" validate:"omitnil,boolean"`
+	UserID    int    `json:"user_id" validate:"omitempty,number"`
+	Title     string `json:"title" validate:"omitempty"`
+	Content   string `json:"content" validate:"omitempty"`
+	IsMessage *bool  `json:"is_message" validate:"omitnil,boolean"`
+	IsMail    *bool  `json:"is_mail" validate:"omitnil,boolean"`
+	Active    *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
 type NotificationBulk struct {
-	UserID       int                `json:"user_id" validate:"number"`
-	Title        string             `json:"title" validate:"required"`
-	Content      string             `json:"content" validate:"required"`
-	IsMail       bool               `json:"is_mail" validate:"boolean"`
-	IsSms        bool               `json:"is_sms" validate:"boolean"`
-	Active       bool               `json:"active" validate:"boolean"`
-	NotifyEmails []*NotifyEmailBulk `json:"notify_emails" validate:"required_without=NotifySmses,dive"`
-	NotifySmses  []*NotifySmsBulk   `json:"notify_smses" validate:"required_without=NotifyEmails,dive"`
+	UserID         int                  `json:"user_id" validate:"number"`
+	Title          string               `json:"title" validate:"required"`
+	Content        string               `json:"content" validate:"required"`
+	IsMail         bool                 `json:"is_mail" validate:"boolean"`
+	IsMessage      bool                 `json:"is_message" validate:"boolean"`
+	Active         bool                 `json:"active" validate:"boolean"`
+	NotifyEmails   []*NotifyEmailBulk   `json:"notify_emails" validate:"required_without=NotifyMessages,dive"`
+	NotifyMessages []*NotifyMessageBulk `json:"notify_messages" validate:"required_without=NotifyEmails,dive"`
 }
 
 func (m *Notification) Get(userID, id int, title string) ([]Notification, error) {
@@ -73,7 +73,7 @@ func (m *Notification) Get(userID, id int, title string) ([]Notification, error)
 	var notifications []Notification
 	for rows.Next() {
 		var notification Notification
-		if err := rows.Scan(&notification.ID, &notification.UserID, &notification.Title, &notification.Content, &notification.IsMail, &notification.IsSms, &notification.Active, &notification.CreatedAt, &notification.UpdatedAt, &notification.DeletedAt); err != nil {
+		if err := rows.Scan(&notification.ID, &notification.UserID, &notification.Title, &notification.Content, &notification.IsMail, &notification.IsMessage, &notification.Active, &notification.CreatedAt, &notification.UpdatedAt, &notification.DeletedAt); err != nil {
 			return nil, err
 		}
 		notifications = append(notifications, notification)
@@ -89,7 +89,7 @@ func (m *Notification) Create(exec any) error {
 	}
 
 	// user_id,url,method,content,active
-	err = stmt.QueryRow(m.UserID, m.Title, m.Content, m.IsMail, m.IsSms, m.Active).Scan(&m.ID, &m.UserID, &m.Title, &m.Content, &m.IsMail, &m.IsSms, &m.Active)
+	err = stmt.QueryRow(m.UserID, m.Title, m.Content, m.IsMail, m.IsMessage, m.Active).Scan(&m.ID, &m.UserID, &m.Title, &m.Content, &m.IsMail, &m.IsMessage, &m.Active)
 	if err != nil {
 		return err
 	}

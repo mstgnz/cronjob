@@ -33,7 +33,7 @@ var (
 	apiRequestHeadderHandler api.RequestHeaderHandler
 	apiNotificationHandler   api.NotificationHandler
 	apiNotifyEmailHandler    api.NotifyEmailHandler
-	apiNotifySmsHandler      api.NotifySmsHandler
+	apiNotifyMessageHandler  api.NotifyMessageHandler
 	apiScheduleHandler       api.ScheduleHandler
 	apiWebhookHandler        api.WebhookHandler
 )
@@ -151,11 +151,11 @@ func main() {
 			r.Post("/notify-emails", Catch(apiNotifyEmailHandler.NotifyEmailCreateHandler))
 			r.Put("/notify-emails/{id}", Catch(apiNotifyEmailHandler.NotifyEmailUpdateHandler))
 			r.Delete("/notify-emails/{id}", Catch(apiNotifyEmailHandler.NotifyEmailDeleteHandler))
-			// notification sms
-			r.Get("/notify-sms", Catch(apiNotifySmsHandler.NotifySmsListHandler))
-			r.Post("/notify-sms", Catch(apiNotifySmsHandler.NotifySmsCreateHandler))
-			r.Put("/notify-sms/{id}", Catch(apiNotifySmsHandler.NotifySmsUpdateHandler))
-			r.Delete("/notify-sms/{id}", Catch(apiNotifySmsHandler.NotifySmsDeleteHandler))
+			// notification message
+			r.Get("/notify-messages", Catch(apiNotifyMessageHandler.NotifyMessageListHandler))
+			r.Post("/notify-messages", Catch(apiNotifyMessageHandler.NotifyMessageCreateHandler))
+			r.Put("/notify-messages/{id}", Catch(apiNotifyMessageHandler.NotifyMessageUpdateHandler))
+			r.Delete("/notify-messages/{id}", Catch(apiNotifyMessageHandler.NotifyMessageDeleteHandler))
 			// webhooks
 			r.Get("/webhooks", Catch(apiWebhookHandler.WebhookListHandler))
 			r.Post("/webhooks", Catch(apiWebhookHandler.WebhookCreateHandler))

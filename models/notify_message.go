@@ -8,7 +8,7 @@ import (
 	"github.com/mstgnz/cronjob/config"
 )
 
-type NotifySms struct {
+type NotifyMessage struct {
 	ID             int        `json:"id"`
 	NotificationID int        `json:"notification_id" validate:"required,number"`
 	Phone          string     `json:"phone" validate:"required,e164"`
@@ -18,21 +18,21 @@ type NotifySms struct {
 	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
 }
 
-type NotifySmsUpdate struct {
+type NotifyMessageUpdate struct {
 	NotificationID int    `json:"notification_id" validate:"omitempty,number"`
 	Phone          string `json:"phone" validate:"omitempty,e164"`
 	Active         *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
-type NotifySmsBulk struct {
+type NotifyMessageBulk struct {
 	NotificationID int    `json:"notification_id" validate:"number"`
 	Phone          string `json:"phone" validate:"required,e164"`
 	Active         bool   `json:"active" validate:"boolean"`
 }
 
-func (m *NotifySms) Get(userID, id int, phone string) ([]NotifySms, error) {
+func (m *NotifyMessage) Get(userID, id int, phone string) ([]NotifyMessage, error) {
 
-	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATION_SMS"], ";")
+	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATION_MESSAGES"], ";")
 
 	if id > 0 {
 		query += fmt.Sprintf(" AND ns.id=%v", id)
@@ -57,20 +57,20 @@ func (m *NotifySms) Get(userID, id int, phone string) ([]NotifySms, error) {
 		_ = rows.Close()
 	}()
 
-	var notifySmses []NotifySms
+	var notifyMessages []NotifyMessage
 	for rows.Next() {
-		var notifySms NotifySms
-		if err := rows.Scan(&notifySms.ID, &notifySms.NotificationID, &notifySms.Phone, &notifySms.Active, &notifySms.CreatedAt, &notifySms.UpdatedAt, &notifySms.DeletedAt); err != nil {
+		var notifyMessage NotifyMessage
+		if err := rows.Scan(&notifyMessage.ID, &notifyMessage.NotificationID, &notifyMessage.Phone, &notifyMessage.Active, &notifyMessage.CreatedAt, &notifyMessage.UpdatedAt, &notifyMessage.DeletedAt); err != nil {
 			return nil, err
 		}
-		notifySmses = append(notifySmses, notifySms)
+		notifyMessages = append(notifyMessages, notifyMessage)
 	}
 
-	return notifySmses, nil
+	return notifyMessages, nil
 }
 
-func (m *NotifySms) Create(exec any) error {
-	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["NOTIFICATION_SMS_INSERT"])
+func (m *NotifyMessage) Create(exec any) error {
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["NOTIFICATION_MESSAGE_INSERT"])
 	if err != nil {
 		return err
 	}
@@ -84,11 +84,11 @@ func (m *NotifySms) Create(exec any) error {
 	return nil
 }
 
-func (m *NotifySms) PhoneExists(exec any, userID int) (bool, error) {
+func (m *NotifyMessage) PhoneExists(exec any, userID int) (bool, error) {
 	exists := 0
 
 	// prepare
-	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["NOTIFICATION_SMS_PHONE_EXISTS_WITH_USER"])
+	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["NOTIFICATION_MESSAGE_PHONE_EXISTS_WITH_USER"])
 	if err != nil {
 		return false, err
 	}
@@ -110,11 +110,11 @@ func (m *NotifySms) PhoneExists(exec any, userID int) (bool, error) {
 	return exists > 0, nil
 }
 
-func (m *NotifySms) IDExists(id, userID int) (bool, error) {
+func (m *NotifyMessage) IDExists(id, userID int) (bool, error) {
 	exists := 0
 
 	// prepare
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_SMS_ID_EXISTS_WITH_USER"])
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_MESSAGE_ID_EXISTS_WITH_USER"])
 	if err != nil {
 		return false, err
 	}
@@ -136,7 +136,7 @@ func (m *NotifySms) IDExists(id, userID int) (bool, error) {
 	return exists > 0, nil
 }
 
-func (m *NotifySms) Update(query string, params []any) error {
+func (m *NotifyMessage) Update(query string, params []any) error {
 
 	stmt, err := config.App().DB.Prepare(query)
 	if err != nil {
@@ -157,15 +157,15 @@ func (m *NotifySms) Update(query string, params []any) error {
 	}
 
 	if affected == 0 {
-		return fmt.Errorf("Notification sms not updated")
+		return fmt.Errorf("Notification message not updated")
 	}
 
 	return nil
 }
 
-func (m *NotifySms) Delete(id, userID int) error {
+func (m *NotifyMessage) Delete(id, userID int) error {
 
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_SMS_DELETE"])
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_MESSAGE_DELETE"])
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func (m *NotifySms) Delete(id, userID int) error {
 	}
 
 	if affected == 0 {
-		return fmt.Errorf("Notification sms not deleted")
+		return fmt.Errorf("Notification message not deleted")
 	}
 
 	return nil

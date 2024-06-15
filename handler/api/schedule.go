@@ -431,7 +431,7 @@ func (h *ScheduleHandler) ScheduleBulkHandler(w http.ResponseWriter, r *http.Req
 		notification.Title = bulk.Notification.Title
 		notification.Content = bulk.Notification.Content
 		notification.IsMail = bulk.Notification.IsMail
-		notification.IsSms = bulk.Notification.IsSms
+		notification.IsMessage = bulk.Notification.IsMessage
 		notification.Active = bulk.Notification.Active
 
 		exists, err := notification.TitleExists()
@@ -473,20 +473,20 @@ func (h *ScheduleHandler) ScheduleBulkHandler(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		for _, sms := range bulk.Notification.NotifySmses {
-			notifySms := &models.NotifySms{
+		for _, message := range bulk.Notification.NotifyMessages {
+			notifyMessage := &models.NotifyMessage{
 				NotificationID: notification.ID,
-				Phone:          sms.Phone,
-				Active:         sms.Active,
+				Phone:          message.Phone,
+				Active:         message.Active,
 			}
 
 			// check header key
-			exists, err = notifySms.PhoneExists(tx, cUser.ID)
+			exists, err = notifyMessage.PhoneExists(tx, cUser.ID)
 			if err != nil || exists {
 				continue
 			}
 
-			err = notifySms.Create(tx)
+			err = notifyMessage.Create(tx)
 			if err != nil {
 				continue
 			}

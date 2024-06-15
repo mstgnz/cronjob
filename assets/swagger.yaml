@@ -197,6 +197,17 @@ paths:
         - "Group"
       security:
         - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "query"
+          description: "Group ID"
+          schema:
+            type: integer
+        - name: "uid"
+          in: "query"
+          description: "Group Parent ID"
+          schema:
+            type: integer
       responses:
         200:
           description: "List of Groups"
@@ -319,6 +330,17 @@ paths:
         - "Request"
       security:
         - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "query"
+          description: "Request ID"
+          schema:
+            type: integer
+        - name: "url"
+          in: "query"
+          description: "Request URL"
+          schema:
+            type: string
       responses:
         200:
           description: "List of Requests"
@@ -460,6 +482,17 @@ paths:
         - "Request Header"
       security:
         - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "query"
+          description: "Request Header ID"
+          schema:
+            type: integer
+        - name: "key"
+          in: "query"
+          description: "Request Header key"
+          schema:
+            type: string
       responses:
         200:
           description: "List of Request Headers"
@@ -599,6 +632,17 @@ paths:
         - "Notification"
       security:
         - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "query"
+          description: "Notification ID"
+          schema:
+            type: integer
+        - name: "title"
+          in: "query"
+          description: "Notification title"
+          schema:
+            type: string
       responses:
         200:
           description: "List of Notifications"
@@ -615,7 +659,7 @@ paths:
                       "title": "title 4",
                       "content": "content",
                       "is_mail": false,
-                      "is_sms": true,
+                      "is_message": true,
                       "active": true,
                       "created_at": "2024-06-15T21:10:01.713764Z",
                     },
@@ -637,7 +681,7 @@ paths:
                 - title
                 - content
                 - is_mail
-                - is_sms
+                - is_message
                 - active
               properties:
                 title:
@@ -646,7 +690,7 @@ paths:
                   type: string
                 is_mail:
                   type: boolean
-                is_sms:
+                is_message:
                   type: boolean
                 active:
                   type: boolean
@@ -665,7 +709,7 @@ paths:
                     "title": "title 4",
                     "content": "content",
                     "is_mail": false,
-                    "is_sms": true,
+                    "is_message": true,
                     "active": true,
                   }
   /api/notifications/{id}:
@@ -696,7 +740,7 @@ paths:
                   type: string
                 is_mail:
                   type: boolean
-                is_sms:
+                is_message:
                   type: boolean
                 active:
                   type: boolean
@@ -715,7 +759,7 @@ paths:
                     "title": "title 4",
                     "content": "content",
                     "is_mail": false,
-                    "is_sms": true,
+                    "is_message": true,
                     "active": true,
                   }
     delete:
@@ -749,6 +793,17 @@ paths:
         - "Notify Email"
       security:
         - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "query"
+          description: "Notify Email ID"
+          schema:
+            type: integer
+        - name: "email"
+          in: "query"
+          description: "Notify Email email"
+          schema:
+            type: string
       responses:
         200:
           description: "List of Notify Emails"
@@ -765,7 +820,7 @@ paths:
                       "title": "title 4",
                       "content": "content",
                       "is_mail": false,
-                      "is_sms": true,
+                      "is_message": true,
                       "active": true,
                       "created_at": "2024-06-15T21:10:01.713764Z",
                     },
@@ -869,6 +924,148 @@ paths:
       responses:
         200:
           description: "Notify Email Delete"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Soft delte success"
+                data: null
+  /api/notify-messages:
+    get:
+      summary: "Get Notify Messages"
+      operationId: "GetNotifyMessages"
+      tags:
+        - "Notify Message"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "query"
+          description: "Notify Message ID"
+          schema:
+            type: integer
+        - name: "phone"
+          in: "query"
+          description: "Notify Message phone"
+          schema:
+            type: string
+      responses:
+        200:
+          description: "List of Notify Messagees"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                result:
+                  [
+                    {
+                      "id": 1,
+                      "notification_id": 1,
+                      "phone": "+905433434493",
+                      "active": true,
+                      "created_at": "2024-06-15T21:17:43.12957Z",
+                    },
+                  ]
+    post:
+      summary: "Create Notify Message"
+      operationId: "CreateNotifyMessage"
+      tags:
+        - "Notify Message"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - notification_id
+                - phone
+                - active
+              properties:
+                notification_id:
+                  type: integer
+                phone:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Notify Message Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "notification_id": 1,
+                    "phone": "+905433434493",
+                    "active": true,
+                  }
+  /api/notify-messages/{id}:
+    put:
+      summary: "Update Notify Message"
+      operationId: "UpdateNotifyMessage"
+      tags:
+        - "Notify Message"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Notify Message ID"
+          schema:
+            type: "integer"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notification_id:
+                  type: integer
+                phone:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Notify Message Update"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "notification_id": 1,
+                    "phone": "+905433434493",
+                    "active": true,
+                  }
+    delete:
+      summary: "Delete Notify Message"
+      operationId: "DeleteNotifyMessage"
+      tags:
+        - "Notify Message"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Notify Message ID"
+          schema:
+            type: "integer"
+          required: true
+      responses:
+        200:
+          description: "Notify Message Delete"
           content:
             application/json:
               example:

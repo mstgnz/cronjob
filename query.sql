@@ -141,7 +141,7 @@ SELECT * FROM notifications WHERE user_id=$1 AND deleted_at isnull;
 SELECT * FROM notifications WHERE user_id=$1 AND id=$2 AND deleted_at isnull;
 
 -- NOTIFICATION_INSERT
-INSERT INTO notifications (user_id,title,content,is_mail,is_sms,active) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id,user_id,title,content,is_mail,is_sms,active;
+INSERT INTO notifications (user_id,title,content,is_mail,is_message,active) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id,user_id,title,content,is_mail,is_message,active;
 
 -- NOTIFICATION_TITLE_EXISTS_WITH_USER
 SELECT count(*) FROM notifications WHERE user_id=$1 AND title=$2 AND deleted_at isnull;
@@ -175,23 +175,23 @@ UPDATE notify_emails SET deleted_at=$1, updated_at=$2 FROM notifications
 WHERE notifications.id=notify_emails.notification_id AND notify_emails.id=$3 AND notifications.user_id=$4;
 
 
--- NOTIFICATION_SMS
-SELECT ns.* FROM notify_smses ns JOIN notifications n ON n.id=ns.notification_id WHERE n.user_id=$1 AND ns.deleted_at isnull;
+-- NOTIFICATION_MESSAGES
+SELECT ns.* FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id WHERE n.user_id=$1 AND ns.deleted_at isnull;
 
--- NOTIFICATION_SMS_WITH_ID
-SELECT ns.* FROM notify_smses ns JOIN notifications n ON n.id=ns.notification_id WHERE n.user_id=$1 AND ns.id=$2 AND ns.deleted_at isnull;
+-- NOTIFICATION_MESSAGE_WITH_ID
+SELECT ns.* FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id WHERE n.user_id=$1 AND ns.id=$2 AND ns.deleted_at isnull;
 
--- NOTIFICATION_SMS_INSERT
-INSERT INTO notify_smses (notification_id,phone,active) VALUES ($1,$2,$3) RETURNING id,notification_id,phone,active;
+-- NOTIFICATION_MESSAGE_INSERT
+INSERT INTO notify_messages (notification_id,phone,active) VALUES ($1,$2,$3) RETURNING id,notification_id,phone,active;
 
--- NOTIFICATION_SMS_PHONE_EXISTS_WITH_USER
-SELECT count(*) FROM notify_smses ns JOIN notifications n ON n.id=ns.notification_id 
+-- NOTIFICATION_MESSAGE_PHONE_EXISTS_WITH_USER
+SELECT count(*) FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id 
 WHERE n.user_id=$1 AND ns.phone=$2 AND n.id=$3 AND ns.deleted_at isnull;
 
--- NOTIFICATION_SMS_ID_EXISTS_WITH_USER
-SELECT count(*) FROM notify_smses ns JOIN notifications n ON n.id=ns.notification_id 
+-- NOTIFICATION_MESSAGE_ID_EXISTS_WITH_USER
+SELECT count(*) FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id 
 WHERE ns.id=$1 AND n.user_id=$2 AND ns.deleted_at isnull;
 
--- NOTIFICATION_SMS_DELETE
-UPDATE notify_smses SET deleted_at=$1, updated_at=$2 FROM notifications 
-WHERE notifications.id=notify_smses.notification_id AND notify_smses.id=$3 AND notifications.user_id=$4;
+-- NOTIFICATION_MESSAGE_DELETE
+UPDATE notify_messages SET deleted_at=$1, updated_at=$2 FROM notifications 
+WHERE notifications.id=notify_messages.notification_id AND notify_messages.id=$3 AND notifications.user_id=$4;

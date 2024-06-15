@@ -46,7 +46,7 @@ CREATE TABLE "public"."notifications" (
     "title" varchar NOT NULL,
     "content" varchar NOT NULL,
     "is_mail" bool NOT NULL DEFAULT false,
-    "is_sms" bool NOT NULL DEFAULT false,
+    "is_message" bool NOT NULL DEFAULT false,
     "active" bool NOT NULL DEFAULT true,
     "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
@@ -74,11 +74,11 @@ CREATE TABLE "public"."notify_emails" (
 -- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
 
 -- Sequence and defined type
-CREATE SEQUENCE IF NOT EXISTS notify_smses_id_seq;
+CREATE SEQUENCE IF NOT EXISTS notify_messages_id_seq;
 
 -- Table Definition
-CREATE TABLE "public"."notify_smses" (
-    "id" int4 NOT NULL DEFAULT nextval('notify_smses_id_seq'::regclass),
+CREATE TABLE "public"."notify_messages" (
+    "id" int4 NOT NULL DEFAULT nextval('notify_messages_id_seq'::regclass),
     "notification_id" int4 NOT NULL,
     "phone" varchar NOT NULL,
     "active" bool NOT NULL DEFAULT true,
@@ -236,7 +236,7 @@ ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."u
 ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."notifications" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 ALTER TABLE "public"."notify_emails" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
-ALTER TABLE "public"."notify_smses" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
+ALTER TABLE "public"."notify_messages" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
 ALTER TABLE "public"."request_headers" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 ALTER TABLE "public"."schedule_logs" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;

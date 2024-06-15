@@ -109,9 +109,9 @@ func (h *NotificationHandler) NotificationUpdateHandler(w http.ResponseWriter, r
 		params = append(params, updateData.IsMail)
 		paramCount++
 	}
-	if updateData.IsSms != nil {
-		queryParts = append(queryParts, fmt.Sprintf("is_sms=$%d,", paramCount))
-		params = append(params, updateData.IsSms)
+	if updateData.IsMessage != nil {
+		queryParts = append(queryParts, fmt.Sprintf("is_message=$%d,", paramCount))
+		params = append(params, updateData.IsMessage)
 		paramCount++
 	}
 	if updateData.Active != nil {
