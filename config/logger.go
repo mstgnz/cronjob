@@ -10,9 +10,10 @@ type Logger struct {
 }
 
 func (l *Logger) logToDB(level string, message string) {
-	stmt, _ := App().DB.Prepare(App().QUERY["APP_LOG_INSERT"])
-	_, _ = stmt.Exec(level, message)
-
+	stmt, err := App().DB.Prepare(App().QUERY["APP_LOG_INSERT"])
+	if err == nil {
+		_, _ = stmt.Exec(level, message)
+	}
 	defer func() {
 		_ = stmt.Close()
 	}()
