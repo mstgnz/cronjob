@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"sync"
 
@@ -20,6 +21,8 @@ type CKey string
 
 type config struct {
 	DB        *DB
+	ES        *ES
+	Kraft     *Kraft
 	Mail      *pkg.Mail
 	Cron      *cron.Cron
 	Cache     *pkg.Cache
@@ -50,7 +53,20 @@ func App() *config {
 				Pass: os.Getenv("MAIL_PASS"),
 			},
 		}
+		// Connect to Postgres DB
 		instance.DB.ConnectDatabase()
+		// Connect to Kafka Kraft
+		if kraft, err := newKafkaClient(); err != nil {
+			log.Println(err)
+		} else {
+			instance.Kraft = kraft
+		}
+		// Connect to Elastic Search
+		if es, err := newESClient(); err != nil {
+			log.Println(err)
+		} else {
+			instance.ES = es
+		}
 	})
 	return instance
 }
