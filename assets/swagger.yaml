@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: "Cronjob API Documentation"
   description: "Defining cronjob tasks in the crontab on a server and tracking and managing these tasks can be challenging. In this project, you can input cronjob definitions for all your projects and the corresponding URL information. This allows requests to be sent to the specified URLs on your behalf at the designated times."
@@ -10,246 +10,307 @@ components:
       in: header
       name: Authorization
 paths:
-  /{bucket}/w:{width}/h:{height}/{object}:
-    get:
-      summary: "Get Image With Width And Height"
-      operationId: "GetImageWithWidthAndHeight"
+  /api/login:
+    post:
+      summary: "User Login"
+      operationId: "UserLogin"
       tags:
-        - "File"
-      parameters:
-        - name: "bucket"
-          in: "path"
-          description: "Bucket Name"
-          schema:
-            type: string
-          required: true
-        - name: "width"
-          in: "path"
-          description: "Width"
-          schema:
-            type: integer
-          required: true
-        - name: "height"
-          in: "path"
-          description: "Height"
-          schema:
-            type: integer
-          required: true
-        - name: "object"
-          in: "path"
-          description: "Object Name"
-          schema:
-            type: string
-          required: true
+        - "Auth"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                  format: password
       responses:
         200:
-          description: "File Found"
-        404:
-          description: "File Not Found"
-  /{bucket}/w:{width}/{object}:
-    get:
-      summary: "Get Image With Width"
-      operationId: "GetImageWithWidth"
+          description: "Success login"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "token": "eyJhbGciOiJIUzI.eyJpc3MiOiIxIiwiZXhwI.yyMRyoRa1H8sjqwajdVUyK",
+                  }
+  /api/register:
+    post:
+      summary: "User Register"
+      operationId: "UserRegister"
       tags:
-        - "File"
-      parameters:
-        - name: "bucket"
-          in: "path"
-          description: "Bucket Name"
-          schema:
-            type: string
-          required: true
-        - name: "width"
-          in: "path"
-          description: "Width"
-          schema:
-            type: integer
-          required: true
-        - name: "object"
-          in: "path"
-          description: "Object Name"
-          schema:
-            type: string
-          required: true
+        - "Auth"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullname
+                - email
+                - password
+                - phone
+              properties:
+                fullname:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                phone:
+                  type: string
       responses:
         200:
-          description: "File Found"
-        404:
-          description: "File Not Found"
-  /{bucket}/h:{height}/{object}:
+          description: "User Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "token": "eyJhbGciOiJIUzI.eyJpc3MiOiIxIiwiZXhwI.yyMRyoRa1H8sjqwajdVUyK",
+                    "user":
+                      {
+                        "id": 1,
+                        "fullname": "John DOE",
+                        "email": "johndone@gmail.com",
+                        "phone": "5432222222",
+                        "is_admin": false,
+                      },
+                  }
+  /api/user:
     get:
-      summary: "Get Image With Height"
-      operationId: "GetImageWithHeight"
+      summary: "Get User"
+      operationId: "GetUser"
       tags:
-        - "File"
-      parameters:
-        - name: "bucket"
-          in: "path"
-          description: "Bucket Name"
-          schema:
-            type: string
-          required: true
-        - name: "height"
-          in: "path"
-          description: "Height"
-          schema:
-            type: integer
-          required: true
-        - name: "object"
-          in: "path"
-          description: "Object Name"
-          schema:
-            type: string
-          required: true
+        - "User"
+      security:
+        - BearerAuth: ["Authorization"]
       responses:
         200:
-          description: "File Found"
-        404:
-          description: "File Not Found"
-  /{bucket}/{object}:
-    get:
-      summary: "Get Image"
-      operationId: "GetImage"
+          description: "User"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                result:
+                  {
+                    "id": 1,
+                    "fullname": "your fullname",
+                    "email": "your email",
+                    "phone": "your phone",
+                    "is_admin": true,
+                  }
+  /api/user/{id}:
+    put:
+      summary: "User Update"
+      operationId: "UserUpdate"
       tags:
-        - "File"
+        - "User"
+      security:
+        - BearerAuth: ["Authorization"]
       parameters:
-        - name: "bucket"
+        - name: "id"
           in: "path"
-          description: "Bucket Name"
+          description: "User ID"
           schema:
-            type: string
+            type: "integer"
           required: true
-        - name: "object"
-          in: "path"
-          description: "Object Name"
-          schema:
-            type: string
-          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullname:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
       responses:
         200:
-          description: "File Found"
-        404:
-          description: "File Not Found"
+          description: "User Update"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "fullname": "your fullname",
+                    "email": "your email",
+                    "phone": "your phone",
+                  }
+  /api/user-change-pass:
+    put:
+      summary: "User Change Pass"
+      operationId: "UserChangePass"
+      tags:
+        - "User"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - re-password
+              properties:
+                password:
+                  type: string
+                  format: password
+                re-password:
+                  type: string
+                  format: password
+      responses:
+        200:
+          description: "User Change Pass"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data: { "password": "your-pass", "re-password": "your-pass" }
+  /api/groups:
+    get:
+      summary: "Get Groups"
+      operationId: "GetGroups"
+      tags:
+        - "Group"
+      security:
+        - BearerAuth: ["Authorization"]
+      responses:
+        200:
+          description: "List of groups"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                result:
+                  [
+                    {
+                      "id": 1,
+                      "uid": 0,
+                      "user_id": 0,
+                      "name": "cronjob2",
+                      "active": true,
+                      "created_at": "2024-06-15T18:39:33.512951Z",
+                    },
+                  ]
+    post:
+      summary: "Group Register"
+      operationId: "GroupRegister"
+      tags:
+        - "Group"
+      security:
+        - BearerAuth: ["Authorization"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - active
+              properties:
+                name:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Group Create"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data:
+                  {
+                    "id": 1,
+                    "uid": 0,
+                    "user_id": 1,
+                    "name": "cronjob2",
+                    "active": true,
+                  }
+  /api/groups/{id}:
+    put:
+      summary: "Group Update"
+      operationId: "GroupUpdate"
+      tags:
+        - "Group"
+      security:
+        - BearerAuth: ["Authorization"]
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Group ID"
+          schema:
+            type: "integer"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - active
+              properties:
+                name:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: "Group Update"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Success"
+                data: { "uid": 0, "user_id": 0, "name": "", "active": false }
     delete:
-      summary: "Delete Image"
-      operationId: "DeleteImage"
+      summary: "Group Delete"
+      operationId: "GroupDelete"
       tags:
-        - "File"
+        - "Group"
       security:
         - BearerAuth: ["Authorization"]
       parameters:
-        - name: "bucket"
+        - name: "id"
           in: "path"
-          description: "Bucket Name"
+          description: "Group ID"
           schema:
-            type: string
-          required: true
-        - name: "object"
-          in: "path"
-          description: "Object Name"
-          schema:
-            type: string
+            type: "integer"
           required: true
       responses:
         200:
-          description: "File Successfully Deleted"
-        400:
-          description: "Invalid path or bucket or file"
-        500:
-          description: "Minio Error"
-  /resize:
-    post:
-      summary: "Resize Image Without Save"
-      operationId: "Resize"
-      tags:
-        - "Resize"
-      security:
-        - BearerAuth: ["Authorization"]
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - width
-                - height
-                - file
-              properties:
-                width:
-                  type: integer
-                height:
-                  type: integer
-                file:
-                  type: string
-                  format: binary
-      responses:
-        200:
-          description: "File Found"
-        404:
-          description: "File Not Found"
-  /upload:
-    post:
-      summary: "Upload File"
-      operationId: "Upload"
-      tags:
-        - "Upload"
-      security:
-        - BearerAuth: ["Authorization"]
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - bucket
-                - path
-                - file
-              properties:
-                bucket:
-                  type: string
-                path:
-                  type: string
-                file:
-                  type: string
-                  format: binary
-                width:
-                  type: integer
-                height:
-                  type: integer
-      responses:
-        201:
-          description: "Successful Created"
-        400:
-          description: "Some Error"
-  /upload-url:
-    post:
-      summary: "Upload Url"
-      operationId: "UploadImageWithUrl"
-      tags:
-        - "Upload"
-      security:
-        - BearerAuth: ["Authorization"]
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - bucket
-                - path
-                - url
-                - extension
-              properties:
-                bucket:
-                  type: string
-                path:
-                  type: string
-                url:
-                  type: string
-                extension:
-                  type: string
-      responses:
-        201:
-          description: "Successful Created"
-        400:
-          description: "Some Error"
+          description: "Group Delete"
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Soft delte success"
+                data: null

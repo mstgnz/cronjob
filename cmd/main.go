@@ -93,7 +93,7 @@ func main() {
 
 	// swagger
 	r.Get("/swagger", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./template/swagger.html")
+		http.ServeFile(w, r, "./views/swagger.html")
 	})
 
 	// web without auth
