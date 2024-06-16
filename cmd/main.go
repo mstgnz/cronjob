@@ -24,8 +24,10 @@ import (
 )
 
 var (
-	PORT       string
-	webHandler web.Web
+	PORT               string
+	webUserHandler     web.UserHandler
+	webHomeHandler     web.HomeHandler
+	webScheduleHandler web.ScheduleHandler
 
 	apiUserHandler           api.UserHandler
 	apiGroupHandler          api.GroupHandler
@@ -97,17 +99,17 @@ func main() {
 	})
 
 	// web without auth
-	r.Get("/login", Catch(webHandler.LoginHandler))
-	r.Post("/login", Catch(webHandler.LoginHandler))
-	r.Get("/register", Catch(webHandler.RegisterHandler))
-	r.Post("/register", Catch(webHandler.RegisterHandler))
+	r.Get("/login", Catch(webUserHandler.LoginHandler))
+	r.Post("/login", Catch(webUserHandler.LoginHandler))
+	r.Get("/register", Catch(webUserHandler.RegisterHandler))
+	r.Post("/register", Catch(webUserHandler.RegisterHandler))
 
 	// web with auth
 	r.Group(func(r chi.Router) {
 		r.Use(webAuthMiddleware)
-		r.Get("/", Catch(webHandler.HomeHandler))
-		r.Get("/profile", Catch(webHandler.ProfileHandler))
-		r.Get("/schedules", Catch(webHandler.ListHandler))
+		r.Get("/", Catch(webHomeHandler.HomeHandler))
+		r.Get("/user/profile", Catch(webUserHandler.ProfileHandler))
+		r.Get("/schedules", Catch(webScheduleHandler.ListHandler))
 	})
 
 	// api without auth
@@ -120,55 +122,55 @@ func main() {
 		r.Route("/api", func(r chi.Router) {
 			r.Use(headerMiddleware)
 			// users
-			r.Get("/user", Catch(apiUserHandler.UserHandler))
-			r.Put("/user", Catch(apiUserHandler.UserUpdateHandler))
-			r.Delete("/user/{id}", Catch(apiUserHandler.UserDeleteHandler))
-			r.Put("/user-change-pass", Catch(apiUserHandler.UserPassUpdateHandler))
+			r.Get("/user", Catch(apiUserHandler.ProfileHandler))
+			r.Put("/user", Catch(apiUserHandler.UpdateHandler))
+			r.Delete("/user/{id}", Catch(apiUserHandler.DeleteHandler))
+			r.Put("/user-change-pass", Catch(apiUserHandler.PassUpdateHandler))
 			// groups
-			r.Get("/groups", Catch(apiGroupHandler.GroupListHandler))
-			r.Post("/groups", Catch(apiGroupHandler.GroupCreateHandler))
-			r.Put("/groups/{id}", Catch(apiGroupHandler.GroupUpdateHandler))
-			r.Delete("/groups/{id}", Catch(apiGroupHandler.GroupDeleteHandler))
+			r.Get("/groups", Catch(apiGroupHandler.ListHandler))
+			r.Post("/groups", Catch(apiGroupHandler.CreateHandler))
+			r.Put("/groups/{id}", Catch(apiGroupHandler.UpdateHandler))
+			r.Delete("/groups/{id}", Catch(apiGroupHandler.DeleteHandler))
 			// requests
-			r.Get("/requests", Catch(apiRequestHandler.RequestListHandler))
-			r.Post("/requests", Catch(apiRequestHandler.RequestCreateHandler))
-			r.Post("/requests/bulk", Catch(apiRequestHandler.RequestBulkHandler))
-			r.Put("/requests/{id}", Catch(apiRequestHandler.RequestUpdateHandler))
-			r.Delete("/requests/{id}", Catch(apiRequestHandler.RequestDeleteHandler))
+			r.Get("/requests", Catch(apiRequestHandler.ListHandler))
+			r.Post("/requests", Catch(apiRequestHandler.CreateHandler))
+			r.Post("/requests/bulk", Catch(apiRequestHandler.BulkHandler))
+			r.Put("/requests/{id}", Catch(apiRequestHandler.UpdateHandler))
+			r.Delete("/requests/{id}", Catch(apiRequestHandler.DeleteHandler))
 			// request headers
-			r.Get("/request-headers", Catch(apiRequestHeadderHandler.RequestHeaderListHandler))
-			r.Post("/request-headers", Catch(apiRequestHeadderHandler.RequestHeaderCreateHandler))
-			r.Put("/request-headers/{id}", Catch(apiRequestHeadderHandler.RequestHeaderUpdateHandler))
-			r.Delete("/request-headers/{id}", Catch(apiRequestHeadderHandler.RequestHeaderDeleteHandler))
+			r.Get("/request-headers", Catch(apiRequestHeadderHandler.ListHandler))
+			r.Post("/request-headers", Catch(apiRequestHeadderHandler.CreateHandler))
+			r.Put("/request-headers/{id}", Catch(apiRequestHeadderHandler.UpdateHandler))
+			r.Delete("/request-headers/{id}", Catch(apiRequestHeadderHandler.DeleteHandler))
 			// notifications
-			r.Get("/notifications", Catch(apiNotificationHandler.NotificationListHandler))
-			r.Post("/notifications", Catch(apiNotificationHandler.NotificationCreateHandler))
-			r.Post("/notifications/bulk", Catch(apiNotificationHandler.NotificationBulkHandler))
-			r.Put("/notifications/{id}", Catch(apiNotificationHandler.NotificationUpdateHandler))
-			r.Delete("/notifications/{id}", Catch(apiNotificationHandler.NotificationDeleteHandler))
+			r.Get("/notifications", Catch(apiNotificationHandler.ListHandler))
+			r.Post("/notifications", Catch(apiNotificationHandler.CreateHandler))
+			r.Post("/notifications/bulk", Catch(apiNotificationHandler.BulkHandler))
+			r.Put("/notifications/{id}", Catch(apiNotificationHandler.UpdateHandler))
+			r.Delete("/notifications/{id}", Catch(apiNotificationHandler.DeleteHandler))
 			// notification emails
-			r.Get("/notify-emails", Catch(apiNotifyEmailHandler.NotifyEmailListHandler))
-			r.Post("/notify-emails", Catch(apiNotifyEmailHandler.NotifyEmailCreateHandler))
-			r.Put("/notify-emails/{id}", Catch(apiNotifyEmailHandler.NotifyEmailUpdateHandler))
-			r.Delete("/notify-emails/{id}", Catch(apiNotifyEmailHandler.NotifyEmailDeleteHandler))
+			r.Get("/notify-emails", Catch(apiNotifyEmailHandler.ListHandler))
+			r.Post("/notify-emails", Catch(apiNotifyEmailHandler.CreateHandler))
+			r.Put("/notify-emails/{id}", Catch(apiNotifyEmailHandler.UpdateHandler))
+			r.Delete("/notify-emails/{id}", Catch(apiNotifyEmailHandler.DeleteHandler))
 			// notification message
-			r.Get("/notify-messages", Catch(apiNotifyMessageHandler.NotifyMessageListHandler))
-			r.Post("/notify-messages", Catch(apiNotifyMessageHandler.NotifyMessageCreateHandler))
-			r.Put("/notify-messages/{id}", Catch(apiNotifyMessageHandler.NotifyMessageUpdateHandler))
-			r.Delete("/notify-messages/{id}", Catch(apiNotifyMessageHandler.NotifyMessageDeleteHandler))
+			r.Get("/notify-messages", Catch(apiNotifyMessageHandler.ListHandler))
+			r.Post("/notify-messages", Catch(apiNotifyMessageHandler.CreateHandler))
+			r.Put("/notify-messages/{id}", Catch(apiNotifyMessageHandler.UpdateHandler))
+			r.Delete("/notify-messages/{id}", Catch(apiNotifyMessageHandler.DeleteHandler))
 			// webhooks
-			r.Get("/webhooks", Catch(apiWebhookHandler.WebhookListHandler))
-			r.Post("/webhooks", Catch(apiWebhookHandler.WebhookCreateHandler))
-			r.Put("/webhooks/{id}", Catch(apiWebhookHandler.WebhookUpdateHandler))
-			r.Delete("/webhooks/{id}", Catch(apiWebhookHandler.WebhookDeleteHandler))
+			r.Get("/webhooks", Catch(apiWebhookHandler.ListHandler))
+			r.Post("/webhooks", Catch(apiWebhookHandler.CreateHandler))
+			r.Put("/webhooks/{id}", Catch(apiWebhookHandler.UpdateHandler))
+			r.Delete("/webhooks/{id}", Catch(apiWebhookHandler.DeleteHandler))
 			// schedules
-			r.Get("/schedules", Catch(apiScheduleHandler.ScheduleListHandler))
-			r.Post("/schedules", Catch(apiScheduleHandler.ScheduleCreateHandler))
-			r.Post("/schedules/bulk", Catch(apiScheduleHandler.ScheduleBulkHandler))
-			r.Put("/schedules/{id}", Catch(apiScheduleHandler.ScheduleUpdateHandler))
-			r.Delete("/schedules/{id}", Catch(apiScheduleHandler.ScheduleDeleteHandler))
+			r.Get("/schedules", Catch(apiScheduleHandler.ListHandler))
+			r.Post("/schedules", Catch(apiScheduleHandler.CreateHandler))
+			r.Post("/schedules/bulk", Catch(apiScheduleHandler.BulkHandler))
+			r.Put("/schedules/{id}", Catch(apiScheduleHandler.UpdateHandler))
+			r.Delete("/schedules/{id}", Catch(apiScheduleHandler.DeleteHandler))
 			// schedule logs
-			r.Get("/schedule-logs", Catch(apiScheduleHandler.ScheduleLogListHandler))
+			r.Get("/schedule-logs", Catch(apiScheduleHandler.LogListHandler))
 		})
 	})
 
@@ -214,34 +216,15 @@ func main() {
 
 func webAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+		// get auth user in context
+		cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
-		userId, err := config.GetUserIDByToken(tokenString)
-		if err != nil {
+		if cUser == nil || cUser.ID == 0 {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
-		user_id, err := strconv.Atoi(userId)
-		if err != nil && user_id == 0 {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		user := &models.User{}
-		err = user.GetWithId(user_id)
-
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), config.CKey("user"), user)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, r)
 	})
 }
 
