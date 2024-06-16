@@ -1,7 +1,7 @@
 include .env
 
 PACKAGES := $(shell go list ./...)
-name := $(shell basename ${PWD})
+BASENAME := $(shell basename ${PWD})
 
 .PHONY: run live build db redis stop cleanI cleanC exec test help
 .DEFAULT_GOAL:= run
