@@ -1,9 +1,9 @@
 package config
 
 type Response struct {
-	Status  bool   `json:"status"`
-	Message string `json:"message"`
-	Data    any    `json:"data"`
+	Status  bool           `json:"status"`
+	Message string         `json:"message"`
+	Data    map[string]any `json:"data"`
 }
 
 func (r *Response) SetStatus(status bool) *Response {
@@ -16,7 +16,7 @@ func (r *Response) SetMessage(message string) *Response {
 	return r
 }
 
-func (r *Response) SetData(data any) *Response {
-	r.Data = data
+func (r *Response) SetData(key string, value any) *Response {
+	r.Data[key] = value
 	return r
 }
