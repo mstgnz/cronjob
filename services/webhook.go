@@ -28,12 +28,12 @@ func (h *WebhookService) ListService(w http.ResponseWriter, r *http.Request) (in
 		return http.StatusBadRequest, config.Response{Status: false, Message: "schedule_id param required"}
 	}
 
-	requests, err := webhook.Get(id, schedule_id, request_id, cUser.ID)
+	webhooks, err := webhook.Get(id, schedule_id, request_id, cUser.ID)
 	if err != nil {
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"webhooks": webhooks}}
 }
 
 func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -44,7 +44,7 @@ func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (
 
 	err := config.Validate(webhook)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -84,7 +84,7 @@ func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Webhook created", Data: webhook}
+	return http.StatusCreated, config.Response{Status: true, Message: "Webhook created", Data: map[string]any{"webhook": webhook}}
 }
 
 func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -95,7 +95,7 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 
 	err := config.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -151,7 +151,7 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (h *WebhookService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {

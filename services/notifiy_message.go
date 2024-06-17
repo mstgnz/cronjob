@@ -28,7 +28,7 @@ func (s *NotifyMessageService) ListService(w http.ResponseWriter, r *http.Reques
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifyMessages}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"notify_messages": notifyMessages}}
 }
 
 func (s *NotifyMessageService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -39,7 +39,7 @@ func (s *NotifyMessageService) CreateService(w http.ResponseWriter, r *http.Requ
 
 	err := config.Validate(notifyMessage)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -67,7 +67,7 @@ func (s *NotifyMessageService) CreateService(w http.ResponseWriter, r *http.Requ
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Notify message created", Data: notifyMessage}
+	return http.StatusCreated, config.Response{Status: true, Message: "Notify message created", Data: map[string]any{"notify_message": notifyMessage}}
 }
 
 func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -78,7 +78,7 @@ func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Requ
 
 	err := config.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -134,7 +134,7 @@ func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Requ
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (s *NotifyMessageService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {

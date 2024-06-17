@@ -28,7 +28,7 @@ func (h *RequestService) ListService(w http.ResponseWriter, r *http.Request) (in
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"requests": requests}}
 }
 
 func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -39,7 +39,7 @@ func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (
 
 	err := config.Validate(request)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -60,7 +60,7 @@ func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Request created", Data: request}
+	return http.StatusCreated, config.Response{Status: true, Message: "Request created", Data: map[string]any{"request": request}}
 }
 
 func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -71,7 +71,7 @@ func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (
 
 	err := config.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -132,7 +132,7 @@ func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (h *RequestService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -166,7 +166,7 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 
 	err := config.Validate(bulk)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -226,5 +226,5 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "test", Data: bulk}
+	return http.StatusCreated, config.Response{Status: true, Message: "test", Data: map[string]any{"request": request}}
 }

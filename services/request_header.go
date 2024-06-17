@@ -24,12 +24,12 @@ func (s *RequestHeaderService) ListService(w http.ResponseWriter, r *http.Reques
 	requestID, _ := strconv.Atoi(r.URL.Query().Get("request_id"))
 	key := r.URL.Query().Get("key")
 
-	requests, err := requestHeader.Get(cUser.ID, id, requestID, key)
+	requestHeaders, err := requestHeader.Get(cUser.ID, id, requestID, key)
 	if err != nil {
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"request_headers": requestHeaders}}
 }
 
 func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -40,7 +40,7 @@ func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Requ
 
 	err := config.Validate(requestHeader)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -70,7 +70,7 @@ func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Requ
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Request Header created", Data: requestHeader}
+	return http.StatusCreated, config.Response{Status: true, Message: "Request Header created", Data: map[string]any{"request_header": requestHeader}}
 }
 
 func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -81,7 +81,7 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 
 	err := config.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -142,7 +142,7 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (s *RequestHeaderService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {

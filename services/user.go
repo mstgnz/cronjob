@@ -28,16 +28,16 @@ func (s *UserService) LoginService(w http.ResponseWriter, r *http.Request) (int,
 	user := &models.User{}
 	err = user.GetWithMail(login.Email)
 	if err != nil {
-		return http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
 	if !config.ComparePassword(user.Password, login.Password) {
-		return http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid credentials"}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Invalid credentials"}
 	}
 
 	token, err := config.GenerateToken(user.ID)
 	if err != nil {
-		return http.StatusOK, config.Response{Status: false, Message: "Failed to generate token"}
+		return http.StatusInternalServerError, config.Response{Status: false, Message: "Failed to generate token"}
 	}
 
 	// update last_login
@@ -45,6 +45,7 @@ func (s *UserService) LoginService(w http.ResponseWriter, r *http.Request) (int,
 
 	data := make(map[string]any)
 	data["token"] = token
+	data["user"] = user
 	return http.StatusOK, config.Response{Status: true, Message: "Login successful", Data: data}
 }
 
@@ -65,7 +66,7 @@ func (s *UserService) RegisterService(w http.ResponseWriter, r *http.Request) (i
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 	if exists {
-		return http.StatusUnauthorized, config.Response{Status: false, Message: "Email already exists"}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Email already exists"}
 	}
 
 	err = user.Create(register)
@@ -75,7 +76,7 @@ func (s *UserService) RegisterService(w http.ResponseWriter, r *http.Request) (i
 
 	token, err := config.GenerateToken(user.ID)
 	if err != nil {
-		return http.StatusCreated, config.Response{Status: false, Message: "Failed to generate token"}
+		return http.StatusInternalServerError, config.Response{Status: false, Message: "Failed to generate token"}
 	}
 
 	data := make(map[string]any)
@@ -85,7 +86,8 @@ func (s *UserService) RegisterService(w http.ResponseWriter, r *http.Request) (i
 }
 
 func (s *UserService) ProfileService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: r.Context().Value(config.CKey("user"))}
+	user := r.Context().Value(config.CKey("user"))
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"user": user}}
 }
 
 func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -155,7 +157,7 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (s *UserService) PassUpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -185,7 +187,7 @@ func (s *UserService) PassUpdateService(w http.ResponseWriter, r *http.Request) 
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (s *UserService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {

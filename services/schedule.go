@@ -27,12 +27,12 @@ func (s *ScheduleService) ListService(w http.ResponseWriter, r *http.Request) (i
 	notification_id, _ := strconv.Atoi(r.URL.Query().Get("notification_id"))
 	timing := r.URL.Query().Get("timing")
 
-	requests, err := schedule.Get(id, cUser.ID, group_id, request_id, notification_id, timing)
+	schedules, err := schedule.Get(id, cUser.ID, group_id, request_id, notification_id, timing)
 	if err != nil {
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: requests}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"schedules": schedules}}
 }
 
 func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -43,7 +43,7 @@ func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) 
 
 	err := config.Validate(schedule)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -95,7 +95,7 @@ func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) 
 		return http.StatusCreated, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Schedule created", Data: schedule}
+	return http.StatusCreated, config.Response{Status: true, Message: "Schedule created", Data: map[string]any{"schedule": schedule}}
 }
 
 func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -106,7 +106,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 
 	err := config.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -212,7 +212,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (s *ScheduleService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -264,7 +264,7 @@ func (s *ScheduleService) LogListService(w http.ResponseWriter, r *http.Request)
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: scheduleLogs}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"schedule_logs": scheduleLogs}}
 }
 
 func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -275,7 +275,7 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 
 	err := config.Validate(bulk)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -508,5 +508,5 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Schedule created", Data: schedule}
+	return http.StatusCreated, config.Response{Status: true, Message: "Schedule created", Data: map[string]any{"schedule": schedule}}
 }

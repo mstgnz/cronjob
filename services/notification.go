@@ -28,7 +28,7 @@ func (s *NotificationService) ListService(w http.ResponseWriter, r *http.Request
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: notifications}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"notifications": notifications}}
 }
 
 func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -39,7 +39,7 @@ func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Reque
 
 	err := config.Validate(notification)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -60,7 +60,7 @@ func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Reque
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Notification created", Data: notification}
+	return http.StatusCreated, config.Response{Status: true, Message: "Notification created", Data: map[string]any{"notification": notification}}
 }
 
 func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -71,7 +71,7 @@ func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Reque
 
 	err := config.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -137,7 +137,7 @@ func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Reque
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (s *NotificationService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -171,7 +171,7 @@ func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request
 
 	err := config.Validate(bulk)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -250,5 +250,5 @@ func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Notification created", Data: notification}
+	return http.StatusCreated, config.Response{Status: true, Message: "Notification created", Data: map[string]any{"notification": notification}}
 }

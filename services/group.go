@@ -28,7 +28,7 @@ func (s *GroupService) ListSerice(w http.ResponseWriter, r *http.Request) (int, 
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: groups}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"groups": groups}}
 }
 
 func (s *GroupService) CreateSerice(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -39,7 +39,7 @@ func (s *GroupService) CreateSerice(w http.ResponseWriter, r *http.Request) (int
 
 	err := config.Validate(group)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -60,7 +60,7 @@ func (s *GroupService) CreateSerice(w http.ResponseWriter, r *http.Request) (int
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Group created", Data: group}
+	return http.StatusCreated, config.Response{Status: true, Message: "Group created", Data: map[string]any{"group": group}}
 }
 
 func (s *GroupService) UpdateSerice(w http.ResponseWriter, r *http.Request) (int, config.Response) {
@@ -71,7 +71,7 @@ func (s *GroupService) UpdateSerice(w http.ResponseWriter, r *http.Request) (int
 
 	err := config.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: err.Error()}
+		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -127,7 +127,7 @@ func (s *GroupService) UpdateSerice(w http.ResponseWriter, r *http.Request) (int
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: updateData}
+	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
 func (s *GroupService) DeleteSerice(w http.ResponseWriter, r *http.Request) (int, config.Response) {
