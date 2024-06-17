@@ -1,8 +1,10 @@
 package web
 
 import (
-	"context"
+	"encoding/json"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
@@ -18,24 +20,47 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 	case http.MethodGet:
 		return config.Render(w, "login", map[string]any{})
 	case http.MethodPost:
-
-		//email := r.FormValue("email")
-		//password := r.FormValue("password")
-
-		//statusCode, response := h.LoginService(w, r)
-		//return config.WriteJSON(w, statusCode, response)
-
-		user := &models.User{}
-		ctx := context.WithValue(r.Context(), config.CKey("user"), user)
-		r = r.WithContext(ctx)
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		code, response := h.LoginService(w, r)
+		if response.Status && code == http.StatusOK {
+			user, ok := response.Data["user"].(*models.User)
+			if ok && user.ID > 0 {
+				http.SetCookie(w, &http.Cookie{
+					Name:    "auth",
+					Value:   strconv.Itoa(user.ID),
+					Expires: time.Now().Add(12 * time.Hour),
+				})
+			}
+		}
+		json.NewEncoder(w).Encode(response)
+		return nil
+	default:
+		json.NewEncoder(w).Encode(map[string]any{"status": false, "message": "not supported request", "data": nil})
+		return nil
 	}
-	return nil
 }
 
 func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
-	data := map[string]any{}
-	return config.Render(w, "register", data)
+	switch r.Method {
+	case http.MethodGet:
+		return config.Render(w, "register", map[string]any{})
+	case http.MethodPost:
+		code, response := h.RegisterService(w, r)
+		if response.Status && code == http.StatusCreated {
+			user, ok := response.Data["user"].(*models.User)
+			if ok && user.ID > 0 {
+				http.SetCookie(w, &http.Cookie{
+					Name:    "auth",
+					Value:   strconv.Itoa(user.ID),
+					Expires: time.Now().Add(12 * time.Hour),
+				})
+			}
+		}
+		json.NewEncoder(w).Encode(response)
+		return nil
+	default:
+		json.NewEncoder(w).Encode(map[string]any{"status": false, "message": "not supported request", "data": nil})
+		return nil
+	}
 }
 
 func (h *UserHandler) HomeHandler(w http.ResponseWriter, _ *http.Request) error {
@@ -48,4 +73,18 @@ func (h *UserHandler) ListHandler(w http.ResponseWriter, _ *http.Request) error 
 
 func (h *UserHandler) ProfileHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.Render(w, "profile", map[string]any{})
+}
+
+func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) error {
+	cookie, err := r.Cookie("auth")
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return nil
+	}
+
+	cookie.MaxAge = -1
+	http.SetCookie(w, cookie)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return nil
 }

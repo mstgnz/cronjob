@@ -216,15 +216,28 @@ func main() {
 
 func webAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// get auth user in context
-		cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
-		if cUser == nil || cUser.ID == 0 {
+		cookie, err := r.Cookie("auth")
+		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		user := &models.User{}
+		user_id, err := strconv.Atoi(cookie.Value)
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		err = user.GetWithId(user_id)
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), config.CKey("user"), user)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

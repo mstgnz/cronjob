@@ -3,8 +3,7 @@
 {{define "content"}}
 <div class="bg-white p-8 rounded-lg shadow-md w-96">
     <h2 class="text-xl mb-4">Sign Up</h2>
-    {{/* <form hx-post="/register" hx-ext="json-enc" novalidate autocomplete="off"> */}}
-    <form method="post" action="/register" novalidate autocomplete="off">
+    <form hx-post="/register" hx-target="#toast" hx-ext="json-enc" novalidate autocomplete="off">
     <div class="mb-4">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
                 Fullname
@@ -16,6 +15,12 @@
                 Email
             </label>
             <input type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" name="email" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
+                Phone
+            </label>
+            <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="phone" name="phone" required>
         </div>
         <div class="mb-6">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
@@ -29,24 +34,19 @@
             </button>
             <span class="ml-4">please <a href="login">login</a> if you have an account.</span>
         </div>
-        <div class="flex items-center justify-between">
-            <span class="ml-4">{{.status}}</span>
-            <span class="ml-4">{{.message}}</span>
-        </div>
+        <span id="toast"></span>
     </form>
 </div>
 {{end}}
 
 {{define "js"}}
 <script>
-    {{/* document.body.addEventListener('htmx:afterRequest', function(evt) {
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
         const response = JSON.parse(evt.detail.xhr.response)
-        if(response.status){
-            localStorage.setItem("access_token",response.data)
-            window.location.url = "/"
-            return
+        document.querySelector('#toast').innerHTML = response.message;
+        if (response.status) {
+            window.location.href = "/";
         }
-        alert(response.message)
-    }); */}}
+    });
 </script>
 {{end}}
