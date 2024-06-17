@@ -1,7 +1,6 @@
 package web
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,6 +23,7 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 		if response.Status && code == http.StatusOK {
 			user, ok := response.Data["user"].(*models.User)
 			if ok && user.ID > 0 {
+				w.Header().Set("HX-Redirect", "/")
 				http.SetCookie(w, &http.Cookie{
 					Name:    "auth",
 					Value:   strconv.Itoa(user.ID),
@@ -31,12 +31,9 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 				})
 			}
 		}
-		json.NewEncoder(w).Encode(response)
-		return nil
-	default:
-		json.NewEncoder(w).Encode(map[string]any{"status": false, "message": "not supported request", "data": nil})
-		return nil
+		w.Write([]byte(response.Message))
 	}
+	return nil
 }
 
 func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
@@ -48,6 +45,7 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 		if response.Status && code == http.StatusCreated {
 			user, ok := response.Data["user"].(*models.User)
 			if ok && user.ID > 0 {
+				w.Header().Set("HX-Redirect", "/")
 				http.SetCookie(w, &http.Cookie{
 					Name:    "auth",
 					Value:   strconv.Itoa(user.ID),
@@ -55,12 +53,9 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 				})
 			}
 		}
-		json.NewEncoder(w).Encode(response)
-		return nil
-	default:
-		json.NewEncoder(w).Encode(map[string]any{"status": false, "message": "not supported request", "data": nil})
-		return nil
+		w.Write([]byte(response.Message))
 	}
+	return nil
 }
 
 func (h *UserHandler) HomeHandler(w http.ResponseWriter, _ *http.Request) error {

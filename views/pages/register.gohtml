@@ -38,15 +38,3 @@
     </form>
 </div>
 {{end}}
-
-{{define "js"}}
-<script>
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        const response = JSON.parse(evt.detail.xhr.response)
-        document.querySelector('#toast').innerHTML = response.message;
-        if (response.status) {
-            window.location.href = "/";
-        }
-    });
-</script>
-{{end}}

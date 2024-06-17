@@ -3,7 +3,7 @@
 {{define "content"}}
 <div class="bg-white p-8 rounded-lg shadow-md w-96">
     <h2 class="text-xl mb-4">Sign In</h2>
-    <form hx-post="/login" hx-target="#toast" hx-ext="json-enc" hx-on="htmx:afterRequest: handleLoginResponse(event)" novalidate autocomplete="off">
+    <form hx-post="/login" hx-target="#toast" hx-ext="json-enc" novalidate autocomplete="off">
         <div class="mb-4">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
                 Email
@@ -25,13 +25,4 @@
         <span id="toast"></span>
     </form>
 </div>
-<script>
-    function handleLoginResponse(event) {
-        const response = JSON.parse(event.detail.xhr.response);
-        document.querySelector('#toast').innerHTML = response.message;
-        if (response.status) {
-            window.location.href = "/";
-        }
-    }
-</script>
 {{end}}
