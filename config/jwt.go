@@ -2,6 +2,7 @@ package config
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"time"
@@ -54,4 +55,12 @@ func RandomString(length int) string {
 		s[i] = r[x%y]
 	}
 	return string(s)
+}
+
+func RandomHex(length int) string {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return RandomString(length)
+	}
+	return hex.EncodeToString(bytes)
 }
