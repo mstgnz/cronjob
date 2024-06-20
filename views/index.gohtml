@@ -116,6 +116,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/webhook">Webhook</a>
                     </li>
+                    {{ if .isAdmin }}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/setting">Setting</a>
+                    </li>
+                    {{end}}
                 </ul>
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle"role="button" data-bs-toggle="dropdown" aria-expanded="false">

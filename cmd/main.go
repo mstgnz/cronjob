@@ -32,6 +32,7 @@ var (
 	webGroupHandler        web.GroupHandler
 	webWebhookHandler      web.WebhookHandler
 	webNotificationHandler web.NotificationHandler
+	webSettingHandler      web.SettingHandler
 
 	apiUserHandler           api.UserHandler
 	apiGroupHandler          api.GroupHandler
@@ -124,6 +125,8 @@ func main() {
 		r.Get("/webhook", Catch(webWebhookHandler.HomeHandler))
 		// notification
 		r.Get("/notification", Catch(webNotificationHandler.HomeHandler))
+		// setting
+		r.Get("/setting", Catch(webSettingHandler.HomeHandler))
 	})
 
 	// api without auth
@@ -237,16 +240,21 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		user := &models.User{}
 		user_id, err := strconv.Atoi(cookie.Value)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
+		user := &models.User{}
 		err = user.GetWithId(user_id)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		if !user.IsAdmin && r.URL.Path == "/setting" {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
