@@ -91,6 +91,7 @@
     </div>
 
     <!-- NAV -->
+    {{ if .isAuth }}
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container">
             <a class="navbar-brand" href="/">Cronjob</a>
@@ -129,6 +130,7 @@
             </div>
         </div>
     </nav>
+    {{end}}
 
     <!-- CONTENT -->
     <main>

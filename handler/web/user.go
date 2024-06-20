@@ -17,7 +17,11 @@ type UserHandler struct {
 func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		return config.Render(w, "login", map[string]any{})
+		if _, err := r.Cookie("auth"); err == nil {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return nil
+		}
+		return config.Render(w, r, "login", map[string]any{})
 	case http.MethodPost:
 		code, response := h.LoginService(w, r)
 		if response.Status && code == http.StatusOK {
@@ -39,7 +43,11 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		return config.Render(w, "register", map[string]any{})
+		if _, err := r.Cookie("auth"); err == nil {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return nil
+		}
+		return config.Render(w, r, "register", map[string]any{})
 	case http.MethodPost:
 		code, response := h.RegisterService(w, r)
 		if response.Status && code == http.StatusCreated {
@@ -58,16 +66,16 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-func (h *UserHandler) HomeHandler(w http.ResponseWriter, _ *http.Request) error {
-	return config.Render(w, "home", map[string]any{})
+func (h *UserHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.Render(w, r, "home", map[string]any{})
 }
 
-func (h *UserHandler) ListHandler(w http.ResponseWriter, _ *http.Request) error {
-	return config.Render(w, "schedule", map[string]any{})
+func (h *UserHandler) ListHandler(w http.ResponseWriter, r *http.Request) error {
+	return config.Render(w, r, "schedule", map[string]any{})
 }
 
 func (h *UserHandler) ProfileHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.Render(w, "profile", map[string]any{})
+	return config.Render(w, r, "profile", map[string]any{})
 }
 
 func (h *UserHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) error {

@@ -9,5 +9,5 @@ import (
 type HomeHandler struct{}
 
 func (h *HomeHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.Render(w, "home", map[string]any{})
+	return config.Render(w, r, "home", map[string]any{})
 }

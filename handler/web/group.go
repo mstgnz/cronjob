@@ -9,5 +9,5 @@ import (
 type GroupHandler struct{}
 
 func (h *GroupHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.Render(w, "group", map[string]any{}, "group/list", "group/new")
+	return config.Render(w, r, "group", map[string]any{}, "group/list", "group/new")
 }

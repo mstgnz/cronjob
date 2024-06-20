@@ -7,10 +7,17 @@ import (
 	"path"
 )
 
-func Render(w http.ResponseWriter, page string, data map[string]any, partials ...string) error {
+func Render(w http.ResponseWriter, r *http.Request, page string, data map[string]any, partials ...string) error {
 
 	var t *template.Template
 	var err error
+
+	_, err = r.Cookie("auth")
+
+	if data == nil {
+		data = make(map[string]any)
+	}
+	data["isAuth"] = err == nil
 
 	if len(partials) > 0 {
 		partialPaths := make([]string, len(partials))
