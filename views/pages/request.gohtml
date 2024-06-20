@@ -10,11 +10,11 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#headers"
-                type="button" role="tab">Headers</button>
+                type="button" role="tab">New</button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#new"
-                type="button" role="tab">New</button>
+                type="button" role="tab">Headers</button>
         </li>
     </ul>
     <div class="tab-content">
@@ -22,10 +22,10 @@
             {{block "requestList" .}}{{end}}
         </div>
         <div class="tab-pane fade" id="headers" role="tabpanel">
-            {{block "requestHeader" .}}{{end}}
+            {{block "requestNew" .}}{{end}}
         </div>
         <div class="tab-pane fade" id="new" role="tabpanel">
-            {{block "requestNew" .}}{{end}}
+            {{block "requestHeader" .}}{{end}}
         </div>
     </div>
 </div>
