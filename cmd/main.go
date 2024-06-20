@@ -24,10 +24,14 @@ import (
 )
 
 var (
-	PORT               string
-	webUserHandler     web.UserHandler
-	webHomeHandler     web.HomeHandler
-	webScheduleHandler web.ScheduleHandler
+	PORT                   string
+	webUserHandler         web.UserHandler
+	webHomeHandler         web.HomeHandler
+	webScheduleHandler     web.ScheduleHandler
+	webRequestHandler      web.RequestHandler
+	webGroupHandler        web.GroupHandler
+	webWebhookHandler      web.WebhookHandler
+	webNotificationHandler web.NotificationHandler
 
 	apiUserHandler           api.UserHandler
 	apiGroupHandler          api.GroupHandler
@@ -108,8 +112,12 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(webAuthMiddleware)
 		r.Get("/", Catch(webHomeHandler.HomeHandler))
-		r.Get("/user/profile", Catch(webUserHandler.ProfileHandler))
-		r.Get("/schedules", Catch(webScheduleHandler.ListHandler))
+		r.Get("/profile", Catch(webUserHandler.ProfileHandler))
+		r.Get("/schedule", Catch(webScheduleHandler.HomeHandler))
+		r.Get("/request", Catch(webRequestHandler.HomeHandler))
+		r.Get("/group", Catch(webGroupHandler.HomeHandler))
+		r.Get("/webhook", Catch(webWebhookHandler.HomeHandler))
+		r.Get("/notification", Catch(webNotificationHandler.HomeHandler))
 	})
 
 	// api without auth

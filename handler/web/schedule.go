@@ -8,6 +8,6 @@ import (
 
 type ScheduleHandler struct{}
 
-func (h *ScheduleHandler) ListHandler(w http.ResponseWriter, r *http.Request) error {
+func (h *ScheduleHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
 	return config.Render(w, "schedule", map[string]any{})
 }
