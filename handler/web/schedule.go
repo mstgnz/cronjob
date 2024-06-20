@@ -9,5 +9,5 @@ import (
 type ScheduleHandler struct{}
 
 func (h *ScheduleHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.Render(w, "schedule", map[string]any{})
+	return config.Render(w, "schedule", map[string]any{}, "schedule/list", "schedule/log", "schedule/new")
 }

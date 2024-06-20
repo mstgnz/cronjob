@@ -113,10 +113,15 @@ func main() {
 		r.Use(webAuthMiddleware)
 		r.Get("/", Catch(webHomeHandler.HomeHandler))
 		r.Get("/profile", Catch(webUserHandler.ProfileHandler))
+		// schedule
 		r.Get("/schedule", Catch(webScheduleHandler.HomeHandler))
+		// request
 		r.Get("/request", Catch(webRequestHandler.HomeHandler))
+		// group
 		r.Get("/group", Catch(webGroupHandler.HomeHandler))
+		// webhook
 		r.Get("/webhook", Catch(webWebhookHandler.HomeHandler))
+		// notification
 		r.Get("/notification", Catch(webNotificationHandler.HomeHandler))
 	})
 
