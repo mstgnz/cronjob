@@ -70,7 +70,7 @@ func (h *UserHandler) ProfileHandler(w http.ResponseWriter, r *http.Request) err
 	return config.Render(w, "profile", map[string]any{})
 }
 
-func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) error {
+func (h *UserHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) error {
 	cookie, err := r.Cookie("auth")
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)

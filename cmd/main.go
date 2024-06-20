@@ -112,6 +112,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(webAuthMiddleware)
 		r.Get("/", Catch(webHomeHandler.HomeHandler))
+		r.Get("/logout", Catch(webUserHandler.LogoutHandler))
 		r.Get("/profile", Catch(webUserHandler.ProfileHandler))
 		// schedule
 		r.Get("/schedule", Catch(webScheduleHandler.HomeHandler))
