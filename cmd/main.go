@@ -104,9 +104,9 @@ func main() {
 	})
 
 	// web without auth
-	r.Get("/login", Catch(webUserHandler.LoginHandler))
+	r.With(authMiddleware).Get("/login", Catch(webUserHandler.LoginHandler))
 	r.Post("/login", Catch(webUserHandler.LoginHandler))
-	r.Get("/register", Catch(webUserHandler.RegisterHandler))
+	r.With(authMiddleware).Get("/register", Catch(webUserHandler.RegisterHandler))
 	r.Post("/register", Catch(webUserHandler.RegisterHandler))
 
 	// web with auth
@@ -189,6 +189,15 @@ func main() {
 			// schedule logs
 			r.Get("/schedule-logs", Catch(apiScheduleHandler.LogListHandler))
 		})
+	})
+
+	// Not Found
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "api") {
+			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Not found"})
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
 	// Create a context that listens for interrupt and terminate signals
@@ -297,6 +306,22 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), config.CKey("user"), user)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("Authorization")
+
+		if err == nil {
+			token := strings.Replace(cookie.Value, "Bearer ", "", 1)
+			_, err = config.GetUserIDByToken(token)
+			if err == nil {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
 	})
 }
 

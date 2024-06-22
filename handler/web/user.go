@@ -17,10 +17,6 @@ type UserHandler struct {
 func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		if _, err := r.Cookie("Authorization"); err == nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return nil
-		}
 		return config.Render(w, r, "login", map[string]any{})
 	case http.MethodPost:
 		code, response := h.LoginService(w, r)
@@ -44,10 +40,6 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		if _, err := r.Cookie("Authorization"); err == nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return nil
-		}
 		return config.Render(w, r, "register", map[string]any{})
 	case http.MethodPost:
 		code, response := h.RegisterService(w, r)
