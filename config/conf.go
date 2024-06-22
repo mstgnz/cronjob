@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"reflect"
 	"sync"
 
 	"github.com/go-playground/validator/v10"
@@ -69,6 +70,20 @@ func App() *config {
 		}
 	})
 	return instance
+}
+
+func StructToMap(obj interface{}) map[string]any {
+	result := make(map[string]any)
+	v := reflect.ValueOf(obj)
+	t := reflect.TypeOf(obj)
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldName := t.Field(i).Name
+		result[fieldName] = field.Interface()
+	}
+
+	return result
 }
 
 func ShuttingWrapper(fn func()) {
