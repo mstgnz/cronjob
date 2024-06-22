@@ -7,6 +7,13 @@ INSERT INTO triggered (schedule_id) VALUES ($1);
 -- TRIGGERED_DELETE
 DELETE FROM triggered WHERE schedule_id=$1;
 
+
+-- USERS_COUNT
+SELECT count(*) FROM users;
+
+-- USERS_PAGINATE
+select * from users offset $1 limit $2;
+
 -- USER_EXISTS_WITH_ID
 SELECT count(*) FROM users WHERE id=$1;
 

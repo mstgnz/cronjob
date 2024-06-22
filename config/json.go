@@ -45,3 +45,19 @@ func WriteJSON(w http.ResponseWriter, httpStatus int, data Response, headers ...
 
 	return nil
 }
+
+func ResponseToJSON(response Response) []byte {
+	json, err := json.Marshal(response)
+	if err != nil {
+		return []byte("{status:false, message:response convert error, data:null}")
+	}
+	return json
+}
+
+func MaptoJSON(response map[string]any) []byte {
+	json, err := json.Marshal(response)
+	if err != nil {
+		return []byte("{status:false, message:data convert error, data:null}")
+	}
+	return json
+}

@@ -90,6 +90,13 @@ func (s *UserService) ProfileService(w http.ResponseWriter, r *http.Request) (in
 	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"user": user}}
 }
 
+func (s *UserService) Users(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+	user := &models.User{}
+	count := user.Count()
+	users := user.Users(0, 20)
+	return http.StatusOK, config.Response{Status: count > 0, Message: "Success", Data: map[string]any{"count": count, "users": users}}
+}
+
 func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
 	updateData := &models.UserUpdate{}
 	if err := config.ReadJSON(w, r, updateData); err != nil {

@@ -104,10 +104,13 @@ func main() {
 	})
 
 	// web without auth
-	r.With(authMiddleware).Get("/login", Catch(webUserHandler.LoginHandler))
-	r.Post("/login", Catch(webUserHandler.LoginHandler))
-	r.With(authMiddleware).Get("/register", Catch(webUserHandler.RegisterHandler))
-	r.Post("/register", Catch(webUserHandler.RegisterHandler))
+	r.Group(func(r chi.Router) {
+		r.Use(isAuthMiddleware)
+		r.Get("/login", Catch(webUserHandler.LoginHandler))
+		r.Post("/login", Catch(webUserHandler.LoginHandler))
+		r.Get("/register", Catch(webUserHandler.RegisterHandler))
+		r.Post("/register", Catch(webUserHandler.RegisterHandler))
+	})
 
 	// web with auth
 	r.Group(func(r chi.Router) {
@@ -126,7 +129,12 @@ func main() {
 		// notification
 		r.Get("/notification", Catch(webNotificationHandler.HomeHandler))
 		// setting
-		r.With(adminMiddleware).Get("/setting", Catch(webSettingHandler.HomeHandler))
+		r.Route("/setting", func(r chi.Router) {
+			r.Use(isAdminMiddleware)
+			r.Get("/", Catch(webSettingHandler.HomeHandler))
+			r.Get("/users", Catch(webSettingHandler.UserHandler))
+			r.Post("/signup", Catch(webSettingHandler.SignUpHandler))
+		})
 	})
 
 	// api without auth
@@ -194,7 +202,7 @@ func main() {
 	// Not Found
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "api") {
-			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Not found"})
+			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Not Found"})
 			return
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -309,7 +317,7 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func authMiddleware(next http.Handler) http.Handler {
+func isAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("Authorization")
 
@@ -325,7 +333,7 @@ func authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func adminMiddleware(next http.Handler) http.Handler {
+func isAdminMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
 

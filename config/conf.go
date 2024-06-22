@@ -2,8 +2,11 @@ package config
 
 import (
 	"log"
+	"math"
+	"net/http"
 	"os"
 	"reflect"
+	"strconv"
 	"sync"
 
 	"github.com/go-playground/validator/v10"
@@ -102,4 +105,22 @@ func DecrementRunning() {
 	mu.Lock()
 	App().Running--
 	mu.Unlock()
+}
+
+func GetIntQuery(r *http.Request, name string) int {
+	pageStr := r.URL.Query().Get(name)
+	if page, err := strconv.Atoi(pageStr); err == nil {
+		return int(math.Abs(float64(page)))
+	}
+	return 1
+}
+
+func Clamp(value, min, max int) int {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
 }

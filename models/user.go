@@ -13,6 +13,7 @@ type User struct {
 	Email     string     `json:"email" validate:"required,email"`
 	Password  string     `json:"-" validate:"required"`
 	Phone     string     `json:"phone" validate:"required,e164"`
+	Active    bool       `json:"active"`
 	IsAdmin   bool       `json:"is_admin"`
 	LastLogin *time.Time `json:"last_login,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
@@ -43,8 +44,59 @@ type UserPasswordUpdate struct {
 	RePassword string `json:"re-password" validate:"required,min=6"`
 }
 
-func (m *User) Users() []*User {
+func (m *User) Count() int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USERS_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
+}
+
+func (m *User) Users(offset, limit int) []*User {
 	users := []*User{}
+
+	// prepare users paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USERS_PAGINATE"])
+	if err != nil {
+		return users
+	}
+
+	// query
+	rows, err := stmt.Query(offset, limit)
+	if err != nil {
+		return users
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		user := &User{}
+		if err := rows.Scan(&user.ID, &user.Fullname, &user.Email, &user.Password, &user.Phone, &user.IsAdmin, &user.Active, &user.LastLogin, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt); err != nil {
+			return users
+		}
+		users = append(users, user)
+	}
+
 	return users
 }
 

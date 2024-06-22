@@ -31,7 +31,7 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 				})
 			}
 		}
-		w.Write([]byte(response.Message))
+		_, _ = w.Write([]byte(response.Message))
 	}
 	return nil
 }
@@ -54,7 +54,7 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 				})
 			}
 		}
-		w.Write([]byte(response.Message))
+		_, _ = w.Write([]byte(response.Message))
 	}
 	return nil
 }

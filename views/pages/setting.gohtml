@@ -15,12 +15,108 @@
     </ul>
     <div class="tab-content">
         <div class="tab-pane fade show active" id="users" role="tabpanel">
-            user list
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Fullname</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">Active</th>
+                        <th scope="col">IsAdmin</th>
+                        <th scope="col">Last Login</th>
+                        <th scope="col">Created At</th>
+                        <th scope="col">Updated At</th>
+                        <th scope="col">Deleted At</th>
+                    </tr>
+                </thead>
+                <tbody hx-get="/setting/users" hx-trigger="load" hx-target="this" hx-swap="innerHTML">
+                </tbody>
+            </table>
+            <!-- Pagination -->
+            <div class="mt-4">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+                        <li class="page-item"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                    </ul>
+                </nav>
+            </div>
         </div>
-        <div class="tab-pane fade" id="new" role="tabpanel"s>
-            new user
+        <div class="tab-pane fade" id="new" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-6 p-5">
+                    <form hx-post="/setting/signup" hx-target="#toast" hx-ext="json-enc" novalidate autocomplete="off">
+                        <div class="form-floating mb-2">
+                            <input type="text" class="form-control" name="fullname" placeholder="Firstname Lastname" required>
+                            <label for="fullname">Fullname</label>
+                        </div>
+                        <div class="form-floating mb-2">
+                            <input type="email" class="form-control" name="email" placeholder="name@example.com" required>
+                            <label for="email">Email</label>
+                        </div>
+                        <div class="form-floating mb-2">
+                            <input type="text" class="form-control" name="phone" placeholder="+909876543210" required>
+                            <label for="phone">Phone</label>
+                        </div>
+                        <div class="form-floating mb-2">
+                            <input type="password" class="form-control" name="password" placeholder="Password" required>
+                            <label for="password">Password</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Sign up</button>
+                        <span id="toast"></span>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<script>
+document.addEventListener("htmx:load", function() {
+    function loadUsers(url) {
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector("#users tbody");
+            tbody.innerHTML = data.users.map(user => `
+                <tr>
+                    <th scope="row">${user.id}</th>
+                    <td>${user.fullname}</td>
+                    <td>${user.email}</td>
+                    <td>${user.phone}</td>
+                    <td>${user.is_admin}</td>
+                    <td>${user.active}</td>
+                    <td>${user.last_login ? new Date(user.last_login).toLocaleString() : ''}</td>
+                    <td>${user.created_at ? new Date(user.created_at).toLocaleString() : ''}</td>
+                    <td>${user.updated_at ? new Date(user.updated_at).toLocaleString() : ''}</td>
+                    <td>${user.deleted_at ? new Date(user.deleted_at).toLocaleString() : ''}</td>
+                </tr>
+            `).join("");
+            document.getElementsByClassName("pagination")[0].innerHTML = `<li class="page-item">
+            <a class="page-link" href="#" page-url="/setting/users?page=${data.previous}">Previous</a>
+            </li>`
+            for(i=1;i<=data.size;i++){
+                document.getElementsByClassName("pagination")[0].innerHTML += `<li class="page-item" ${data.current === i ? 'active' : ''}">
+                <a class="page-link" href="#" page-url="/setting/users?page=${i}">${i}</a>
+                </li>`
+            }
+            document.getElementsByClassName("pagination")[0].innerHTML += `<li class="page-item">
+            <a class="page-link" href="#" page-url="/setting/users?page=${data.next}">Next</a>
+            </li>`
+        })
+    }
+
+    loadUsers("/setting/users");
+    
+    document.querySelector(".pagination").addEventListener("click", function(e) {
+        if (e.target.tagName === 'A') {
+            loadUsers(e.target.getAttribute("page-url"))
+        }
+    })
+})
+</script>
 {{end}}
