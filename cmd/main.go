@@ -233,28 +233,31 @@ func main() {
 
 func webAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("Authorization")
 
-		cookie, err := r.Cookie("auth")
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		token := strings.Replace(cookie.Value, "Bearer ", "", 1)
+
+		userId, err := config.GetUserIDByToken(token)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
-		user_id, err := strconv.Atoi(cookie.Value)
-		if err != nil {
+		user_id, err := strconv.Atoi(userId)
+		if err != nil && user_id == 0 {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
 		user := &models.User{}
 		err = user.GetWithId(user_id)
+
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		if !user.IsAdmin && r.URL.Path == "/setting" {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
@@ -265,14 +268,14 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 
 func apiAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
+		token := r.Header.Get("Authorization")
+		if token == "" {
 			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Token"})
 			return
 		}
-		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+		token = strings.Replace(token, "Bearer ", "", 1)
 
-		userId, err := config.GetUserIDByToken(tokenString)
+		userId, err := config.GetUserIDByToken(token)
 		if err != nil {
 			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
 			return

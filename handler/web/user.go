@@ -2,7 +2,7 @@ package web
 
 import (
 	"net/http"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mstgnz/cronjob/config"
@@ -17,7 +17,7 @@ type UserHandler struct {
 func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		if _, err := r.Cookie("auth"); err == nil {
+		if _, err := r.Cookie("Authorization"); err == nil {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return nil
 		}
@@ -26,11 +26,12 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 		code, response := h.LoginService(w, r)
 		if response.Status && code == http.StatusOK {
 			user, ok := response.Data["user"].(*models.User)
-			if ok && user.ID > 0 {
+			token, ok1 := response.Data["token"].(string)
+			if ok && ok1 && user.ID > 0 {
 				w.Header().Set("HX-Redirect", "/")
 				http.SetCookie(w, &http.Cookie{
-					Name:    "auth",
-					Value:   strconv.Itoa(user.ID),
+					Name:    "Authorization",
+					Value:   strings.Join([]string{"Bearer", token}, " "),
 					Expires: time.Now().Add(12 * time.Hour),
 				})
 			}
@@ -43,7 +44,7 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		if _, err := r.Cookie("auth"); err == nil {
+		if _, err := r.Cookie("Authorization"); err == nil {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return nil
 		}
@@ -52,11 +53,12 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 		code, response := h.RegisterService(w, r)
 		if response.Status && code == http.StatusCreated {
 			user, ok := response.Data["user"].(*models.User)
-			if ok && user.ID > 0 {
+			token, ok1 := response.Data["token"].(string)
+			if ok && ok1 && user.ID > 0 {
 				w.Header().Set("HX-Redirect", "/")
 				http.SetCookie(w, &http.Cookie{
-					Name:    "auth",
-					Value:   strconv.Itoa(user.ID),
+					Name:    "Authorization",
+					Value:   strings.Join([]string{"Bearer", token}, " "),
 					Expires: time.Now().Add(12 * time.Hour),
 				})
 			}
@@ -79,7 +81,7 @@ func (h *UserHandler) ProfileHandler(w http.ResponseWriter, r *http.Request) err
 }
 
 func (h *UserHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) error {
-	cookie, err := r.Cookie("auth")
+	cookie, err := r.Cookie("Authorization")
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return nil

@@ -12,7 +12,7 @@ func Render(w http.ResponseWriter, r *http.Request, page string, data map[string
 	var t *template.Template
 	var err error
 
-	_, err = r.Cookie("auth")
+	_, err = r.Cookie("Authorization")
 
 	if data == nil {
 		data = make(map[string]any)
