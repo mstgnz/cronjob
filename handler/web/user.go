@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/services"
 )
@@ -17,7 +16,7 @@ type UserHandler struct {
 func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		return config.Render(w, r, "login", map[string]any{})
+		return services.Render(w, r, "login", map[string]any{})
 	case http.MethodPost:
 		code, response := h.LoginService(w, r)
 		if response.Status && code == http.StatusOK {
@@ -40,7 +39,7 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		return config.Render(w, r, "register", map[string]any{})
+		return services.Render(w, r, "register", map[string]any{})
 	case http.MethodPost:
 		code, response := h.RegisterService(w, r)
 		if response.Status && code == http.StatusCreated {
@@ -61,15 +60,15 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) er
 }
 
 func (h *UserHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.Render(w, r, "home", map[string]any{})
+	return services.Render(w, r, "home", map[string]any{})
 }
 
 func (h *UserHandler) ListHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.Render(w, r, "schedule", map[string]any{})
+	return services.Render(w, r, "schedule", map[string]any{})
 }
 
 func (h *UserHandler) ProfileHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.Render(w, r, "profile", map[string]any{})
+	return services.Render(w, r, "profile", map[string]any{})
 }
 
 func (h *UserHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) error {

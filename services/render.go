@@ -1,10 +1,13 @@
-package config
+package services
 
 import (
 	"fmt"
 	"html/template"
 	"net/http"
 	"path"
+
+	"github.com/mstgnz/cronjob/config"
+	"github.com/mstgnz/cronjob/models"
 )
 
 func Render(w http.ResponseWriter, r *http.Request, page string, data map[string]any, partials ...string) error {
@@ -12,12 +15,15 @@ func Render(w http.ResponseWriter, r *http.Request, page string, data map[string
 	var t *template.Template
 	var err error
 
-	_, err = r.Cookie("Authorization")
+	cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
 
 	if data == nil {
 		data = make(map[string]any)
 	}
-	data["isAuth"] = err == nil
+	if cUser != nil {
+		data["auth"] = cUser
+		data["isAuth"] = ok
+	}
 
 	if len(partials) > 0 {
 		partialPaths := make([]string, len(partials))

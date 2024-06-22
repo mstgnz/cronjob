@@ -116,7 +116,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/webhook">Webhook</a>
                     </li>
-                    {{ if .isAdmin }}
+                    {{ if .auth.IsAdmin }}
                     <li class="nav-item">
                         <a class="nav-link" href="/setting">Setting</a>
                     </li>

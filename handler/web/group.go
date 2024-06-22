@@ -3,11 +3,11 @@ package web
 import (
 	"net/http"
 
-	"github.com/mstgnz/cronjob/config"
+	"github.com/mstgnz/cronjob/services"
 )
 
 type GroupHandler struct{}
 
 func (h *GroupHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.Render(w, r, "group", map[string]any{}, "group/list", "group/new")
+	return services.Render(w, r, "group", map[string]any{}, "group/list", "group/new")
 }
