@@ -126,7 +126,7 @@ func main() {
 		// notification
 		r.Get("/notification", Catch(webNotificationHandler.HomeHandler))
 		// setting
-		r.Get("/setting", Catch(webSettingHandler.HomeHandler))
+		r.With(adminMiddleware).Get("/setting", Catch(webSettingHandler.HomeHandler))
 	})
 
 	// api without auth
@@ -320,6 +320,18 @@ func authMiddleware(next http.Handler) http.Handler {
 				http.Redirect(w, r, "/", http.StatusSeeOther)
 				return
 			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func adminMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
+
+		if !cUser.IsAdmin || !ok {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
 		}
 		next.ServeHTTP(w, r)
 	})
