@@ -1,3 +1,6 @@
+-- APP_LOG_PAGINATE
+select * from app_logs order by id desc offset $1 limit $2;
+
 -- APP_LOG_INSERT
 INSERT INTO app_logs (level,message) VALUES ($1,$2);
 
@@ -12,7 +15,7 @@ DELETE FROM triggered WHERE schedule_id=$1;
 SELECT count(*) FROM users;
 
 -- USERS_PAGINATE
-select * from users offset $1 limit $2;
+select * from users where fullname ilike $1 or email ilike $1 or phone ilike $1 order by id asc offset $2 limit $3;
 
 -- USER_EXISTS_WITH_ID
 SELECT count(*) FROM users WHERE id=$1;
