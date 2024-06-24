@@ -21,25 +21,27 @@ type User struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
-type UserUpdate struct {
-	Fullname string `json:"fullname" validate:"omitempty"`
-	Email    string `json:"email" validate:"omitempty,email"`
-	Phone    string `json:"phone" validate:"omitempty,e164"`
-}
-
-type UserLogin struct {
+type Login struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
 }
 
-type UserRegister struct {
+type Register struct {
 	Fullname string `json:"fullname" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
 	Phone    string `json:"phone" validate:"required,e164"`
 }
 
-type UserPasswordUpdate struct {
+type ProfileUpdate struct {
+	ID       int    `json:"id" validate:"omitempty"` // This field is required if the administrator wants to update a user.
+	Fullname string `json:"fullname" validate:"omitempty"`
+	Email    string `json:"email" validate:"omitempty,email"`
+	Phone    string `json:"phone" validate:"omitempty,e164"`
+}
+
+type PasswordUpdate struct {
+	ID         int    `json:"id" validate:"omitempty"` // This field is required if the administrator wants to update a user.
 	Password   string `json:"password" validate:"required,min=6"`
 	RePassword string `json:"re-password" validate:"required,min=6"`
 }
@@ -71,7 +73,7 @@ func (m *User) Count() int {
 	return rowCount
 }
 
-func (m *User) Users(offset, limit int) []*User {
+func (m *User) Get(offset, limit int, search string) []*User {
 	users := []*User{}
 
 	// prepare users paginate
@@ -81,7 +83,7 @@ func (m *User) Users(offset, limit int) []*User {
 	}
 
 	// query
-	rows, err := stmt.Query(offset, limit)
+	rows, err := stmt.Query("%"+search+"%", offset, limit)
 	if err != nil {
 		return users
 	}
@@ -100,7 +102,7 @@ func (m *User) Users(offset, limit int) []*User {
 	return users
 }
 
-func (m *User) Create(register *UserRegister) error {
+func (m *User) Create(register *Register) error {
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_INSERT"])
 	if err != nil {
@@ -230,7 +232,7 @@ func (m *User) GetWithMail(email string) error {
 	return nil
 }
 
-func (m *User) Update(query string, params []any) error {
+func (m *User) ProfileUpdate(query string, params []any) error {
 
 	stmt, err := config.App().DB.Prepare(query)
 	if err != nil {
@@ -257,7 +259,7 @@ func (m *User) Update(query string, params []any) error {
 	return nil
 }
 
-func (m *User) UpdatePassword(password string) error {
+func (m *User) PasswordUpdate(password string) error {
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_UPDATE_PASS"])
 	if err != nil {
 		return err
@@ -285,7 +287,7 @@ func (m *User) UpdatePassword(password string) error {
 	return nil
 }
 
-func (m *User) UpdateLastLogin() error {
+func (m *User) LastLoginUpdate() error {
 	lastLogin := time.Now().Format("2006-01-02 15:04:05")
 
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_LAST_LOGIN"])

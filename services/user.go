@@ -15,7 +15,7 @@ import (
 type UserService struct{}
 
 func (s *UserService) LoginService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
-	login := &models.UserLogin{}
+	login := &models.Login{}
 	if err := config.ReadJSON(w, r, login); err != nil {
 		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
 	}
@@ -41,7 +41,7 @@ func (s *UserService) LoginService(w http.ResponseWriter, r *http.Request) (int,
 	}
 
 	// update last_login
-	user.UpdateLastLogin()
+	user.LastLoginUpdate()
 
 	data := make(map[string]any)
 	data["token"] = token
@@ -50,7 +50,7 @@ func (s *UserService) LoginService(w http.ResponseWriter, r *http.Request) (int,
 }
 
 func (s *UserService) RegisterService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
-	register := &models.UserRegister{}
+	register := &models.Register{}
 	if err := config.ReadJSON(w, r, register); err != nil {
 		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
 	}
@@ -93,12 +93,12 @@ func (s *UserService) ProfileService(w http.ResponseWriter, r *http.Request) (in
 func (s *UserService) Users(w http.ResponseWriter, r *http.Request) (int, config.Response) {
 	user := &models.User{}
 	count := user.Count()
-	users := user.Users(0, 20)
+	users := user.Get(0, 20, "")
 	return http.StatusOK, config.Response{Status: count > 0, Message: "Success", Data: map[string]any{"count": count, "users": users}}
 }
 
 func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
-	updateData := &models.UserUpdate{}
+	updateData := &models.ProfileUpdate{}
 	if err := config.ReadJSON(w, r, updateData); err != nil {
 		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
 	}
@@ -158,7 +158,7 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 	params = append(params, cUser.ID)
 	query := strings.Join(queryParts, " ")
 
-	err = user.Update(query, params)
+	err = user.ProfileUpdate(query, params)
 
 	if err != nil {
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
@@ -168,7 +168,7 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 }
 
 func (s *UserService) PassUpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
-	updateData := &models.UserPasswordUpdate{}
+	updateData := &models.PasswordUpdate{}
 	if err := config.ReadJSON(w, r, updateData); err != nil {
 		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
 	}
@@ -188,7 +188,7 @@ func (s *UserService) PassUpdateService(w http.ResponseWriter, r *http.Request) 
 	user := &models.User{}
 	user.ID = cUser.ID
 
-	err = user.UpdatePassword(updateData.Password)
+	err = user.PasswordUpdate(updateData.Password)
 
 	if err != nil {
 		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
