@@ -111,6 +111,12 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 	user := &models.User{}
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+	user.ID = cUser.ID
+
+	// If the administrator wants to update a user.
+	if updateData.ID > 0 && cUser.IsAdmin {
+		user.ID = updateData.ID
+	}
 
 	queryParts := []string{"UPDATE users SET"}
 	params := []any{}
@@ -122,13 +128,18 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 		paramCount++
 	}
 	if updateData.Email != "" {
-		// check email
-		exists, err := user.Exists(updateData.Email)
-		if err != nil {
+		// check email if not same email
+		if err := user.GetWithId(user.ID); err != nil {
 			return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
 		}
-		if exists {
-			return http.StatusUnauthorized, config.Response{Status: false, Message: "Email already exists"}
+		if user.Email != updateData.Email {
+			exists, err := user.Exists(updateData.Email)
+			if err != nil {
+				return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+			}
+			if exists {
+				return http.StatusBadRequest, config.Response{Status: false, Message: "Email already exists"}
+			}
 		}
 		queryParts = append(queryParts, fmt.Sprintf("email=$%d,", paramCount))
 		params = append(params, updateData.Email)
@@ -155,7 +166,7 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 	// queryParts[size] = strings.TrimSuffix(queryParts[size], ",")
 
 	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d", paramCount))
-	params = append(params, cUser.ID)
+	params = append(params, user.ID)
 	query := strings.Join(queryParts, " ")
 
 	err = user.ProfileUpdate(query, params)
@@ -187,6 +198,11 @@ func (s *UserService) PassUpdateService(w http.ResponseWriter, r *http.Request) 
 
 	user := &models.User{}
 	user.ID = cUser.ID
+
+	// If the administrator wants to update a user.
+	if updateData.ID > 0 && cUser.IsAdmin {
+		user.ID = updateData.ID
+	}
 
 	err = user.PasswordUpdate(updateData.Password)
 

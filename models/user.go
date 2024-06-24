@@ -322,7 +322,7 @@ func (m *User) Delete(userID int) error {
 
 	deleteAndUpdate := time.Now().Format("2006-01-02 15:04:05")
 
-	result, err := stmt.Exec(deleteAndUpdate, deleteAndUpdate, userID)
+	result, err := stmt.Exec(false, deleteAndUpdate, deleteAndUpdate, userID)
 	if err != nil {
 		return err
 	}

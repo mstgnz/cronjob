@@ -48,6 +48,7 @@ tr:hover .hstack{
             </div>
             <form hx-put="/setting/users/change-profile" hx-target="#profile-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="modal-body">
+                <input type="hidden" name="id" class="form-control mb-1">
                 <div class="form-floating mb-2">
                     <input type="text" class="form-control" name="fullname" placeholder="Firstname Lastname" required>
                     <label for="fullname">Fullname</label>
@@ -64,7 +65,7 @@ tr:hover .hstack{
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Change</button>
+                <button type="submit" class="btn btn-primary">Change</button>
             </div>
             </form>
         </div>
@@ -80,6 +81,7 @@ tr:hover .hstack{
             </div>
             <form hx-put="/setting/users/change-password" hx-target="#pass-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="modal-body">
+                <input type="hidden" name="id" class="form-control mb-1">
                 <div class="form-floating mb-2">
                     <input type="password" class="form-control" name="password" placeholder="Password" required>
                     <label>Password</label>
@@ -92,7 +94,7 @@ tr:hover .hstack{
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Change</button>
+                <button type="submit" class="btn btn-primary">Change</button>
             </div>
             </form>
         </div>
@@ -103,7 +105,7 @@ tr:hover .hstack{
 {{define "js"}}
 <script>
 document.addEventListener("htmx:load", function() {
-    function loadUsers(url) {
+    loadUsers = (url) => {
         fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -114,18 +116,18 @@ document.addEventListener("htmx:load", function() {
                     <td>${user.fullname}</td>
                     <td>${user.email}</td>
                     <td>${user.phone}</td>
-                    <td>${user.is_admin}</td>
                     <td>${user.active}</td>
+                    <td>${user.is_admin}</td>
                     <td>${user.last_login ? new Date(user.last_login).toLocaleDateString() : ''}</td>
                     <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : ''}</td>
                     <td>${user.updated_at ? new Date(user.updated_at).toLocaleDateString() : ''}</td>
                     <td>${user.deleted_at ? new Date(user.deleted_at).toLocaleDateString() : ''}</td>
                     <td>
                         <div class="hstack gap-1">
-                            <button class="btn btn-info" data-user="${user}">
+                            <button class="btn btn-info" data-user='${JSON.stringify(user)}'>
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-warning" data-user="${user}">
+                            <button class="btn btn-warning" data-user='${JSON.stringify(user)}'>
                             <i class="bi bi-key-fill"></i>
                             </button>
                             <button class="btn btn-danger" data-id="${user.id}">
@@ -160,13 +162,20 @@ document.addEventListener("htmx:load", function() {
     document.querySelector("#users tbody").addEventListener("click", function(e) {
         if (e.target.closest('.btn-info')) {
             const button = e.target.closest('.btn-info');
-            const user = button.getAttribute('data-user');
-            document.getElementsByName('password')
+            let user = button.getAttribute('data-user');
+            user = JSON.parse(user)
+            document.getElementById('profile-update').querySelectorAll('input[name="id"]')[0].value = user.id
+            document.getElementById('profile-update').querySelectorAll('input[name="fullname"]')[0].value = user.fullname
+            document.getElementById('profile-update').querySelectorAll('input[name="email"]')[0].value = user.email
+            document.getElementById('profile-update').querySelectorAll('input[name="phone"]')[0].value = user.phone
             new bootstrap.Modal('#profile-update').show()
         }
         if (e.target.closest('.btn-warning')) {
             const button = e.target.closest('.btn-warning');
-            const user = button.getAttribute('data-user');
+            let user = button.getAttribute('data-user');
+            user = JSON.parse(user)
+            document.getElementById('pass-update').querySelectorAll('input[name="id"]')[0].value = user.id
+            document.getElementById('pass-toast').innerHTML = `Attention: You are changing ${user.fullname}'s password!`
             new bootstrap.Modal('#pass-update').show()
         }
         if (e.target.closest('.btn-danger')) {
@@ -197,6 +206,10 @@ document.addEventListener("htmx:load", function() {
             })
         }
     })
+})
+// clear content on every modal close
+document.getElementById('profile-update').addEventListener('hidden.bs.modal', function (event) {
+    document.getElementById('profile-toast').innerHTML = ""
 })
 </script>
 {{end}}

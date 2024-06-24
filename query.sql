@@ -39,7 +39,7 @@ UPDATE users SET password=$1, updated_at=$2 WHERE id=$3;
 UPDATE users SET last_login=$1 WHERE id=$2;
 
 -- USER_DELETE
-UPDATE users SET deleted_at=$1, updated_at=$2 WHERE id=$3;
+UPDATE users SET active=$1, deleted_at=$2, updated_at=$3 WHERE id=$4;
 
 
 -- GROUPS

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 func ReadJSON(w http.ResponseWriter, r *http.Request, data any) error {
@@ -60,4 +61,35 @@ func MaptoJSON(response map[string]any) []byte {
 		return []byte("{status:false, message:data convert error, data:null}")
 	}
 	return json
+}
+
+// ConvertStringIDsToInt converts specified string IDs in JSON data to integers
+func ConvertStringIDsToInt(r *http.Request, ids ...string) ([]byte, error) {
+	var resultJSON []byte
+	var data map[string]interface{}
+
+	// Decode body
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		return resultJSON, err
+	}
+
+	// Convert specified string IDs to integers
+	for _, id := range ids {
+		if idStr, ok := data[id].(string); ok {
+			idInt, err := strconv.Atoi(idStr)
+			if err != nil {
+				return resultJSON, err
+			}
+			data[id] = idInt
+		}
+	}
+
+	// Marshal data back to JSON
+	resultJSON, err = json.Marshal(data)
+	if err != nil {
+		return resultJSON, err
+	}
+
+	return resultJSON, nil
 }

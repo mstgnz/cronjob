@@ -1,8 +1,10 @@
 package web
 
 import (
+	"io"
 	"math"
 	"net/http"
+	"strings"
 
 	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
@@ -56,6 +58,14 @@ func (h *SettingHandler) UsersHandler(w http.ResponseWriter, r *http.Request) er
 }
 
 func (h *SettingHandler) UserChangeProfileHandler(w http.ResponseWriter, r *http.Request) error {
+	jsonData, err := config.ConvertStringIDsToInt(r, "id")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
 	code, response := h.user.UpdateService(w, r)
 	if response.Status && code == http.StatusOK {
 		w.Header().Set("HX-Redirect", "/setting")
@@ -65,6 +75,14 @@ func (h *SettingHandler) UserChangeProfileHandler(w http.ResponseWriter, r *http
 }
 
 func (h *SettingHandler) UserChangePasswordHandler(w http.ResponseWriter, r *http.Request) error {
+	jsonData, err := config.ConvertStringIDsToInt(r, "id")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
 	code, response := h.user.PassUpdateService(w, r)
 	if response.Status && code == http.StatusOK {
 		w.Header().Set("HX-Redirect", "/setting")
