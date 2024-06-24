@@ -132,8 +132,11 @@ func main() {
 		r.Route("/setting", func(r chi.Router) {
 			r.Use(isAdminMiddleware)
 			r.Get("/", Catch(webSettingHandler.HomeHandler))
-			r.Get("/users", Catch(webSettingHandler.UserHandler))
-			r.Post("/signup", Catch(webSettingHandler.SignUpHandler))
+			r.Get("/users", Catch(webSettingHandler.UsersHandler))
+			r.Post("/users/signup", Catch(webSettingHandler.UserSignUpHandler))
+			r.Put("/users/change-profile", Catch(webSettingHandler.UserChangeProfileHandler))
+			r.Put("/users/change-password", Catch(webSettingHandler.UserChangePasswordHandler))
+			r.Delete("/users/{id}/delete", Catch(webSettingHandler.UserDeleteHandler))
 		})
 	})
 
