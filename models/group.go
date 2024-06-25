@@ -16,6 +16,7 @@ type Group struct {
 	Name      string     `json:"name" validate:"required"`
 	Active    bool       `json:"active" validate:"boolean"`
 	Parent    *Group     `json:"parent,omitempty"`
+	User      *User      `json:"user,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
@@ -26,6 +27,33 @@ type GroupUpdate struct {
 	UserID int    `json:"user_id" validate:"omitempty,number"`
 	Name   string `json:"name" validate:"omitempty"`
 	Active *bool  `json:"active" validate:"omitnil,boolean"`
+}
+
+func (m *Group) Count() int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["GROUPS_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
 }
 
 func (m *Group) Get(userID, id, uid int) ([]Group, error) {
@@ -78,6 +106,48 @@ func (m *Group) Get(userID, id, uid int) ([]Group, error) {
 	return groups, nil
 }
 
+func (m *Group) Paginate(offset, limit int, search string) []*Group {
+	groups := []*Group{}
+
+	// prepare groups paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["GROUPS_PAGINATE"])
+	if err != nil {
+		return groups
+	}
+
+	// query
+	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	if err != nil {
+		return groups
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		group := &Group{
+			User:   &User{},
+			Parent: &Group{},
+		}
+		var parentID sql.NullInt64
+		var parent sql.NullString
+
+		if err := rows.Scan(&group.ID, &parentID, &group.UserID, &group.Name, &group.Active, &group.CreatedAt, &group.UpdatedAt, &group.DeletedAt, &parent, &group.User.Fullname); err != nil {
+			return groups
+		}
+		if parentID.Valid {
+			group.UID = int(parentID.Int64)
+		}
+		if parent.Valid {
+			group.Parent.Name = parent.String
+		}
+
+		groups = append(groups, group)
+	}
+
+	return groups
+}
+
 func (m *Group) Create(exec any) error {
 	stmt, err := config.App().DB.RunPrepare(exec, config.App().QUERY["GROUP_INSERT"])
 	if err != nil {
@@ -92,7 +162,7 @@ func (m *Group) Create(exec any) error {
 	}
 
 	var parentID sql.NullInt64
-	err = stmt.QueryRow(uid, m.UserID, m.Name).Scan(&m.ID, &parentID, &m.Name, &m.Active)
+	err = stmt.QueryRow(uid, m.UserID, m.Name, m.Active).Scan(&m.ID, &parentID, &m.Name, &m.Active)
 	if err != nil {
 		return err
 	}

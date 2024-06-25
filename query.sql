@@ -42,6 +42,16 @@ UPDATE users SET last_login=$1 WHERE id=$2;
 UPDATE users SET active=$1, deleted_at=$2, updated_at=$3 WHERE id=$4;
 
 
+-- GROUPS_COUNT
+SELECT count(*) FROM groups;
+
+-- GROUPS_PAGINATE
+select g.*, gs.name as parent, u.fullname from groups g 
+join users u on u.id=g.user_id 
+left join groups gs on gs.id=g.uid 
+where g.name ilike $1 or gs.name ilike $1 or u.fullname ilike $1
+order by g.id asc offset $2 limit $3;
+
 -- GROUPS
 SELECT id,uid,name,active,created_at,updated_at FROM groups WHERE user_id=$1 AND deleted_at isnull;
 
@@ -49,7 +59,7 @@ SELECT id,uid,name,active,created_at,updated_at FROM groups WHERE user_id=$1 AND
 SELECT id,uid,name,active,created_at,updated_at FROM groups WHERE user_id=$1 AND id=$2 AND deleted_at isnull;
 
 -- GROUP_INSERT
-INSERT INTO groups (uid, user_id, name) VALUES (CASE WHEN $1 = 0 THEN NULL ELSE $1 END, $2, $3) RETURNING id,uid,name,active;
+INSERT INTO groups (uid, user_id, name, active) VALUES (CASE WHEN $1 = 0 THEN NULL ELSE $1 END, $2, $3, $4) RETURNING id,uid,name,active;
 
 -- GROUP_NAME_EXISTS_WITH_USER
 SELECT count(*) FROM groups WHERE name=$1 AND user_id=$2 AND deleted_at isnull;
