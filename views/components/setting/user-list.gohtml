@@ -2,12 +2,12 @@
 
 {{define "css"}}
 <style>
-.hstack {
-    visibility:hidden;
-}
-tr:hover .hstack{
-    visibility:visible;
-}
+    .hstack {
+        visibility:hidden;
+    }
+    tr:hover .hstack{
+        visibility:visible;
+    }
 </style>
 {{end}}
 
@@ -46,7 +46,7 @@ tr:hover .hstack{
                 <h5 class="modal-title">User Update</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form hx-put="/setting/users/change-profile" hx-target="#profile-toast" hx-ext="json-enc" novalidate autocomplete="off">
+            <form hx-put="/settings/users/change-profile" hx-target="#profile-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="modal-body">
                 <input type="hidden" name="id" class="form-control mb-1">
                 <div class="form-floating mb-2">
@@ -79,7 +79,7 @@ tr:hover .hstack{
                 <h5 class="modal-title">User Password Update</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form hx-put="/setting/users/change-password" hx-target="#pass-toast" hx-ext="json-enc" novalidate autocomplete="off">
+            <form hx-put="/settings/users/change-password" hx-target="#pass-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="modal-body">
                 <input type="hidden" name="id" class="form-control mb-1">
                 <div class="form-floating mb-2">
@@ -138,20 +138,20 @@ document.addEventListener("htmx:load", function() {
                 </tr>
             `).join("");
             document.getElementsByClassName("pagination")[0].innerHTML = `<li class="page-item">
-            <a class="page-link" href="#" page-url="/setting/users?page=${data.previous}">Previous</a>
+            <a class="page-link" href="#" page-url="/settings/users?page=${data.previous}">Previous</a>
             </li>`
             for(i=1;i<=data.size;i++){
                 document.getElementsByClassName("pagination")[0].innerHTML += `<li class="page-item" ${data.current === i ? 'active' : ''}">
-                <a class="page-link" href="#" page-url="/setting/users?page=${i}">${i}</a>
+                <a class="page-link" href="#" page-url="/settings/users?page=${i}">${i}</a>
                 </li>`
             }
             document.getElementsByClassName("pagination")[0].innerHTML += `<li class="page-item">
-            <a class="page-link" href="#" page-url="/setting/users?page=${data.next}">Next</a>
+            <a class="page-link" href="#" page-url="/settings/users?page=${data.next}">Next</a>
             </li>`
         })
     }
 
-    loadUsers("/setting/users");
+    loadUsers("/settings/users");
     
     document.querySelector(".pagination").addEventListener("click", function(e) {
         if (e.target.tagName === 'A') {
@@ -191,11 +191,11 @@ document.addEventListener("htmx:load", function() {
                 confirmButtonText: 'Yes Delete'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch(`/setting/users/${userId}/delete`, {
+                    fetch(`/settings/users/${userId}/delete`, {
                         method: 'DELETE'
                     }).then(response => {
                         if (response.ok) {
-                            loadUsers("/setting/users");
+                            loadUsers("/settings/users");
                         } else {
                             console.error('Delete request failed');
                         }
