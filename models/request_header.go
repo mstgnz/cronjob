@@ -14,6 +14,7 @@ type RequestHeader struct {
 	Key       string     `json:"key" validate:"required"`
 	Value     string     `json:"value" validate:"required"`
 	Active    bool       `json:"active" validate:"boolean"`
+	Request   *Request   `json:"request,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
@@ -31,6 +32,66 @@ type RequestHeaderUpdate struct {
 	Key       string `json:"key" validate:"omitempty"`
 	Value     string `json:"value" validate:"omitempty"`
 	Active    *bool  `json:"active" validate:"omitnil,boolean"`
+}
+
+func (m *RequestHeader) Count() int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUEST_HEADERS_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
+}
+
+func (m *RequestHeader) Paginate(offset, limit int, search string) []*RequestHeader {
+	requestHeaders := []*RequestHeader{}
+
+	// prepare requestHeaders paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUEST_HEADERS_PAGINATE"])
+	if err != nil {
+		return requestHeaders
+	}
+
+	// query
+	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	if err != nil {
+		return requestHeaders
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		requestHeader := &RequestHeader{
+			Request: &Request{},
+		}
+
+		if err := rows.Scan(&requestHeader.ID, &requestHeader.RequestID, &requestHeader.Key, &requestHeader.Value, &requestHeader.Active, &requestHeader.CreatedAt, &requestHeader.UpdatedAt, &requestHeader.DeletedAt, &requestHeader.Request.Url); err != nil {
+			return requestHeaders
+		}
+
+		requestHeaders = append(requestHeaders, requestHeader)
+	}
+
+	return requestHeaders
 }
 
 func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]RequestHeader, error) {

@@ -15,7 +15,7 @@ DELETE FROM triggered WHERE schedule_id=$1;
 SELECT count(*) FROM users;
 
 -- USERS_PAGINATE
-select * from users where fullname ilike $1 or email ilike $1 or phone ilike $1 order by id asc offset $2 limit $3;
+select * from users where fullname ilike $1 or email ilike $1 or phone ilike $1 order by id desc offset $2 limit $3;
 
 -- USER_EXISTS_WITH_ID
 SELECT count(*) FROM users WHERE id=$1;
@@ -49,8 +49,8 @@ SELECT count(*) FROM groups;
 select g.*, gs.name as parent, u.fullname from groups g 
 join users u on u.id=g.user_id 
 left join groups gs on gs.id=g.uid 
-where g.name ilike $1 or gs.name ilike $1 or u.fullname ilike $1
-order by g.id asc offset $2 limit $3;
+where g.name ilike $1 or gs.name ilike $1 or u.fullname ilike $1 
+order by g.id desc offset $2 limit $3;
 
 -- GROUPS
 SELECT id,uid,name,active,created_at,updated_at FROM groups WHERE user_id=$1 AND deleted_at isnull;
@@ -71,6 +71,15 @@ SELECT count(*) FROM groups WHERE id=$1 AND user_id=$2 AND deleted_at isnull;
 UPDATE groups SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 
 
+-- REQUESTS_COUNT
+SELECT count(*) FROM requests;
+
+-- REQUESTS_PAGINATE
+select r.*, u.fullname from requests r 
+join users u on u.id=r.user_id 
+where r.url ilike $1 or r.method ilike $1 or r.content::text ilike $1 or u.fullname ilike $1 
+order by r.id desc offset $2 limit $3;
+
 -- REQUESTS
 SELECT * FROM requests WHERE user_id=$1 AND deleted_at isnull;
 
@@ -89,6 +98,15 @@ SELECT count(*) FROM requests WHERE id=$1 AND user_id=$2 AND deleted_at isnull;
 -- REQUEST_DELETE
 UPDATE requests SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 
+
+-- REQUEST_HEADERS_COUNT
+SELECT count(*) FROM request_headers;
+
+-- REQUEST_HEADERS_PAGINATE
+select rh.*, r.url from request_headers rh  
+join requests r on r.id=rh.request_id 
+where rh.key ilike $1 or rh.value ilike $1 or r.url ilike $1 
+order by rh.id desc offset $2 limit $3;
 
 -- REQUEST_HEADERS
 SELECT rh.* FROM request_headers rh JOIN requests r ON r.id=rh.request_id WHERE r.user_id=$1 AND rh.deleted_at isnull;

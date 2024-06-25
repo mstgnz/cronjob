@@ -15,6 +15,7 @@ type Request struct {
 	Method         string           `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
 	Content        string           `json:"content" validate:"omitempty,json"`
 	Active         bool             `json:"active" validate:"boolean"`
+	User           *User            `json:"user,omitempty"`
 	RequestHeaders []*RequestHeader `json:"request_headers,omitempty"`
 	CreatedAt      *time.Time       `json:"created_at,omitempty"`
 	UpdatedAt      *time.Time       `json:"updated_at,omitempty"`
@@ -36,6 +37,33 @@ type RequestBulk struct {
 	Content        string               `json:"content" validate:"omitempty,json"`
 	Active         bool                 `json:"active" validate:"boolean"`
 	RequestHeaders []*RequestHeaderBulk `json:"request_headers" validate:"required,nonempty,dive"`
+}
+
+func (m *Request) Count() int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUESTS_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
 }
 
 func (m *Request) Get(userID, id int, url string) ([]Request, error) {
@@ -75,6 +103,39 @@ func (m *Request) Get(userID, id int, url string) ([]Request, error) {
 	}
 
 	return requests, nil
+}
+
+func (m *Request) Paginate(offset, limit int, search string) []*Request {
+	requests := []*Request{}
+
+	// prepare requests paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUESTS_PAGINATE"])
+	if err != nil {
+		return requests
+	}
+
+	// query
+	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	if err != nil {
+		return requests
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		request := &Request{
+			User: &User{},
+		}
+
+		if err := rows.Scan(&request.ID, &request.UserID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt, &request.User.Fullname); err != nil {
+			return requests
+		}
+
+		requests = append(requests, request)
+	}
+
+	return requests
 }
 
 func (m *Request) Create(exec any) error {

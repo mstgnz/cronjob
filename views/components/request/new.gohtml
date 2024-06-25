@@ -1,7 +1,37 @@
 {{template "base" . }}
 
 {{define "requestNew" }}
-
-New request
-
+<div class="row justify-content-center">
+    <div class="col-6 p-5">
+        <form hx-post="/requests" hx-target="#toast" hx-ext="json-enc" novalidate autocomplete="off">
+            <div class="form-floating mb-2">
+                <input type="text" class="form-control" name="url" placeholder="Url" required>
+                <label for="url">Url</label>
+            </div>
+            <div class="form-floating mb-2">
+                <select class="form-select" name="method">
+                    <option value="GET" selected>GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
+                <label for="active">Status</label>
+            </div>
+            <div class="form-floating mb-2">
+                <textarea class="form-control" name="content" placeholder="Content" style="height: 100px"></textarea>
+                <label for="content">Content</label>
+            </div>
+            <div class="form-floating mb-2">
+                <select class="form-select" name="active">
+                    <option value="true" selected>Active</option>
+                    <option value="false">Deactive</option>
+                </select>
+                <label for="active">Status</label>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Save</button>
+            <span id="toast"></span>
+        </form>
+    </div>
+</div>
 {{end}}

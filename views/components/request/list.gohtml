@@ -1,47 +1,37 @@
 {{template "base" . }}
 
+{{define "css"}}
+<style>
+    .hstack {
+        visibility:hidden;
+    }
+    tr:hover .hstack{
+        visibility:visible;
+    }
+</style>
+{{end}}
+
 {{define "requestList" }}
 
-<table class="table">
+<table class="table" hx-get="/requests-pagination" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="load">
     <thead>
         <tr>
             <th scope="col">#</th>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">Handle</th>
+            <th scope="col">Url</th>
+            <th scope="col">Method</th>
+            <th scope="col">Content</th>
+            <th scope="col">Active</th>
+            <th scope="col">Created</th>
+            <th scope="col">Updated</th>
+            <th scope="col">Actions</th>
         </tr>
     </thead>
-    <tbody>
-        <tr>
-            <th scope="row">1</th>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td>@mdo</td>
-        </tr>
-        <tr>
-            <th scope="row">2</th>
-            <td>Jacob</td>
-            <td>Thornton</td>
-            <td>@fat</td>
-        </tr>
-        <tr>
-            <th scope="row">3</th>
-            <td colspan="2">Larry the Bird</td>
-            <td>@twitter</td>
-        </tr>
-    </tbody>
+    <tbody id="tbody" hx-target="closest tr" hx-swap="outerHTML"></tbody>
 </table>
 <!-- Pagination -->
 <div class="mt-4">
     <nav aria-label="Page navigation example">
-        <ul class="pagination">
-            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-            <li class="page-item"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">Next</a></li>
-        </ul>
+        <ul class="pagination" hx-get="/requests-pagination?pagination" hx-target="this" hx-swap="innerHTML" hx-trigger="load"></ul>
     </nav>
 </div>
-
 {{end}}

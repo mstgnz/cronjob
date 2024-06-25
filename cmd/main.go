@@ -122,6 +122,15 @@ func main() {
 		r.Get("/schedules", Catch(webScheduleHandler.HomeHandler))
 		// request
 		r.Get("/requests", Catch(webRequestHandler.HomeHandler))
+		r.Get("/requests-pagination", Catch(webRequestHandler.PaginationHandler))
+		r.Post("/requests", Catch(webRequestHandler.CreateHandler))
+		r.Get("/requests/{id}/edit", Catch(webRequestHandler.EditHandler))
+		r.Put("/requests/{id}", Catch(webRequestHandler.UpdateHandler))
+		r.Delete("/requests/{id}", Catch(webRequestHandler.DeleteHandler))
+		r.Get("/requests/headers-pagination", Catch(webRequestHandler.HeaderPaginationHandler))
+		r.Post("/requests/headers", Catch(webRequestHandler.HeaderCreateHandler))
+		r.Put("/requests/headers/{id}", Catch(webRequestHandler.HeaderUpdateHandler))
+		r.Delete("/requests/headers/{id}", Catch(webRequestHandler.HeaderDeleteHandler))
 		// group
 		r.Get("/groups", Catch(webGroupHandler.HomeHandler))
 		r.Get("/groups-pagination", Catch(webGroupHandler.PaginationHandler))
