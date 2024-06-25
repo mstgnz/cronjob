@@ -86,6 +86,7 @@ document.querySelector("tbody").addEventListener("click", function(e) {
         document.getElementById('update').querySelectorAll('select[name="uid"]')[0].value = group.uid
         document.getElementById('update').querySelectorAll('select[name="active"]')[0].value = group.active
         document.getElementById('update').getElementsByTagName('form')[0].setAttribute("hx-put","/groups/"+group.id)
+        // report changes to htmx
         htmx.process(document.getElementById('update').getElementsByTagName('form')[0]);
         new bootstrap.Modal('#update').show()
     }
