@@ -119,17 +119,21 @@ func main() {
 		r.Get("/logout", Catch(webUserHandler.LogoutHandler))
 		r.Get("/profile", Catch(webUserHandler.ProfileHandler))
 		// schedule
-		r.Get("/schedule", Catch(webScheduleHandler.HomeHandler))
+		r.Get("/schedules", Catch(webScheduleHandler.HomeHandler))
 		// request
-		r.Get("/request", Catch(webRequestHandler.HomeHandler))
+		r.Get("/requests", Catch(webRequestHandler.HomeHandler))
 		// group
-		r.Get("/group", Catch(webGroupHandler.HomeHandler))
+		r.Get("/groups", Catch(webGroupHandler.HomeHandler))
+		r.Get("/groups-pagination", Catch(webGroupHandler.PaginationHandler))
+		r.Post("/groups", Catch(webGroupHandler.CreateHandler))
+		r.Put("/groups/{id}", Catch(webGroupHandler.UpdateHandler))
+		r.Delete("/groups/{id}", Catch(webGroupHandler.DeleteHandler))
 		// webhook
-		r.Get("/webhook", Catch(webWebhookHandler.HomeHandler))
+		r.Get("/webhooks", Catch(webWebhookHandler.HomeHandler))
 		// notification
-		r.Get("/notification", Catch(webNotificationHandler.HomeHandler))
+		r.Get("/notifications", Catch(webNotificationHandler.HomeHandler))
 		// setting
-		r.Route("/setting", func(r chi.Router) {
+		r.Route("/settings", func(r chi.Router) {
 			r.Use(isAdminMiddleware)
 			r.Get("/", Catch(webSettingHandler.HomeHandler))
 			r.Get("/users", Catch(webSettingHandler.UsersHandler))
