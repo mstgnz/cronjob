@@ -64,9 +64,9 @@ func MaptoJSON(response map[string]any) []byte {
 }
 
 // ConvertStringIDsToInt converts specified string IDs in JSON data to integers
-func ConvertStringIDsToInt(r *http.Request, ids ...string) ([]byte, error) {
+func ConvertStringIDsToInt(r *http.Request, columns ...string) ([]byte, error) {
 	var resultJSON []byte
-	var data map[string]interface{}
+	var data map[string]any
 
 	// Decode body
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -75,13 +75,44 @@ func ConvertStringIDsToInt(r *http.Request, ids ...string) ([]byte, error) {
 	}
 
 	// Convert specified string IDs to integers
-	for _, id := range ids {
-		if idStr, ok := data[id].(string); ok {
+	for _, column := range columns {
+		if idStr, ok := data[column].(string); ok {
 			idInt, err := strconv.Atoi(idStr)
 			if err != nil {
 				return resultJSON, err
 			}
-			data[id] = idInt
+			data[column] = idInt
+		}
+	}
+
+	// Marshal data back to JSON
+	resultJSON, err = json.Marshal(data)
+	if err != nil {
+		return resultJSON, err
+	}
+
+	return resultJSON, nil
+}
+
+// ConvertStringBoolsToBool converts specified string Bools in JSON data to bool
+func ConvertStringBoolsToBool(r *http.Request, columns ...string) ([]byte, error) {
+	var resultJSON []byte
+	var data map[string]any
+
+	// Decode body
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		return resultJSON, err
+	}
+
+	// Convert specified string Bools to bool
+	for _, column := range columns {
+		if val, ok := data[column].(string); ok {
+			boolValue, err := strconv.ParseBool(val)
+			if err != nil {
+				return resultJSON, err
+			}
+			data[column] = boolValue
 		}
 	}
 
