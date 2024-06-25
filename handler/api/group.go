@@ -12,21 +12,21 @@ type GroupHandler struct {
 }
 
 func (h *GroupHandler) ListHandler(w http.ResponseWriter, r *http.Request) error {
-	statusCode, response := h.ListSerice(w, r)
+	statusCode, response := h.ListService(w, r)
 	return config.WriteJSON(w, statusCode, response)
 }
 
 func (h *GroupHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
-	statusCode, response := h.CreateSerice(w, r)
+	statusCode, response := h.CreateService(w, r)
 	return config.WriteJSON(w, statusCode, response)
 }
 
 func (h *GroupHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	statusCode, response := h.UpdateSerice(w, r)
+	statusCode, response := h.UpdateService(w, r)
 	return config.WriteJSON(w, statusCode, response)
 }
 
 func (h *GroupHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) error {
-	statusCode, response := h.DeleteSerice(w, r)
+	statusCode, response := h.DeleteService(w, r)
 	return config.WriteJSON(w, statusCode, response)
 }

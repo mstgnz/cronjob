@@ -14,7 +14,7 @@ import (
 
 type GroupService struct{}
 
-func (s *GroupService) ListSerice(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *GroupService) ListService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
 	group := &models.Group{}
 
 	// get auth user in context
@@ -31,7 +31,7 @@ func (s *GroupService) ListSerice(w http.ResponseWriter, r *http.Request) (int, 
 	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"groups": groups}}
 }
 
-func (s *GroupService) CreateSerice(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *GroupService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
 	group := &models.Group{}
 	if err := config.ReadJSON(w, r, group); err != nil {
 		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
@@ -63,7 +63,7 @@ func (s *GroupService) CreateSerice(w http.ResponseWriter, r *http.Request) (int
 	return http.StatusCreated, config.Response{Status: true, Message: "Group created", Data: map[string]any{"group": group}}
 }
 
-func (s *GroupService) UpdateSerice(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *GroupService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
 	updateData := &models.GroupUpdate{}
 	if err := config.ReadJSON(w, r, &updateData); err != nil {
 		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
@@ -130,7 +130,7 @@ func (s *GroupService) UpdateSerice(w http.ResponseWriter, r *http.Request) (int
 	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
-func (s *GroupService) DeleteSerice(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *GroupService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
