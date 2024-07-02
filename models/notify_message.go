@@ -9,13 +9,14 @@ import (
 )
 
 type NotifyMessage struct {
-	ID             int        `json:"id"`
-	NotificationID int        `json:"notification_id" validate:"required,number"`
-	Phone          string     `json:"phone" validate:"required,e164"`
-	Active         bool       `json:"active" validate:"boolean"`
-	CreatedAt      *time.Time `json:"created_at,omitempty"`
-	UpdatedAt      *time.Time `json:"updated_at,omitempty"`
-	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
+	ID             int           `json:"id"`
+	NotificationID int           `json:"notification_id" validate:"required,number"`
+	Phone          string        `json:"phone" validate:"required,e164"`
+	Active         bool          `json:"active" validate:"boolean"`
+	Notification   *Notification `json:"notification,omitempty"`
+	CreatedAt      *time.Time    `json:"created_at,omitempty"`
+	UpdatedAt      *time.Time    `json:"updated_at,omitempty"`
+	DeletedAt      *time.Time    `json:"deleted_at,omitempty"`
 }
 
 type NotifyMessageUpdate struct {
@@ -28,6 +29,33 @@ type NotifyMessageBulk struct {
 	NotificationID int    `json:"notification_id" validate:"number"`
 	Phone          string `json:"phone" validate:"required,e164"`
 	Active         bool   `json:"active" validate:"boolean"`
+}
+
+func (m *NotifyMessage) Count() int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_MESSAGES_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
 }
 
 func (m *NotifyMessage) Get(userID, id int, phone string) ([]NotifyMessage, error) {
@@ -67,6 +95,39 @@ func (m *NotifyMessage) Get(userID, id int, phone string) ([]NotifyMessage, erro
 	}
 
 	return notifyMessages, nil
+}
+
+func (m *NotifyMessage) Paginate(offset, limit int, search string) []*NotifyMessage {
+	notifyMessages := []*NotifyMessage{}
+
+	// prepare notify_messages paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_MESSAGES_PAGINATE"])
+	if err != nil {
+		return notifyMessages
+	}
+
+	// query
+	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	if err != nil {
+		return notifyMessages
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		notifyMessage := &NotifyMessage{
+			Notification: &Notification{},
+		}
+
+		if err := rows.Scan(&notifyMessage.ID, &notifyMessage.NotificationID, &notifyMessage.Notification.User.Email, &notifyMessage.Active, &notifyMessage.CreatedAt, &notifyMessage.UpdatedAt, &notifyMessage.DeletedAt, &notifyMessage.Notification.Title); err != nil {
+			return notifyMessages
+		}
+
+		notifyMessages = append(notifyMessages, notifyMessage)
+	}
+
+	return notifyMessages
 }
 
 func (m *NotifyMessage) Create(exec any) error {

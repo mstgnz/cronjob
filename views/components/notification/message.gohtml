@@ -1,7 +1,7 @@
 {{template "base" . }}
 
 {{define "notificationMessage" }}
-<table class="table" hx-get="/requests/message-pagination" hx-target="#header" hx-swap="innerHTML" hx-trigger="load">
+<table class="table" hx-get="/notifications/message-pagination" hx-target="#message" hx-swap="innerHTML" hx-trigger="load">
     <thead>
         <tr>
             <th scope="col">#</th>
@@ -13,12 +13,12 @@
             <th scope="col">Actions</th>
         </tr>
     </thead>
-    <tbody id="header" hx-target="closest tr" hx-swap="outerHTML"></tbody>
+    <tbody id="message" hx-target="closest tr" hx-swap="outerHTML"></tbody>
 </table>
 <!-- Pagination -->
 <div class="mt-4">
     <nav>
-        <ul class="pagination" hx-get="/requests/message-pagination?pagination" hx-target="this" hx-swap="innerHTML" hx-trigger="load"></ul>
+        <ul class="pagination" hx-get="/notifications/message-pagination?pagination" hx-target="this" hx-swap="innerHTML" hx-trigger="load"></ul>
     </nav>
 </div>
 {{end}}
