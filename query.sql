@@ -172,6 +172,15 @@ UPDATE webhooks SET deleted_at=$1, updated_at=$2 FROM schedules
 WHERE schedules.id=webhooks.schedule_id AND webhooks.id=$3 AND schedules.user_id=$4;
 
 
+-- NOTIFICATIONS_COUNT
+SELECT count(*) FROM notifications;
+
+-- NOTIFICATIONS_PAGINATE
+select n.*, u.fullname from notifications r 
+join users u on u.id=n.user_id 
+where n.title ilike $1 or n.content ilike $1 or u.fullname ilike $1 
+order by n.id desc offset $2 limit $3;
+
 -- NOTIFICATIONS
 SELECT * FROM notifications WHERE user_id=$1 AND deleted_at isnull;
 
@@ -190,6 +199,15 @@ SELECT count(*) FROM notifications WHERE id=$1 AND user_id=$2 AND deleted_at isn
 -- NOTIFICATION_DELETE
 UPDATE notifications SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 
+
+-- NOTIFICATION_EMAILS_COUNT
+SELECT count(*) FROM notify_emails;
+
+-- NOTIFICATION_EMAILS_PAGINATE
+SELECT ne.*, n.title FROM notify_emails ne 
+JOIN notifications n ON n.id=ne.notification_id 
+WHERE n.user_id=$1 AND ne.deleted_at isnull
+ORDER BY n.id DESC offset $2 LIMIT $3;
 
 -- NOTIFICATION_EMAILS
 SELECT ne.* FROM notify_emails ne JOIN notifications n ON n.id=ne.notification_id WHERE n.user_id=$1 AND ne.deleted_at isnull;
@@ -212,6 +230,15 @@ WHERE ne.id=$1 AND n.user_id=$2 AND ne.deleted_at isnull;
 UPDATE notify_emails SET deleted_at=$1, updated_at=$2 FROM notifications 
 WHERE notifications.id=notify_emails.notification_id AND notify_emails.id=$3 AND notifications.user_id=$4;
 
+
+-- NOTIFICATION_MESSAGES_COUNT
+SELECT count(*) FROM notify_messages;
+
+-- NOTIFICATION_MESSAGES_PAGINATE
+SELECT nm.*, n.title FROM notify_messages nm 
+JOIN notifications n ON n.id=nm.notification_id 
+WHERE n.user_id=$1 AND nm.deleted_at isnull
+ORDER BY n.id DESC offset $2 LIMIT $3;
 
 -- NOTIFICATION_MESSAGES
 SELECT ns.* FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id WHERE n.user_id=$1 AND ns.deleted_at isnull;
