@@ -129,6 +129,7 @@ func main() {
 		r.Delete("/requests/{id}", Catch(webRequestHandler.DeleteHandler))
 		r.Get("/requests/headers-pagination", Catch(webRequestHandler.HeaderPaginationHandler))
 		r.Post("/requests/headers", Catch(webRequestHandler.HeaderCreateHandler))
+		r.Get("/requests/headers/{id}/edit", Catch(webRequestHandler.HeaderEditHandler))
 		r.Put("/requests/headers/{id}", Catch(webRequestHandler.HeaderUpdateHandler))
 		r.Delete("/requests/headers/{id}", Catch(webRequestHandler.HeaderDeleteHandler))
 		// group

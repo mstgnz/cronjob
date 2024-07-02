@@ -99,13 +99,13 @@ func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]RequestHea
 	query := strings.TrimSuffix(config.App().QUERY["REQUEST_HEADERS"], ";")
 
 	if id > 0 {
-		query += fmt.Sprintf(" AND id=%v", id)
+		query += fmt.Sprintf(" AND rh.id=%d", id)
 	}
 	if requestID > 0 {
-		query += fmt.Sprintf(" AND request_id=%v", requestID)
+		query += fmt.Sprintf(" AND rh.request_id=%d", requestID)
 	}
 	if key != "" {
-		query += fmt.Sprintf(" AND header=%v", key)
+		query += fmt.Sprintf(" AND rh.key='%s'", key)
 	}
 
 	// prepare
