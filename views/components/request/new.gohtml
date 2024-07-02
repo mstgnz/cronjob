@@ -1,9 +1,9 @@
 {{template "base" . }}
 
 {{define "requestNew" }}
-<div class="row justify-content-center">
+<div class="row">
     <div class="col-6 p-5">
-        <form hx-post="/requests" hx-target="#toast" hx-ext="json-enc" novalidate autocomplete="off">
+        <form hx-post="/requests" hx-target="#request-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
                 <input type="text" class="form-control" name="url" placeholder="Url" required>
                 <label for="url">Url</label>
@@ -29,8 +29,38 @@
                 </select>
                 <label for="active">Status</label>
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Save</button>
-            <span id="toast"></span>
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Request Save</button>
+            <span id="request-toast"></span>
+        </form>
+    </div>
+    <div class="col-6 p-5">
+        <form hx-post="/requests/headers" hx-target="#header-toast" hx-ext="json-enc" novalidate autocomplete="off">
+            <div class="form-floating mb-2">
+                <select class="form-select" name="request_id" required>
+                    <option value="0" selected>Choose Request</option>
+                    {{ range .lists.requests }}
+                    <option value="{{.ID}}">{{.Url}}</option>
+                    {{end}}
+                </select>
+                <label for="uid">Request</label>
+            </div>
+            <div class="form-floating mb-2">
+                <input type="text" class="form-control" name="key" placeholder="key" required>
+                <label for="key">Key</label>
+            </div>
+            <div class="form-floating mb-2">
+                <input type="text" class="form-control" name="value" placeholder="value" required>
+                <label for="value">Value</label>
+            </div>
+            <div class="form-floating mb-2">
+                <select class="form-select" name="active">
+                    <option value="true" selected>Active</option>
+                    <option value="false">Deactive</option>
+                </select>
+                <label for="active">Status</label>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Header Save</button>
+            <span id="header-toast"></span>
         </form>
     </div>
 </div>

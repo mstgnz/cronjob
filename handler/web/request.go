@@ -20,7 +20,8 @@ type RequestHandler struct {
 }
 
 func (h *RequestHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return services.Render(w, r, "request", map[string]any{}, "request/list", "request/header", "request/new")
+	_, requests := h.request.ListService(w, r)
+	return services.Render(w, r, "request", map[string]any{"lists": requests.Data}, "request/list", "request/header", "request/new")
 }
 
 func (h *RequestHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
