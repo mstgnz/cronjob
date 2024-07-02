@@ -9,13 +9,14 @@ import (
 )
 
 type NotifyEmail struct {
-	ID             int        `json:"id"`
-	NotificationID int        `json:"notification_id" validate:"required,number"`
-	Email          string     `json:"email" validate:"required,email"`
-	Active         bool       `json:"active" validate:"boolean"`
-	CreatedAt      *time.Time `json:"created_at,omitempty"`
-	UpdatedAt      *time.Time `json:"updated_at,omitempty"`
-	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
+	ID             int           `json:"id"`
+	NotificationID int           `json:"notification_id" validate:"required,number"`
+	Email          string        `json:"email" validate:"required,email"`
+	Active         bool          `json:"active" validate:"boolean"`
+	Notification   *Notification `json:"notification,omitempty"`
+	CreatedAt      *time.Time    `json:"created_at,omitempty"`
+	UpdatedAt      *time.Time    `json:"updated_at,omitempty"`
+	DeletedAt      *time.Time    `json:"deleted_at,omitempty"`
 }
 
 type NotifyEmailUpdate struct {
@@ -28,6 +29,33 @@ type NotifyEmailBulk struct {
 	NotificationID int    `json:"notification_id" validate:"number"`
 	Email          string `json:"email" validate:"required,email"`
 	Active         bool   `json:"active" validate:"boolean"`
+}
+
+func (m *NotifyEmail) Count() int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_EMAILS_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
 }
 
 func (m *NotifyEmail) Get(userID, id int, email string) ([]NotifyEmail, error) {
@@ -67,6 +95,39 @@ func (m *NotifyEmail) Get(userID, id int, email string) ([]NotifyEmail, error) {
 	}
 
 	return notifyEmails, nil
+}
+
+func (m *NotifyEmail) Paginate(offset, limit int, search string) []*NotifyEmail {
+	notifyEmails := []*NotifyEmail{}
+
+	// prepare notify_emails paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATION_EMAILS_PAGINATE"])
+	if err != nil {
+		return notifyEmails
+	}
+
+	// query
+	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	if err != nil {
+		return notifyEmails
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		notifyEmail := &NotifyEmail{
+			Notification: &Notification{},
+		}
+
+		if err := rows.Scan(&notifyEmail.ID, &notifyEmail.NotificationID, &notifyEmail.Email, &notifyEmail.Active, &notifyEmail.CreatedAt, &notifyEmail.UpdatedAt, &notifyEmail.DeletedAt, &notifyEmail.Notification.Title); err != nil {
+			return notifyEmails
+		}
+
+		notifyEmails = append(notifyEmails, notifyEmail)
+	}
+
+	return notifyEmails
 }
 
 func (m *NotifyEmail) Create(exec any) error {
