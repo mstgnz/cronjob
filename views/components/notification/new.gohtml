@@ -3,8 +3,8 @@
 {{define "notificationNew" }}
 
 <div class="row">
-    <div class="col-4 p-5">
-        <form hx-post="/notifications" hx-target="#request-toast" hx-ext="json-enc" novalidate autocomplete="off">
+    <div class="col-4 mt-2">
+        <form hx-post="/notifications" hx-target="#notification-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
                 <input type="text" class="form-control" name="url" placeholder="Url" required>
                 <label for="url">Url</label>
@@ -30,20 +30,20 @@
                 </select>
                 <label for="active">Status</label>
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Request Save</button>
-            <span id="request-toast"></span>
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Notification Save</button>
+            <span id="notification-toast"></span>
         </form>
     </div>
-    <div class="col-4 p-5">
-        <form hx-post="/notifications/email" hx-target="#header-toast" hx-ext="json-enc" novalidate autocomplete="off">
+    <div class="col-4 mt-2">
+        <form hx-post="/notifications/email" hx-target="#email-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
-                <select class="form-select" name="request_id" required>
-                    <option value="0" selected>Choose Request</option>
-                    {{ range .lists.requests }}
-                    <option value="{{.ID}}">{{.Url}}</option>
+                <select class="form-select" name="notification_id" required>
+                    <option value="0" selected>Choose Notification</option>
+                    {{ range .lists.notifications }}
+                    <option value="{{.ID}}">{{.Title}}</option>
                     {{end}}
                 </select>
-                <label for="uid">Request</label>
+                <label for="uid">Notification</label>
             </div>
             <div class="form-floating mb-2">
                 <input type="text" class="form-control" name="key" placeholder="key" required>
@@ -60,20 +60,20 @@
                 </select>
                 <label for="active">Status</label>
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Header Save</button>
-            <span id="header-toast"></span>
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Email Save</button>
+            <span id="email-toast"></span>
         </form>
     </div>
-    <div class="col-4 p-5">
-        <form hx-post="/notifications/message" hx-target="#header-toast" hx-ext="json-enc" novalidate autocomplete="off">
+    <div class="col-4 mt-2">
+        <form hx-post="/notifications/message" hx-target="#message-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
-                <select class="form-select" name="request_id" required>
-                    <option value="0" selected>Choose Request</option>
-                    {{ range .lists.requests }}
-                    <option value="{{.ID}}">{{.Url}}</option>
+                <select class="form-select" name="notification_id" required>
+                    <option value="0" selected>Choose Notification</option>
+                    {{ range .lists.notifications }}
+                    <option value="{{.ID}}">{{.Title}}</option>
                     {{end}}
                 </select>
-                <label for="uid">Request</label>
+                <label for="uid">Notification</label>
             </div>
             <div class="form-floating mb-2">
                 <input type="text" class="form-control" name="key" placeholder="key" required>
@@ -90,8 +90,8 @@
                 </select>
                 <label for="active">Status</label>
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Header Save</button>
-            <span id="header-toast"></span>
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Message Save</button>
+            <span id="message-toast"></span>
         </form>
     </div>
 </div>

@@ -16,6 +16,7 @@ type Notification struct {
 	IsMail         bool             `json:"is_mail" validate:"boolean"`
 	IsMessage      bool             `json:"is_message" validate:"boolean"`
 	Active         bool             `json:"active" validate:"boolean"`
+	User           *User            `json:"user,omitempty"`
 	NotifyEmails   []*NotifyEmail   `json:"emails,omitempty"`
 	NotifyMessages []*NotifyMessage `json:"messages,omitempty"`
 	CreatedAt      *time.Time       `json:"created_at,omitempty"`
@@ -43,15 +44,42 @@ type NotificationBulk struct {
 	NotifyMessages []*NotifyMessageBulk `json:"notify_messages" validate:"required_without=NotifyEmails,dive"`
 }
 
+func (m *Notification) Count() int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATIONS_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
+}
+
 func (m *Notification) Get(userID, id int, title string) ([]Notification, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATIONS"], ";")
 
 	if id > 0 {
-		query += fmt.Sprintf(" AND id=%v", id)
+		query += fmt.Sprintf(" AND id=%d", id)
 	}
 	if title != "" {
-		query += fmt.Sprintf(" AND title=%v", title)
+		query += fmt.Sprintf(" AND title='%s'", title)
 	}
 
 	// prepare
@@ -80,6 +108,39 @@ func (m *Notification) Get(userID, id int, title string) ([]Notification, error)
 	}
 
 	return notifications, nil
+}
+
+func (m *Notification) Paginate(offset, limit int, search string) []*Notification {
+	notifications := []*Notification{}
+
+	// prepare notifications paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["NOTIFICATIONS_PAGINATE"])
+	if err != nil {
+		return notifications
+	}
+
+	// query
+	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	if err != nil {
+		return notifications
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		notification := &Notification{
+			User: &User{},
+		}
+
+		if err := rows.Scan(&notification.ID, &notification.UserID, &notification.Title, &notification.Content, &notification.IsMail, &notification.IsMessage, &notification.Active, &notification.CreatedAt, &notification.UpdatedAt, &notification.DeletedAt, &notification.User.Fullname); err != nil {
+			return notifications
+		}
+
+		notifications = append(notifications, notification)
+	}
+
+	return notifications
 }
 
 func (m *Notification) Create(exec any) error {

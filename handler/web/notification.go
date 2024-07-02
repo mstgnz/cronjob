@@ -32,10 +32,22 @@ func (h *NotificationHandler) CreateHandler(w http.ResponseWriter, r *http.Reque
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+	jsonData, err = config.ConvertStringBoolsToBool(r, "is_email")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+	jsonData, err = config.ConvertStringBoolsToBool(r, "is_message")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
 	code, response := h.notify.CreateService(w, r)
 	if response.Status && code == http.StatusCreated {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
@@ -50,52 +62,49 @@ func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request
 
 	_, response := h.notify.ListService(w, r)
 
-	data, _ := response.Data["requests"].([]models.Request)
+	data, _ := response.Data["notifications"].([]models.Notification)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
 	}
 
-	methodGetSelected := ""
-	methodPostSelected := ""
-	methodPutSelected := ""
-	methodPatchSelected := ""
-	methodDeleteSelected := ""
 	activeSelected := ""
 	deactiveSelected := ""
-
-	switch data[0].Method {
-	case "GET":
-		methodGetSelected = "selected"
-	case "POST":
-		methodPostSelected = "selected"
-	case "PUT":
-		methodPutSelected = "selected"
-	case "PATCH":
-		methodPatchSelected = "selected"
-	case "DELETE":
-		methodDeleteSelected = "selected"
-	}
+	activeEmailSelected := ""
+	deactiveEmailSelected := ""
+	activeMessageSelected := ""
+	deactiveMessageSelected := ""
 
 	if data[0].Active {
 		activeSelected = "selected"
 	} else {
 		deactiveSelected = "selected"
 	}
+	if data[0].IsMail {
+		activeEmailSelected = "selected"
+	} else {
+		deactiveEmailSelected = "selected"
+	}
+	if data[0].IsMessage {
+		activeMessageSelected = "selected"
+	} else {
+		deactiveMessageSelected = "selected"
+	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/requests/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/notifications/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
-            <td><input name="url" class="form-control" value="%s"></td>
-            <td><select class="form-select" name="method">
-                    <option value="GET" %s>GET</option>
-                    <option value="POST" %s>POST</option>
-                    <option value="PUT" %s>PUT</option>
-                    <option value="PATCH" %s>PATCH</option>
-                    <option value="DELETE" %s>DELETE</option>
+            <td><input name="title" class="form-control" value="%s"></td>
+            <td><input name="content" class="form-control" value="%s"></td>
+            <td><select class="form-select" name="is_email">
+                    <option value="true" %s>Active</option>
+                    <option value="false" %s>Deactive</option>
                 </select></td>
-            <td><textarea class="form-control" name="content" placeholder="Content">%s</textarea></td>
-            <td><select class="form-select" name="active">
+			<td><select class="form-select" name="ia_message">
+                    <option value="true" %s>Active</option>
+                    <option value="false" %s>Deactive</option>
+                </select></td>
+			<td><select class="form-select" name="active">
                     <option value="true" %s>Active</option>
                     <option value="false" %s>Deactive</option>
                 </select></td>
@@ -103,12 +112,12 @@ func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/requests">Cancel</button>
-				<button class="btn btn-danger" hx-put="/requests/%d" hx-include="closest tr">Save</button>
+				<button class="btn btn-warning" hx-get="/notifications">Cancel</button>
+				<button class="btn btn-danger" hx-put="/notifications/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Url, methodGetSelected, methodPostSelected, methodPutSelected, methodPatchSelected, methodDeleteSelected, data[0].Content, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, data[0].Title, data[0].Content, activeEmailSelected, deactiveEmailSelected, activeMessageSelected, deactiveMessageSelected, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil
@@ -121,10 +130,22 @@ func (h *NotificationHandler) UpdateHandler(w http.ResponseWriter, r *http.Reque
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+	jsonData, err = config.ConvertStringBoolsToBool(r, "is_email")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+	jsonData, err = config.ConvertStringBoolsToBool(r, "is_message")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
 	code, response := h.notify.UpdateService(w, r)
 	if response.Status && code == http.StatusOK {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
@@ -133,17 +154,17 @@ func (h *NotificationHandler) UpdateHandler(w http.ResponseWriter, r *http.Reque
 func (h *NotificationHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) error {
 	code, response := h.notify.DeleteService(w, r)
 	if response.Status && code == http.StatusOK {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
 }
 
 func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.Request) error {
-	request := &models.Request{}
+	notification := &models.Notification{}
 
 	search := ""
-	total := request.Count()
+	total := notification.Count()
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -155,26 +176,26 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
 
 	if r.URL.Query().Has("pagination") {
 		pagination := fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Previous</button>
+            <button class="page-link" hx-get="/notifications-pagination?page=%d">Previous</button>
         </li>`, previous)
 
 		for i := 1; i <= size; i++ {
 			pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">%d</button>
+            <button class="page-link" hx-get="/notifications-pagination?page=%d">%d</button>
         </li>`, i, i)
 		}
 
 		pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Next</button>
+            <button class="page-link" hx-get="/notifications-pagination?page=%d">Next</button>
         </li>`, next)
 		_, _ = w.Write([]byte(pagination))
 		return nil
 	}
 
-	requests := request.Paginate((current-1)*row, row, search)
+	notifications := notification.Paginate((current-1)*row, row, search)
 
 	tr := ""
-	for _, v := range requests {
+	for _, v := range notifications {
 		if v.DeletedAt != nil {
 			continue
 		}
@@ -187,13 +208,14 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
             <th scope="row">%d</th>
             <td>%s</td>
             <td>%s</td>
-            <td>%s</td>
+            <td>%v</td>
+            <td>%v</td>
             <td>%v</td>
             <td>%s</td>
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-request='%s' hx-get="/requests/%d/edit"
+					<button class="btn btn-info" data-notifications='%s' hx-get="/notifications/%d/edit"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
@@ -212,7 +234,7 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
 						}">
 						<i class="bi bi-pencil"></i>
 					</button>
-					<button class="btn btn-danger" hx-delete="/requests/%d"  hx-trigger='confirmed' onClick="Swal.fire({
+					<button class="btn btn-danger" hx-delete="/notifications/%d"  hx-trigger='confirmed' onClick="Swal.fire({
 							title: 'Do you approve the deletion?',
 							icon: 'warning',
 							showCancelButton: true,
@@ -225,7 +247,7 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Url, v.Method, v.Content, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataRequest, v.ID, v.ID)
+        </tr>`, v.ID, v.Title, v.Content, v.IsMail, v.IsMessage, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataRequest, v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -233,7 +255,7 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
 
 func (h *NotificationHandler) EmailCreateHandler(w http.ResponseWriter, r *http.Request) error {
 
-	jsonData, err := config.ConvertStringIDsToInt(r, "request_id")
+	jsonData, err := config.ConvertStringIDsToInt(r, "notification_id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -249,7 +271,7 @@ func (h *NotificationHandler) EmailCreateHandler(w http.ResponseWriter, r *http.
 
 	code, response := h.email.CreateService(w, r)
 	if response.Status && code == http.StatusCreated {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
@@ -265,7 +287,7 @@ func (h *NotificationHandler) EmailUpdateHandler(w http.ResponseWriter, r *http.
 
 	code, response := h.email.UpdateService(w, r)
 	if response.Status && code == http.StatusOK {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
@@ -274,17 +296,17 @@ func (h *NotificationHandler) EmailUpdateHandler(w http.ResponseWriter, r *http.
 func (h *NotificationHandler) EmailDeleteHandler(w http.ResponseWriter, r *http.Request) error {
 	code, response := h.email.DeleteService(w, r)
 	if response.Status && code == http.StatusOK {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
 }
 
 func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *http.Request) error {
-	requestHeader := &models.RequestHeader{}
+	notifyEmail := &models.NotifyEmail{}
 
 	search := ""
-	total := requestHeader.Count()
+	total := notifyEmail.Count()
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -296,26 +318,26 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
 
 	if r.URL.Query().Has("pagination") {
 		pagination := fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Previous</button>
+            <button class="page-link" hx-get="/notifications/email-pagination?page=%d">Previous</button>
         </li>`, previous)
 
 		for i := 1; i <= size; i++ {
 			pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">%d</button>
+            <button class="page-link" hx-get="/notifications/email-pagination?page=%d">%d</button>
         </li>`, i, i)
 		}
 
 		pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Next</button>
+            <button class="page-link" hx-get="/notifications/email-pagination?page=%d">Next</button>
         </li>`, next)
 		_, _ = w.Write([]byte(pagination))
 		return nil
 	}
 
-	requestHeaders := requestHeader.Paginate((current-1)*row, row, search)
+	notifyEmails := notifyEmail.Paginate((current-1)*row, row, search)
 
 	tr := ""
-	for _, v := range requestHeaders {
+	for _, v := range notifyEmails {
 		if v.DeletedAt != nil {
 			continue
 		}
@@ -333,7 +355,7 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-request='%s' hx-get="/requests/headers/%d/edit"
+					<button class="btn btn-info" data-request='%s' hx-get="/notifications/email/%d/edit"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
@@ -352,7 +374,7 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
 						}">
 						<i class="bi bi-pencil"></i>
 					</button>
-					<button class="btn btn-danger" hx-delete="/requests/headers/%d" hx-trigger='confirmed' onClick="Swal.fire({
+					<button class="btn btn-danger" hx-delete="/notifications/email/%d" hx-trigger='confirmed' onClick="Swal.fire({
 							title: 'Do you approve the deletion?',
 							icon: 'warning',
 							showCancelButton: true,
@@ -365,7 +387,7 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Key, v.Value, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataHeader, v.ID, v.ID)
+        </tr>`, v.ID, v.Notification.Title, v.Email, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataHeader, v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -380,7 +402,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 
 	_, response := h.email.ListService(w, r)
 
-	data, _ := response.Data["request_headers"].([]models.RequestHeader)
+	data, _ := response.Data["notify_emails"].([]models.RequestHeader)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -395,7 +417,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/requests/headers/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/notifications/email/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td><input name="key" class="form-control" value="%s" /></td>
             <td><input name="value" class="form-control" value="%s" /></td>
@@ -407,8 +429,8 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/requests">Cancel</button>
-				<button class="btn btn-danger" hx-put="/requests/headers/%d" hx-include="closest tr">Save</button>
+				<button class="btn btn-warning" hx-get="/notifications">Cancel</button>
+				<button class="btn btn-danger" hx-put="/notifications/email/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
 		</tr>
@@ -420,7 +442,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 
 func (h *NotificationHandler) MessageCreateHandler(w http.ResponseWriter, r *http.Request) error {
 
-	jsonData, err := config.ConvertStringIDsToInt(r, "request_id")
+	jsonData, err := config.ConvertStringIDsToInt(r, "notification_id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -436,7 +458,7 @@ func (h *NotificationHandler) MessageCreateHandler(w http.ResponseWriter, r *htt
 
 	code, response := h.message.CreateService(w, r)
 	if response.Status && code == http.StatusCreated {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
@@ -452,7 +474,7 @@ func (h *NotificationHandler) MessageUpdateHandler(w http.ResponseWriter, r *htt
 
 	code, response := h.message.UpdateService(w, r)
 	if response.Status && code == http.StatusOK {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
@@ -461,17 +483,17 @@ func (h *NotificationHandler) MessageUpdateHandler(w http.ResponseWriter, r *htt
 func (h *NotificationHandler) MessageDeleteHandler(w http.ResponseWriter, r *http.Request) error {
 	code, response := h.message.DeleteService(w, r)
 	if response.Status && code == http.StatusOK {
-		w.Header().Set("HX-Redirect", "/requests")
+		w.Header().Set("HX-Redirect", "/notifications")
 	}
 	_, _ = w.Write([]byte(response.Message))
 	return nil
 }
 
 func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r *http.Request) error {
-	requestHeader := &models.RequestHeader{}
+	notifyMessage := &models.NotifyMessage{}
 
 	search := ""
-	total := requestHeader.Count()
+	total := notifyMessage.Count()
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -483,26 +505,26 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
 
 	if r.URL.Query().Has("pagination") {
 		pagination := fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Previous</button>
+            <button class="page-link" hx-get="/notifications/message-pagination?page=%d">Previous</button>
         </li>`, previous)
 
 		for i := 1; i <= size; i++ {
 			pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">%d</button>
+            <button class="page-link" hx-get="/notifications/message-pagination?page=%d">%d</button>
         </li>`, i, i)
 		}
 
 		pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Next</button>
+            <button class="page-link" hx-get="/notifications/message-pagination?page=%d">Next</button>
         </li>`, next)
 		_, _ = w.Write([]byte(pagination))
 		return nil
 	}
 
-	requestHeaders := requestHeader.Paginate((current-1)*row, row, search)
+	notifyMessages := notifyMessage.Paginate((current-1)*row, row, search)
 
 	tr := ""
-	for _, v := range requestHeaders {
+	for _, v := range notifyMessages {
 		if v.DeletedAt != nil {
 			continue
 		}
@@ -520,7 +542,7 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-request='%s' hx-get="/requests/headers/%d/edit"
+					<button class="btn btn-info" data-request='%s' hx-get="/notifications/message/%d/edit"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
@@ -539,7 +561,7 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
 						}">
 						<i class="bi bi-pencil"></i>
 					</button>
-					<button class="btn btn-danger" hx-delete="/requests/headers/%d" hx-trigger='confirmed' onClick="Swal.fire({
+					<button class="btn btn-danger" hx-delete="/notifications/message/%d" hx-trigger='confirmed' onClick="Swal.fire({
 							title: 'Do you approve the deletion?',
 							icon: 'warning',
 							showCancelButton: true,
@@ -552,7 +574,7 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Key, v.Value, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataHeader, v.ID, v.ID)
+        </tr>`, v.ID, v.Notification.Title, v.Phone, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataHeader, v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -567,7 +589,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
 
 	_, response := h.message.ListService(w, r)
 
-	data, _ := response.Data["request_headers"].([]models.RequestHeader)
+	data, _ := response.Data["notify_messages"].([]models.RequestHeader)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -582,7 +604,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
 	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/requests/headers/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/notifications/message/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td><input name="key" class="form-control" value="%s" /></td>
             <td><input name="value" class="form-control" value="%s" /></td>
@@ -594,8 +616,8 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/requests">Cancel</button>
-				<button class="btn btn-danger" hx-put="/requests/headers/%d" hx-include="closest tr">Save</button>
+				<button class="btn btn-warning" hx-get="/notifications">Cancel</button>
+				<button class="btn btn-danger" hx-put="/notifications/message/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
 		</tr>
