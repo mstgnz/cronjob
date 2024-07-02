@@ -1,7 +1,6 @@
 {{template "base" . }}
 
 {{define "requestHeader" }}
-
 <table class="table" hx-get="/requests/headers-pagination" hx-target="#header" hx-swap="innerHTML" hx-trigger="load">
     <thead>
         <tr>
@@ -18,7 +17,7 @@
 </table>
 <!-- Pagination -->
 <div class="mt-4">
-    <nav aria-label="Page navigation example">
+    <nav>
         <ul class="pagination" hx-get="/requests/headers-pagination?pagination" hx-target="this" hx-swap="innerHTML" hx-trigger="load"></ul>
     </nav>
 </div>
