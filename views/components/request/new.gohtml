@@ -2,7 +2,7 @@
 
 {{define "requestNew" }}
 <div class="row">
-    <div class="col-6 p-5">
+    <div class="col-6 mt-2">
         <form hx-post="/requests" hx-target="#request-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
                 <input type="text" class="form-control" name="url" placeholder="Url" required>
@@ -33,7 +33,7 @@
             <span id="request-toast"></span>
         </form>
     </div>
-    <div class="col-6 p-5">
+    <div class="col-6 mt-2">
         <form hx-post="/requests/headers" hx-target="#header-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
                 <select class="form-select" name="request_id" required>
