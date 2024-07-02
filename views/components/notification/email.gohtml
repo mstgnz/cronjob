@@ -1,7 +1,24 @@
 {{template "base" . }}
 
 {{define "notificationEmail" }}
-
-notification email
-
+<table class="table" hx-get="/requests/email-pagination" hx-target="#header" hx-swap="innerHTML" hx-trigger="load">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Title</th>
+            <th scope="col">Email</th>
+            <th scope="col">Active</th>
+            <th scope="col">Created</th>
+            <th scope="col">Updated</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody id="header" hx-target="closest tr" hx-swap="outerHTML"></tbody>
+</table>
+<!-- Pagination -->
+<div class="mt-4">
+    <nav>
+        <ul class="pagination" hx-get="/requests/email-pagination?pagination" hx-target="this" hx-swap="innerHTML" hx-trigger="load"></ul>
+    </nav>
+</div>
 {{end}}

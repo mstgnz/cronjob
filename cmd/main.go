@@ -142,6 +142,21 @@ func main() {
 		r.Get("/webhooks", Catch(webWebhookHandler.HomeHandler))
 		// notification
 		r.Get("/notifications", Catch(webNotificationHandler.HomeHandler))
+		r.Get("/notifications-pagination", Catch(webNotificationHandler.PaginationHandler))
+		r.Post("/notifications", Catch(webNotificationHandler.CreateHandler))
+		r.Get("/notifications/{id}/edit", Catch(webNotificationHandler.EditHandler))
+		r.Put("/notifications/{id}", Catch(webNotificationHandler.UpdateHandler))
+		r.Delete("/notifications/{id}", Catch(webNotificationHandler.DeleteHandler))
+		r.Get("/notifications/email-pagination", Catch(webNotificationHandler.EmailPaginationHandler))
+		r.Post("/notifications/email", Catch(webNotificationHandler.EmailCreateHandler))
+		r.Get("/notifications/email/{id}/edit", Catch(webNotificationHandler.EmailEditHandler))
+		r.Put("/notifications/email/{id}", Catch(webNotificationHandler.EmailUpdateHandler))
+		r.Delete("/notifications/email/{id}", Catch(webNotificationHandler.EmailDeleteHandler))
+		r.Get("/notifications/message-pagination", Catch(webNotificationHandler.MessagePaginationHandler))
+		r.Post("/notifications/message", Catch(webNotificationHandler.MessageCreateHandler))
+		r.Get("/notifications/message/{id}/edit", Catch(webNotificationHandler.MessageEditHandler))
+		r.Put("/notifications/message/{id}", Catch(webNotificationHandler.MessageUpdateHandler))
+		r.Delete("/notifications/message/{id}", Catch(webNotificationHandler.MessageDeleteHandler))
 		// setting
 		r.Route("/settings", func(r chi.Router) {
 			r.Use(isAdminMiddleware)
