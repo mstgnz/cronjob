@@ -2,7 +2,7 @@
 
 {{define "requestHeader" }}
 
-<table class="table">
+<table class="table" hx-get="/requests/headers-pagination" hx-target="#header" hx-swap="innerHTML" hx-trigger="load">
     <thead>
         <tr>
             <th scope="col">#</th>
@@ -14,7 +14,7 @@
             <th scope="col">Actions</th>
         </tr>
     </thead>
-    <tbody hx-get="/requests/headers-pagination" hx-target="this" hx-swap="innerHTML" hx-trigger="load"></tbody>
+    <tbody id="header" hx-target="closest tr" hx-swap="outerHTML"></tbody>
 </table>
 <!-- Pagination -->
 <div class="mt-4">

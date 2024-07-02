@@ -102,7 +102,7 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/requests-pagination">Cancel</button>
+				<button class="btn btn-warning" hx-get="/requests">Cancel</button>
 				<button class="btn btn-danger" hx-put="/requests/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
@@ -406,7 +406,7 @@ func (h *RequestHandler) HeaderEditHandler(w http.ResponseWriter, r *http.Reques
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/requests/headers-pagination">Cancel</button>
+				<button class="btn btn-warning" hx-get="/requests">Cancel</button>
 				<button class="btn btn-danger" hx-put="/requests/headers/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
