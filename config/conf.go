@@ -124,3 +124,11 @@ func Clamp(value, min, max int) int {
 	}
 	return value
 }
+
+func ActiveClass(a, b int) string {
+	active := ""
+	if a == b {
+		active = "active"
+	}
+	return active
+}

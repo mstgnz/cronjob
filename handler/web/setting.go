@@ -111,30 +111,35 @@ func (h *SettingHandler) AppLogHandler(w http.ResponseWriter, r *http.Request) e
 	page := config.GetIntQuery(r, "page")
 	size := int(math.Ceil(float64(total) / float64(row)))
 
+	activeClass := ""
 	current := config.Clamp(page, 1, size)
 	previous := config.Clamp(current-1, 1, size)
 	next := config.Clamp(current+1, 1, size)
+	hx := `hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click"`
 
 	if r.URL.Query().Has("pagination") {
 		pagination := fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/settings/app-logs?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">Previous</button>
-        </li>`, previous)
+            <button class="page-link" hx-get="/settings/app-logs?page=%d" %s>Previous</button>
+        </li>`, previous, hx)
 
-		for i := 1; i <= 5; i++ {
-			pagination += fmt.Sprintf(`<li class="page-item">
-				<button class="page-link" hx-get="/settings/app-logs?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">%d</button>
-			</li>`, i, i)
+		for i := 1; i <= min(10, size); i++ {
+			activeClass = config.ActiveClass(i, page)
+			pagination += fmt.Sprintf(`<li class="page-item %s">
+				<button class="page-link" hx-get="/settings/app-logs?page=%d" %s>%d</button>
+			</li>`, activeClass, i, hx, i)
 		}
-		pagination += `<li class="page-item"><button class="page-link">...</button></li>`
-		for i := size - 5; i <= size; i++ {
-			pagination += fmt.Sprintf(`<li class="page-item">
-				<button class="page-link" hx-get="/settings/app-logs?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">%d</button>
-			</li>`, i, i)
+		if size > 20 {
+			pagination += `<li class="page-item"><button class="page-link">...</button></li>`
 		}
-
+		for i := max(11, size-11); i <= size; i++ {
+			activeClass = config.ActiveClass(i, page)
+			pagination += fmt.Sprintf(`<li class="page-item %s">
+				<button class="page-link" hx-get="/settings/app-logs?page=%d" %s>%d</button>
+			</li>`, activeClass, i, hx, i)
+		}
 		pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/settings/app-logs?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">Next</button>
-        </li>`, next)
+            <button class="page-link" hx-get="/settings/app-logs?page=%d" %s>Next</button>
+        </li>`, next, hx)
 		_, _ = w.Write([]byte(pagination))
 		return nil
 	}
