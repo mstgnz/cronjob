@@ -1,5 +1,16 @@
 {{template "base" . }}
 
+{{define "css"}}
+<style>
+    .hstack {
+        visibility:hidden;
+    }
+    tr:hover .hstack{
+        visibility:visible;
+    }
+</style>
+{{end}}
+
 {{define "notificationList" }}
 <table class="table" hx-get="/notifications-pagination" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="load">
     <thead>

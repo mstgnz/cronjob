@@ -110,7 +110,7 @@ func (m *Notification) Get(userID, id int, title string) ([]Notification, error)
 	return notifications, nil
 }
 
-func (m *Notification) Paginate(offset, limit int, search string) []*Notification {
+func (m *Notification) Paginate(userID, offset, limit int, search string) []*Notification {
 	notifications := []*Notification{}
 
 	// prepare notifications paginate
@@ -120,7 +120,7 @@ func (m *Notification) Paginate(offset, limit int, search string) []*Notificatio
 	}
 
 	// query
-	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	rows, err := stmt.Query("%"+search+"%", userID, offset, limit)
 	if err != nil {
 		return notifications
 	}

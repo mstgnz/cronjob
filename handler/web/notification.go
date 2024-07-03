@@ -192,7 +192,8 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
 		return nil
 	}
 
-	notifications := notification.Paginate((current-1)*row, row, search)
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+	notifications := notification.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
 	for _, v := range notifications {
@@ -334,7 +335,8 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
 		return nil
 	}
 
-	notifyEmails := notifyEmail.Paginate((current-1)*row, row, search)
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+	notifyEmails := notifyEmail.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
 	for _, v := range notifyEmails {
@@ -355,7 +357,7 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-request='%s' hx-get="/notifications/email/%d/edit"
+					<button class="btn btn-info" data-email='%s' hx-get="/notifications/email/%d/edit"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
@@ -402,7 +404,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 
 	_, response := h.email.ListService(w, r)
 
-	data, _ := response.Data["notify_emails"].([]models.RequestHeader)
+	data, _ := response.Data["notify_emails"].([]models.NotifyEmail)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -419,8 +421,8 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 	form := fmt.Sprintf(`
 		<tr hx-put="/notifications/email/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
-            <td><input name="key" class="form-control" value="%s" /></td>
-            <td><input name="value" class="form-control" value="%s" /></td>
+            <td>%s</td>
+            <td><input name="email" class="form-control" value="%s" /></td>
             <td><select class="form-select" name="active">
                     <option value="true" %s>Active</option>
                     <option value="false" %s>Deactive</option>
@@ -434,7 +436,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Key, data[0].Value, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, data[0].Notification.Title, data[0].Email, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil
@@ -521,7 +523,8 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
 		return nil
 	}
 
-	notifyMessages := notifyMessage.Paginate((current-1)*row, row, search)
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+	notifyMessages := notifyMessage.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
 	for _, v := range notifyMessages {
@@ -542,7 +545,7 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-request='%s' hx-get="/notifications/message/%d/edit"
+					<button class="btn btn-info" data-message='%s' hx-get="/notifications/message/%d/edit"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
@@ -589,7 +592,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
 
 	_, response := h.message.ListService(w, r)
 
-	data, _ := response.Data["notify_messages"].([]models.RequestHeader)
+	data, _ := response.Data["notify_messages"].([]models.NotifyMessage)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -606,8 +609,8 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
 	form := fmt.Sprintf(`
 		<tr hx-put="/notifications/message/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
-            <td><input name="key" class="form-control" value="%s" /></td>
-            <td><input name="value" class="form-control" value="%s" /></td>
+            <td>%s</td>
+            <td><input name="text" class="form-control" value="%s" /></td>
             <td><select class="form-select" name="active">
                     <option value="true" %s>Active</option>
                     <option value="false" %s>Deactive</option>
@@ -621,7 +624,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Key, data[0].Value, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, data[0].Notification.Title, data[0].Phone, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil
