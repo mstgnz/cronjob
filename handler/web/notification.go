@@ -32,7 +32,7 @@ func (h *NotificationHandler) CreateHandler(w http.ResponseWriter, r *http.Reque
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
-	jsonData, err = config.ConvertStringBoolsToBool(r, "is_email")
+	jsonData, err = config.ConvertStringBoolsToBool(r, "is_mail")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -96,11 +96,11 @@ func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request
 			<th scope="row">%d</th>
             <td><input name="title" class="form-control" value="%s"></td>
             <td><input name="content" class="form-control" value="%s"></td>
-            <td><select class="form-select" name="is_email">
+            <td><select class="form-select" name="is_mail">
                     <option value="true" %s>Active</option>
                     <option value="false" %s>Deactive</option>
                 </select></td>
-			<td><select class="form-select" name="ia_message">
+			<td><select class="form-select" name="is_message">
                     <option value="true" %s>Active</option>
                     <option value="false" %s>Deactive</option>
                 </select></td>
@@ -130,7 +130,7 @@ func (h *NotificationHandler) UpdateHandler(w http.ResponseWriter, r *http.Reque
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
-	jsonData, err = config.ConvertStringBoolsToBool(r, "is_email")
+	jsonData, err = config.ConvertStringBoolsToBool(r, "is_mail")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil

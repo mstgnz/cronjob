@@ -6,22 +6,26 @@
     <div class="col-4 mt-2">
         <form hx-post="/notifications" hx-target="#notification-toast" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
-                <input type="text" class="form-control" name="url" placeholder="Url" required>
-                <label for="url">Url</label>
+                <input type="text" class="form-control" name="title" placeholder="title" required>
+                <label for="title">title</label>
             </div>
             <div class="form-floating mb-2">
-                <select class="form-select" name="method">
-                    <option value="GET" selected>GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="PATCH">PATCH</option>
-                    <option value="DELETE">DELETE</option>
-                </select>
-                <label for="active">Status</label>
-            </div>
-            <div class="form-floating mb-2">
-                <textarea class="form-control" name="content" placeholder="Content" style="height: 100px"></textarea>
+                <input type="text" class="form-control" name="content" placeholder="content" required>
                 <label for="content">Content</label>
+            </div>
+            <div class="form-floating mb-2">
+                <select class="form-select" name="is_mail">
+                    <option value="true" selected>Active</option>
+                    <option value="false">Deactive</option>
+                </select>
+                <label for="is_mail">Is Mail</label>
+            </div>
+            <div class="form-floating mb-2">
+                <select class="form-select" name="is_massage">
+                    <option value="true" selected>Active</option>
+                    <option value="false">Deactive</option>
+                </select>
+                <label for="is_massage">Is Message</label>
             </div>
             <div class="form-floating mb-2">
                 <select class="form-select" name="active">
@@ -43,15 +47,11 @@
                     <option value="{{.ID}}">{{.Title}}</option>
                     {{end}}
                 </select>
-                <label for="uid">Notification</label>
+                <label for="notification_id">Notification</label>
             </div>
             <div class="form-floating mb-2">
-                <input type="text" class="form-control" name="key" placeholder="key" required>
-                <label for="key">Key</label>
-            </div>
-            <div class="form-floating mb-2">
-                <input type="text" class="form-control" name="value" placeholder="value" required>
-                <label for="value">Value</label>
+                <input type="email" class="form-control" name="email" placeholder="email" required>
+                <label for="email">Email</label>
             </div>
             <div class="form-floating mb-2">
                 <select class="form-select" name="active">
@@ -73,15 +73,11 @@
                     <option value="{{.ID}}">{{.Title}}</option>
                     {{end}}
                 </select>
-                <label for="uid">Notification</label>
+                <label for="notification_id">Notification</label>
             </div>
             <div class="form-floating mb-2">
-                <input type="text" class="form-control" name="key" placeholder="key" required>
-                <label for="key">Key</label>
-            </div>
-            <div class="form-floating mb-2">
-                <input type="text" class="form-control" name="value" placeholder="value" required>
-                <label for="value">Value</label>
+                <input type="text" class="form-control" name="phone" placeholder="phone" required>
+                <label for="phone">Phone</label>
             </div>
             <div class="form-floating mb-2">
                 <select class="form-select" name="active">
