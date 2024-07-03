@@ -206,11 +206,11 @@ SELECT count(*) FROM notify_emails;
 -- NOTIFICATION_EMAILS_PAGINATE
 SELECT ne.*, n.title FROM notify_emails ne 
 JOIN notifications n ON n.id=ne.notification_id 
-WHERE (n.title ilike $1 OR u.fullname ilike $1) AND n.user_id=$2 AND ne.deleted_at isnull 
+WHERE (n.title ilike $1) AND n.user_id=$2 AND ne.deleted_at isnull 
 ORDER BY ne.id DESC offset $3 LIMIT $4;
 
 -- NOTIFICATION_EMAILS
-SELECT ne.* FROM notify_emails ne JOIN notifications n ON n.id=ne.notification_id WHERE n.user_id=$1 AND ne.deleted_at isnull;
+SELECT ne.*, n.title FROM notify_emails ne JOIN notifications n ON n.id=ne.notification_id WHERE n.user_id=$1 AND ne.deleted_at isnull;
 
 -- NOTIFICATION_EMAILS_WITH_ID
 SELECT ne.* FROM notify_emails ne JOIN notifications n ON n.id=ne.notification_id WHERE n.user_id=$1 AND ne.id=$2 AND ne.deleted_at isnull;
@@ -237,14 +237,14 @@ SELECT count(*) FROM notify_messages;
 -- NOTIFICATION_MESSAGES_PAGINATE
 SELECT nm.*, n.title FROM notify_messages nm 
 JOIN notifications n ON n.id=nm.notification_id 
-WHERE (n.title ilike $1 OR u.fullname ilike $1) AND n.user_id=$2 AND nm.deleted_at isnull 
+WHERE (n.title ilike $1) AND n.user_id=$2 AND nm.deleted_at isnull 
 ORDER BY nm.id DESC offset $3 LIMIT $4;
 
 -- NOTIFICATION_MESSAGES
-SELECT nm.* FROM notify_messages ns JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.deleted_at isnull;
+SELECT nm.*, n.title FROM notify_messages nm JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGE_WITH_ID
-SELECT nm.* FROM notify_messages ns JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.id=$2 AND ns.deleted_at isnull;
+SELECT nm.* FROM notify_messages nm JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.id=$2 AND ns.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGE_INSERT
 INSERT INTO notify_messages (notification_id,phone,active) VALUES ($1,$2,$3) RETURNING id,notification_id,phone,active;
