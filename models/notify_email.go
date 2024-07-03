@@ -63,10 +63,10 @@ func (m *NotifyEmail) Get(userID, id int, email string) ([]NotifyEmail, error) {
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATION_EMAILS"], ";")
 
 	if id > 0 {
-		query += fmt.Sprintf(" AND ne.id=%v", id)
+		query += fmt.Sprintf(" AND ne.id=%d", id)
 	}
 	if email != "" {
-		query += fmt.Sprintf(" AND ne.email=%v", email)
+		query += fmt.Sprintf(" AND ne.email='%s'", email)
 	}
 
 	// prepare
@@ -87,8 +87,10 @@ func (m *NotifyEmail) Get(userID, id int, email string) ([]NotifyEmail, error) {
 
 	var notifyEmails []NotifyEmail
 	for rows.Next() {
-		var notifyEmail NotifyEmail
-		if err := rows.Scan(&notifyEmail.ID, &notifyEmail.NotificationID, &notifyEmail.Email, &notifyEmail.Active, &notifyEmail.CreatedAt, &notifyEmail.UpdatedAt, &notifyEmail.DeletedAt); err != nil {
+		notifyEmail := NotifyEmail{
+			Notification: &Notification{},
+		}
+		if err := rows.Scan(&notifyEmail.ID, &notifyEmail.NotificationID, &notifyEmail.Email, &notifyEmail.Active, &notifyEmail.CreatedAt, &notifyEmail.UpdatedAt, &notifyEmail.DeletedAt, &notifyEmail.Notification.Title); err != nil {
 			return nil, err
 		}
 		notifyEmails = append(notifyEmails, notifyEmail)
@@ -97,7 +99,7 @@ func (m *NotifyEmail) Get(userID, id int, email string) ([]NotifyEmail, error) {
 	return notifyEmails, nil
 }
 
-func (m *NotifyEmail) Paginate(offset, limit int, search string) []*NotifyEmail {
+func (m *NotifyEmail) Paginate(userID, offset, limit int, search string) []*NotifyEmail {
 	notifyEmails := []*NotifyEmail{}
 
 	// prepare notify_emails paginate
@@ -107,7 +109,7 @@ func (m *NotifyEmail) Paginate(offset, limit int, search string) []*NotifyEmail 
 	}
 
 	// query
-	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	rows, err := stmt.Query("%"+search+"%", userID, offset, limit)
 	if err != nil {
 		return notifyEmails
 	}
