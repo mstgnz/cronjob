@@ -96,17 +96,17 @@ func (h *GroupHandler) PaginationHandler(w http.ResponseWriter, r *http.Request)
 
 	if r.URL.Query().Has("pagination") {
 		pagination := fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/groups-pagination?page=%d">Previous</button>
+            <button class="page-link" hx-get="/groups-pagination?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">Previous</button>
         </li>`, previous)
 
 		for i := 1; i <= size; i++ {
 			pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/groups-pagination?page=%d">%d</button>
+            <button class="page-link" hx-get="/groups-pagination?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">%d</button>
         </li>`, i, i)
 		}
 
 		pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/groups-pagination?page=%d">Next</button>
+            <button class="page-link" hx-get="/groups-pagination?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">Next</button>
         </li>`, next)
 		_, _ = w.Write([]byte(pagination))
 		return nil

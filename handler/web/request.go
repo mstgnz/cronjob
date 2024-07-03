@@ -154,17 +154,17 @@ func (h *RequestHandler) PaginationHandler(w http.ResponseWriter, r *http.Reques
 
 	if r.URL.Query().Has("pagination") {
 		pagination := fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Previous</button>
+            <button class="page-link" hx-get="/requests-pagination?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">Previous</button>
         </li>`, previous)
 
 		for i := 1; i <= size; i++ {
 			pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">%d</button>
+            <button class="page-link" hx-get="/requests-pagination?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">%d</button>
         </li>`, i, i)
 		}
 
 		pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Next</button>
+            <button class="page-link" hx-get="/requests-pagination?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">Next</button>
         </li>`, next)
 		_, _ = w.Write([]byte(pagination))
 		return nil
@@ -296,17 +296,17 @@ func (h *RequestHandler) HeaderPaginationHandler(w http.ResponseWriter, r *http.
 
 	if r.URL.Query().Has("pagination") {
 		pagination := fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Previous</button>
+            <button class="page-link" hx-get="/requests-pagination?page=%d" hx-target="#header" hx-swap="innerHTML" hx-trigger="click">Previous</button>
         </li>`, previous)
 
 		for i := 1; i <= size; i++ {
 			pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">%d</button>
+            <button class="page-link" hx-get="/requests-pagination?page=%d" hx-target="#header" hx-swap="innerHTML" hx-trigger="click">%d</button>
         </li>`, i, i)
 		}
 
 		pagination += fmt.Sprintf(`<li class="page-item">
-            <button class="page-link" hx-get="/requests-pagination?page=%d">Next</button>
+            <button class="page-link" hx-get="/requests-pagination?page=%d" hx-target="#header" hx-swap="innerHTML" hx-trigger="click">Next</button>
         </li>`, next)
 		_, _ = w.Write([]byte(pagination))
 		return nil
