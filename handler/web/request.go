@@ -170,7 +170,8 @@ func (h *RequestHandler) PaginationHandler(w http.ResponseWriter, r *http.Reques
 		return nil
 	}
 
-	requests := request.Paginate((current-1)*row, row, search)
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+	requests := request.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
 	for _, v := range requests {
@@ -311,7 +312,8 @@ func (h *RequestHandler) HeaderPaginationHandler(w http.ResponseWriter, r *http.
 		return nil
 	}
 
-	requestHeaders := requestHeader.Paginate((current-1)*row, row, search)
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+	requestHeaders := requestHeader.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
 	for _, v := range requestHeaders {

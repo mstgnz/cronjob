@@ -105,7 +105,7 @@ func (m *Request) Get(userID, id int, url string) ([]Request, error) {
 	return requests, nil
 }
 
-func (m *Request) Paginate(offset, limit int, search string) []*Request {
+func (m *Request) Paginate(userID, offset, limit int, search string) []*Request {
 	requests := []*Request{}
 
 	// prepare requests paginate
@@ -115,7 +115,7 @@ func (m *Request) Paginate(offset, limit int, search string) []*Request {
 	}
 
 	// query
-	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	rows, err := stmt.Query("%"+search+"%", userID, offset, limit)
 	if err != nil {
 		return requests
 	}
