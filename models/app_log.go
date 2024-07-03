@@ -15,12 +15,39 @@ type AppLog struct {
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 }
 
+func (m *AppLog) Count() int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["APP_LOG_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query()
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
+}
+
 func (m *AppLog) Get(offset, limit int, level string) ([]AppLog, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["APP_LOG_PAGINATE"], ";")
 
 	if level != "" {
-		query += fmt.Sprintf(" AND level=%s", level)
+		query += fmt.Sprintf(" AND level='%s'", level)
 	}
 
 	// prepare

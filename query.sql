@@ -1,5 +1,8 @@
+-- APP_LOG_COUNT
+SELECT count(*) FROM app_logs;
+
 -- APP_LOG_PAGINATE
-select * from app_logs order by id desc offset $1 limit $2;
+SELECT * FROM app_logs ORDER BY id DESC offset $1 LIMIT $2;
 
 -- APP_LOG_INSERT
 INSERT INTO app_logs (level,message) VALUES ($1,$2);

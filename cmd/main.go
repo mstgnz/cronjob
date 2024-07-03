@@ -162,10 +162,12 @@ func main() {
 			r.Use(isAdminMiddleware)
 			r.Get("/", Catch(webSettingHandler.HomeHandler))
 			r.Get("/users", Catch(webSettingHandler.UsersHandler))
+			r.Get("/app-logs", Catch(webSettingHandler.AppLogHandler))
 			r.Post("/users/signup", Catch(webSettingHandler.UserSignUpHandler))
 			r.Put("/users/change-profile", Catch(webSettingHandler.UserChangeProfileHandler))
 			r.Put("/users/change-password", Catch(webSettingHandler.UserChangePasswordHandler))
 			r.Delete("/users/{id}/delete", Catch(webSettingHandler.UserDeleteHandler))
+			r.Delete("/app-logs/{id}/delete", Catch(webSettingHandler.AppLogDeleteHandler))
 		})
 	})
 

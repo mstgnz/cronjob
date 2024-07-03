@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"io"
 	"math"
 	"net/http"
@@ -16,7 +17,7 @@ type SettingHandler struct {
 }
 
 func (h *SettingHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return services.Render(w, r, "setting", map[string]any{}, "setting/user-list", "setting/user-new")
+	return services.Render(w, r, "setting", map[string]any{}, "setting/user-list", "setting/user-new", "setting/app-log")
 }
 
 func (h *SettingHandler) UserSignUpHandler(w http.ResponseWriter, r *http.Request) error {
@@ -97,5 +98,80 @@ func (h *SettingHandler) UserDeleteHandler(w http.ResponseWriter, r *http.Reques
 		w.Header().Set("HX-Redirect", "/setting")
 	}
 	_, _ = w.Write([]byte(response.Message))
+	return nil
+}
+
+func (h *SettingHandler) AppLogHandler(w http.ResponseWriter, r *http.Request) error {
+	appLog := &models.AppLog{}
+
+	search := ""
+	total := appLog.Count()
+	row := 20
+
+	page := config.GetIntQuery(r, "page")
+	size := int(math.Ceil(float64(total) / float64(row)))
+
+	current := config.Clamp(page, 1, size)
+	previous := config.Clamp(current-1, 1, size)
+	next := config.Clamp(current+1, 1, size)
+
+	if r.URL.Query().Has("pagination") {
+		pagination := fmt.Sprintf(`<li class="page-item">
+            <button class="page-link" hx-get="/settings/app-logs?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">Previous</button>
+        </li>`, previous)
+
+		for i := 1; i <= 5; i++ {
+			pagination += fmt.Sprintf(`<li class="page-item">
+				<button class="page-link" hx-get="/settings/app-logs?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">%d</button>
+			</li>`, i, i)
+		}
+		pagination += `<li class="page-item"><button class="page-link">...</button></li>`
+		for i := size - 5; i <= size; i++ {
+			pagination += fmt.Sprintf(`<li class="page-item">
+				<button class="page-link" hx-get="/settings/app-logs?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">%d</button>
+			</li>`, i, i)
+		}
+
+		pagination += fmt.Sprintf(`<li class="page-item">
+            <button class="page-link" hx-get="/settings/app-logs?page=%d" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="click">Next</button>
+        </li>`, next)
+		_, _ = w.Write([]byte(pagination))
+		return nil
+	}
+
+	appLogs, _ := appLog.Get((current-1)*row, row, search)
+
+	tr := ""
+	for _, v := range appLogs {
+		tr += fmt.Sprintf(`<tr>
+            <th scope="row">%d</th>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+            <td>
+				<div class="hstack gap-1">
+					<button class="btn btn-danger" hx-delete="/settings/app-logs/%d/delete"  hx-trigger='confirmed' onClick="Swal.fire({
+							title: 'Do you approve the deletion?',
+							icon: 'warning',
+							showCancelButton: true,
+							cancelButtonColor: '#d33',
+							cancelButtonText: 'Close',
+							confirmButtonColor: '#3085d6',
+							confirmButtonText: 'Yes Delete'
+						}).then((result) => {if (result.isConfirmed) {htmx.trigger(this, 'confirmed')}})">
+						<i class="bi bi-trash-fill"></i>	
+					</button>
+				</div>
+			</td>
+        </tr>`, v.ID, v.Level, v.Message, v.CreatedAt.Format("2006-01-02 15:04:05"), v.ID)
+	}
+	_, _ = w.Write([]byte(tr))
+	return nil
+}
+
+func (h *SettingHandler) AppLogDeleteHandler(w http.ResponseWriter, r *http.Request) error {
+	//appLog := &models.AppLog{}
+	//w.Header().Set("HX-Redirect", "/setting")
+	//_, _ = w.Write([]byte("success"))
 	return nil
 }
