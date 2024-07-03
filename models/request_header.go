@@ -61,7 +61,7 @@ func (m *RequestHeader) Count() int {
 	return rowCount
 }
 
-func (m *RequestHeader) Paginate(offset, limit int, search string) []*RequestHeader {
+func (m *RequestHeader) Paginate(userID, offset, limit int, search string) []*RequestHeader {
 	requestHeaders := []*RequestHeader{}
 
 	// prepare requestHeaders paginate
@@ -71,7 +71,7 @@ func (m *RequestHeader) Paginate(offset, limit int, search string) []*RequestHea
 	}
 
 	// query
-	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	rows, err := stmt.Query("%"+search+"%", userID, offset, limit)
 	if err != nil {
 		return requestHeaders
 	}
