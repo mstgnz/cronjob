@@ -46,11 +46,11 @@ UPDATE users SET active=$1, deleted_at=$2, updated_at=$3 WHERE id=$4;
 SELECT count(*) FROM groups;
 
 -- GROUPS_PAGINATE
-select g.*, gs.name as parent, u.fullname from groups g 
-join users u on u.id=g.user_id 
-left join groups gs on gs.id=g.uid 
-where g.name ilike $1 or gs.name ilike $1 or u.fullname ilike $1 
-order by g.id desc offset $2 limit $3;
+SELECT g.*, p.name as parent, u.fullname FROM groups g 
+JOIN users u ON u.id=g.user_id 
+LEFT JOIN groups p ON p.id=g.uid 
+WHERE (g.name ilike $1 OR p.name ilike $1 OR u.fullname ilike $1) AND g.user_id=$2 
+ORDER BY g.id DESC offset $3 LIMIT $4;
 
 -- GROUPS
 SELECT id,uid,name,active,created_at,updated_at FROM groups WHERE user_id=$1 AND deleted_at isnull;
@@ -75,10 +75,10 @@ UPDATE groups SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 SELECT count(*) FROM requests;
 
 -- REQUESTS_PAGINATE
-select r.*, u.fullname from requests r 
-join users u on u.id=r.user_id 
-where r.url ilike $1 or r.method ilike $1 or r.content::text ilike $1 or u.fullname ilike $1 
-order by r.id desc offset $2 limit $3;
+SELECT r.*, u.fullname FROM requests r 
+JOIN users u ON u.id=r.user_id 
+WHERE (r.url ilike $1 OR r.method ilike $1 OR r.content::text ilike $1 OR u.fullname ilike $1) AND r.user_id=$2 
+ORDER BY r.id DESC offset $3 LIMIT $4;
 
 -- REQUESTS
 SELECT * FROM requests WHERE user_id=$1 AND deleted_at isnull;
@@ -103,10 +103,10 @@ UPDATE requests SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 SELECT count(*) FROM request_headers;
 
 -- REQUEST_HEADERS_PAGINATE
-select rh.*, r.url from request_headers rh  
-join requests r on r.id=rh.request_id 
-where rh.key ilike $1 or rh.value ilike $1 or r.url ilike $1 
-order by rh.id desc offset $2 limit $3;
+SELECT rh.*, r.url FROM request_headers rh  
+JOIN requests r ON r.id=rh.request_id 
+WHERE (rh.key ilike $1 OR rh.value ilike $1 OR r.url ilike $1) AND r.user_id=$2 
+ORDER BY rh.id DESC offset $3 LIMIT $4;
 
 -- REQUEST_HEADERS
 SELECT rh.* FROM request_headers rh JOIN requests r ON r.id=rh.request_id WHERE r.user_id=$1 AND rh.deleted_at isnull;
@@ -176,10 +176,10 @@ WHERE schedules.id=webhooks.schedule_id AND webhooks.id=$3 AND schedules.user_id
 SELECT count(*) FROM notifications;
 
 -- NOTIFICATIONS_PAGINATE
-select n.*, u.fullname from notifications r 
-join users u on u.id=n.user_id 
-where n.title ilike $1 or n.content ilike $1 or u.fullname ilike $1 
-order by n.id desc offset $2 limit $3;
+SELECT n.*, u.fullname FROM notifications n 
+JOIN users u ON u.id=n.user_id 
+WHERE (n.title ilike $1 OR n.content ilike $1 OR u.fullname ilike $1) AND n.user_id=$2 AND n.deleted_at isnull 
+ORDER BY n.id DESC offset $3 LIMIT $4;
 
 -- NOTIFICATIONS
 SELECT * FROM notifications WHERE user_id=$1 AND deleted_at isnull;
@@ -206,8 +206,8 @@ SELECT count(*) FROM notify_emails;
 -- NOTIFICATION_EMAILS_PAGINATE
 SELECT ne.*, n.title FROM notify_emails ne 
 JOIN notifications n ON n.id=ne.notification_id 
-WHERE n.user_id=$1 AND ne.deleted_at isnull
-ORDER BY n.id DESC offset $2 LIMIT $3;
+WHERE (n.title ilike $1 OR u.fullname ilike $1) AND n.user_id=$2 AND ne.deleted_at isnull 
+ORDER BY ne.id DESC offset $3 LIMIT $4;
 
 -- NOTIFICATION_EMAILS
 SELECT ne.* FROM notify_emails ne JOIN notifications n ON n.id=ne.notification_id WHERE n.user_id=$1 AND ne.deleted_at isnull;
@@ -237,25 +237,25 @@ SELECT count(*) FROM notify_messages;
 -- NOTIFICATION_MESSAGES_PAGINATE
 SELECT nm.*, n.title FROM notify_messages nm 
 JOIN notifications n ON n.id=nm.notification_id 
-WHERE n.user_id=$1 AND nm.deleted_at isnull
-ORDER BY n.id DESC offset $2 LIMIT $3;
+WHERE (n.title ilike $1 OR u.fullname ilike $1) AND n.user_id=$2 AND nm.deleted_at isnull 
+ORDER BY nm.id DESC offset $3 LIMIT $4;
 
 -- NOTIFICATION_MESSAGES
-SELECT ns.* FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id WHERE n.user_id=$1 AND ns.deleted_at isnull;
+SELECT nm.* FROM notify_messages ns JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGE_WITH_ID
-SELECT ns.* FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id WHERE n.user_id=$1 AND ns.id=$2 AND ns.deleted_at isnull;
+SELECT nm.* FROM notify_messages ns JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.id=$2 AND ns.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGE_INSERT
 INSERT INTO notify_messages (notification_id,phone,active) VALUES ($1,$2,$3) RETURNING id,notification_id,phone,active;
 
 -- NOTIFICATION_MESSAGE_PHONE_EXISTS_WITH_USER
-SELECT count(*) FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id 
-WHERE n.user_id=$1 AND ns.phone=$2 AND n.id=$3 AND ns.deleted_at isnull;
+SELECT count(*) FROM notify_messages nm JOIN notifications n ON n.id=nm.notification_id 
+WHERE n.user_id=$1 AND nm.phone=$2 AND n.id=$3 AND nm.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGE_ID_EXISTS_WITH_USER
-SELECT count(*) FROM notify_messages ns JOIN notifications n ON n.id=ns.notification_id 
-WHERE ns.id=$1 AND n.user_id=$2 AND ns.deleted_at isnull;
+SELECT count(*) FROM notify_messages nm JOIN notifications n ON n.id=nm.notification_id 
+WHERE nm.id=$1 AND n.user_id=$2 AND nm.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGE_DELETE
 UPDATE notify_messages SET deleted_at=$1, updated_at=$2 FROM notifications 
