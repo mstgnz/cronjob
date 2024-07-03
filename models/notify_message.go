@@ -63,10 +63,10 @@ func (m *NotifyMessage) Get(userID, id int, phone string) ([]NotifyMessage, erro
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATION_MESSAGES"], ";")
 
 	if id > 0 {
-		query += fmt.Sprintf(" AND ns.id=%v", id)
+		query += fmt.Sprintf(" AND nm.id=%d", id)
 	}
 	if phone != "" {
-		query += fmt.Sprintf(" AND ns.phone=%v", phone)
+		query += fmt.Sprintf(" AND nm.phone='%s'", phone)
 	}
 
 	// prepare
@@ -87,8 +87,10 @@ func (m *NotifyMessage) Get(userID, id int, phone string) ([]NotifyMessage, erro
 
 	var notifyMessages []NotifyMessage
 	for rows.Next() {
-		var notifyMessage NotifyMessage
-		if err := rows.Scan(&notifyMessage.ID, &notifyMessage.NotificationID, &notifyMessage.Phone, &notifyMessage.Active, &notifyMessage.CreatedAt, &notifyMessage.UpdatedAt, &notifyMessage.DeletedAt); err != nil {
+		notifyMessage := NotifyMessage{
+			Notification: &Notification{},
+		}
+		if err := rows.Scan(&notifyMessage.ID, &notifyMessage.NotificationID, &notifyMessage.Phone, &notifyMessage.Active, &notifyMessage.CreatedAt, &notifyMessage.UpdatedAt, &notifyMessage.DeletedAt, &notifyMessage.Notification.Title); err != nil {
 			return nil, err
 		}
 		notifyMessages = append(notifyMessages, notifyMessage)
@@ -97,7 +99,7 @@ func (m *NotifyMessage) Get(userID, id int, phone string) ([]NotifyMessage, erro
 	return notifyMessages, nil
 }
 
-func (m *NotifyMessage) Paginate(offset, limit int, search string) []*NotifyMessage {
+func (m *NotifyMessage) Paginate(userID, offset, limit int, search string) []*NotifyMessage {
 	notifyMessages := []*NotifyMessage{}
 
 	// prepare notify_messages paginate
@@ -107,7 +109,7 @@ func (m *NotifyMessage) Paginate(offset, limit int, search string) []*NotifyMess
 	}
 
 	// query
-	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	rows, err := stmt.Query("%"+search+"%", userID, offset, limit)
 	if err != nil {
 		return notifyMessages
 	}
@@ -120,7 +122,7 @@ func (m *NotifyMessage) Paginate(offset, limit int, search string) []*NotifyMess
 			Notification: &Notification{},
 		}
 
-		if err := rows.Scan(&notifyMessage.ID, &notifyMessage.NotificationID, &notifyMessage.Notification.User.Email, &notifyMessage.Active, &notifyMessage.CreatedAt, &notifyMessage.UpdatedAt, &notifyMessage.DeletedAt, &notifyMessage.Notification.Title); err != nil {
+		if err := rows.Scan(&notifyMessage.ID, &notifyMessage.NotificationID, &notifyMessage.Phone, &notifyMessage.Active, &notifyMessage.CreatedAt, &notifyMessage.UpdatedAt, &notifyMessage.DeletedAt, &notifyMessage.Notification.Title); err != nil {
 			return notifyMessages
 		}
 
