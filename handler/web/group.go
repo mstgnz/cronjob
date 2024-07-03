@@ -112,7 +112,8 @@ func (h *GroupHandler) PaginationHandler(w http.ResponseWriter, r *http.Request)
 		return nil
 	}
 
-	groups := group.Paginate((current-1)*row, row, search)
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+	groups := group.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
 	for _, v := range groups {

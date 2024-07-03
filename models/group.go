@@ -106,7 +106,7 @@ func (m *Group) Get(userID, id, uid int) ([]Group, error) {
 	return groups, nil
 }
 
-func (m *Group) Paginate(offset, limit int, search string) []*Group {
+func (m *Group) Paginate(userID, offset, limit int, search string) []*Group {
 	groups := []*Group{}
 
 	// prepare groups paginate
@@ -116,7 +116,7 @@ func (m *Group) Paginate(offset, limit int, search string) []*Group {
 	}
 
 	// query
-	rows, err := stmt.Query("%"+search+"%", offset, limit)
+	rows, err := stmt.Query("%"+search+"%", userID, offset, limit)
 	if err != nil {
 		return groups
 	}
