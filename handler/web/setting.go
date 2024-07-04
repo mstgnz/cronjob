@@ -155,7 +155,7 @@ func (h *SettingHandler) AppLogHandler(w http.ResponseWriter, r *http.Request) e
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-danger" hx-delete="/settings/app-logs/%d/delete"  hx-trigger='confirmed' onClick="Swal.fire({
+					<button class="btn btn-danger" hx-delete="/settings/app-logs/%d"  hx-trigger='confirmed' onClick="Swal.fire({
 							title: 'Do you approve the deletion?',
 							icon: 'warning',
 							showCancelButton: true,

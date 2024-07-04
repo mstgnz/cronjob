@@ -217,7 +217,7 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-notifications='%s' hx-get="/notifications/%d/edit"
+					<button class="btn btn-info" data-notifications='%s' hx-get="/notifications/%d"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
@@ -359,7 +359,7 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-email='%s' hx-get="/notifications/email/%d/edit"
+					<button class="btn btn-info" data-email='%s' hx-get="/notifications/email/%d"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
@@ -548,7 +548,7 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-message='%s' hx-get="/notifications/message/%d/edit"
+					<button class="btn btn-info" data-message='%s' hx-get="/notifications/message/%d"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {

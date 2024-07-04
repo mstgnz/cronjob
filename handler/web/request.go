@@ -194,7 +194,7 @@ func (h *RequestHandler) PaginationHandler(w http.ResponseWriter, r *http.Reques
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-request='%s' hx-get="/requests/%d/edit"
+					<button class="btn btn-info" data-request='%s' hx-get="/requests/%d"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
@@ -336,7 +336,7 @@ func (h *RequestHandler) HeaderPaginationHandler(w http.ResponseWriter, r *http.
             <td>%s</td>
             <td>
 				<div class="hstack gap-1">
-					<button class="btn btn-info" data-request='%s' hx-get="/requests/headers/%d/edit"
+					<button class="btn btn-info" data-request='%s' hx-get="/requests/headers/%d"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 						if(editing) {
