@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"net/http"
 	"strings"
@@ -54,7 +53,6 @@ func (h *ScheduleHandler) EditHandler(w http.ResponseWriter, r *http.Request) er
 
 	_, response := h.schedule.ListService(w, r)
 
-	log.Println(response.Data)
 	data, _ := response.Data["schedules"].([]*models.Schedule)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
