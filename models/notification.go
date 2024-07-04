@@ -44,7 +44,7 @@ type NotificationBulk struct {
 	NotifyMessages []*NotifyMessageBulk `json:"notify_messages" validate:"required_without=NotifyEmails,dive"`
 }
 
-func (m *Notification) Count() int {
+func (m *Notification) Count(userId int) int {
 	rowCount := 0
 
 	// prepare count
@@ -54,7 +54,7 @@ func (m *Notification) Count() int {
 	}
 
 	// query
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(userId)
 	if err != nil {
 		return rowCount
 	}

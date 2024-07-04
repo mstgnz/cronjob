@@ -31,7 +31,7 @@ type NotifyMessageBulk struct {
 	Active         bool   `json:"active" validate:"boolean"`
 }
 
-func (m *NotifyMessage) Count() int {
+func (m *NotifyMessage) Count(userId int) int {
 	rowCount := 0
 
 	// prepare count
@@ -41,7 +41,7 @@ func (m *NotifyMessage) Count() int {
 	}
 
 	// query
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(userId)
 	if err != nil {
 		return rowCount
 	}

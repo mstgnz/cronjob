@@ -161,10 +161,12 @@ func (h *NotificationHandler) DeleteHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.Request) error {
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
 	notification := &models.Notification{}
 
 	search := ""
-	total := notification.Count()
+	total := notification.Count(cUser.ID)
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -192,7 +194,6 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
 		return nil
 	}
 
-	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 	notifications := notification.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
@@ -304,10 +305,12 @@ func (h *NotificationHandler) EmailDeleteHandler(w http.ResponseWriter, r *http.
 }
 
 func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *http.Request) error {
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
 	notifyEmail := &models.NotifyEmail{}
 
 	search := ""
-	total := notifyEmail.Count()
+	total := notifyEmail.Count(cUser.ID)
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -335,7 +338,6 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
 		return nil
 	}
 
-	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 	notifyEmails := notifyEmail.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
@@ -492,10 +494,12 @@ func (h *NotificationHandler) MessageDeleteHandler(w http.ResponseWriter, r *htt
 }
 
 func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r *http.Request) error {
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
 	notifyMessage := &models.NotifyMessage{}
 
 	search := ""
-	total := notifyMessage.Count()
+	total := notifyMessage.Count(cUser.ID)
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -523,7 +527,6 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
 		return nil
 	}
 
-	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 	notifyMessages := notifyMessage.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
