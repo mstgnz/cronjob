@@ -34,7 +34,7 @@ type RequestHeaderUpdate struct {
 	Active    *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
-func (m *RequestHeader) Count() int {
+func (m *RequestHeader) Count(userID int) int {
 	rowCount := 0
 
 	// prepare count
@@ -44,7 +44,7 @@ func (m *RequestHeader) Count() int {
 	}
 
 	// query
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(userID)
 	if err != nil {
 		return rowCount
 	}
