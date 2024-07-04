@@ -81,10 +81,12 @@ func (h *GroupHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) err
 }
 
 func (h *GroupHandler) PaginationHandler(w http.ResponseWriter, r *http.Request) error {
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
 	group := &models.Group{}
 
 	search := ""
-	total := group.Count()
+	total := group.Count(cUser.ID)
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -112,7 +114,6 @@ func (h *GroupHandler) PaginationHandler(w http.ResponseWriter, r *http.Request)
 		return nil
 	}
 
-	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 	groups := group.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""

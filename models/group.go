@@ -29,7 +29,7 @@ type GroupUpdate struct {
 	Active *bool  `json:"active" validate:"omitnil,boolean"`
 }
 
-func (m *Group) Count() int {
+func (m *Group) Count(userID int) int {
 	rowCount := 0
 
 	// prepare count
@@ -39,7 +39,7 @@ func (m *Group) Count() int {
 	}
 
 	// query
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(userID)
 	if err != nil {
 		return rowCount
 	}
