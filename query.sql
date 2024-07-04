@@ -46,7 +46,7 @@ UPDATE users SET active=$1, deleted_at=$2, updated_at=$3 WHERE id=$4;
 
 
 -- GROUPS_COUNT
-SELECT count(*) FROM groups;
+SELECT count(*) FROM groups WHERE user_id=$1 AND deleted_at isnull;
 
 -- GROUPS_PAGINATE
 SELECT g.*, p.name as parent, u.fullname FROM groups g 
@@ -75,7 +75,7 @@ UPDATE groups SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 
 
 -- REQUESTS_COUNT
-SELECT count(*) FROM requests;
+SELECT count(*) FROM requests WHERE user_id=$1 AND deleted_at isnull;
 
 -- REQUESTS_PAGINATE
 SELECT r.*, u.fullname FROM requests r 
@@ -103,7 +103,7 @@ UPDATE requests SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 
 
 -- REQUEST_HEADERS_COUNT
-SELECT count(*) FROM request_headers;
+SELECT count(rh.*) FROM request_headers rh JOIN requests r ON r.id=rh.request_id WHERE r.user_id=$1 AND rh.deleted_at isnull;
 
 -- REQUEST_HEADERS_PAGINATE
 SELECT rh.*, r.url FROM request_headers rh  
@@ -132,6 +132,17 @@ UPDATE request_headers SET deleted_at=$1, updated_at=$2 FROM requests
 WHERE requests.id=request_headers.request_id AND request_headers.id=$3 AND requests.user_id=$4;
 
 
+-- SCHEDULES_COUNT
+SELECT count(*) FROM schedules WHERE user_id=$1 AND deleted_at isnull;
+
+-- SCHEDULES_PAGINATE
+SELECT s.*, g.name, r.url, n.title FROM schedules s
+JOIN groups g ON g.id=s.group_id
+JOIN requests r ON r.id=s.request_id
+JOIN notifications n ON n.id=s.notification_id
+WHERE user_id=$1 AND deleted_at isnull AND (s.timing ilike $2 OR g.name ilike $2 OR r.url ilike $2 OR n.title ilike $2)
+ORDER BY s.id DESC offset $3 LIMIT $4;
+
 -- SCHEDULES
 SELECT * FROM schedules WHERE user_id=$1 AND deleted_at isnull;
 
@@ -150,6 +161,16 @@ SELECT count(*) FROM schedules WHERE user_id=$1 AND request_id=$2 AND timing=$3 
 
 -- SCHEDULES_DELETE
 UPDATE schedules SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
+
+
+-- SCHEDULE_LOGS_COUNT
+SELECT count(sl.*) FROM schedule_logs sl JOIN schedules s ON s.id=sl.schedule_id WHERE s.user_id=$1 AND s.deleted_at isnull;
+
+-- SCHEDULE_LOGS_PAGINATE
+SELECT sl.*, s.timing FROM schedule_logs sl
+JOIN schedules s ON s.id=sl.schedule_id
+WHERE s.user_id=$1 AND s.deleted_at isnull AND (s.timing ilike $2 OR sl.started_at ilike $2 OR sl.finished_at ilike $2)
+ORDER BY sl.id DESC offset $3 LIMIT $4;
 
 -- SCHEDULE_LOGS
 SELECT * FROM schedule_logs sl JOIN schedules s ON s.id=sl.schedule_id WHERE sl.schedule_id=$1 AND s.user_id=$2;
@@ -176,7 +197,7 @@ WHERE schedules.id=webhooks.schedule_id AND webhooks.id=$3 AND schedules.user_id
 
 
 -- NOTIFICATIONS_COUNT
-SELECT count(*) FROM notifications;
+SELECT count(*) FROM notifications WHERE user_id=$1 AND deleted_at isnull;
 
 -- NOTIFICATIONS_PAGINATE
 SELECT n.*, u.fullname FROM notifications n 
@@ -204,7 +225,7 @@ UPDATE notifications SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4
 
 
 -- NOTIFICATION_EMAILS_COUNT
-SELECT count(*) FROM notify_emails;
+SELECT count(ne.*) FROM notify_emails ne JOIN notifications n ON n.id=ne.notification_id WHERE n.user_id=$1 AND ne.deleted_at isnull;
 
 -- NOTIFICATION_EMAILS_PAGINATE
 SELECT ne.*, n.title FROM notify_emails ne 
@@ -235,7 +256,7 @@ WHERE notifications.id=notify_emails.notification_id AND notify_emails.id=$3 AND
 
 
 -- NOTIFICATION_MESSAGES_COUNT
-SELECT count(*) FROM notify_messages;
+SELECT count(nm.*) FROM notify_messages nm JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGES_PAGINATE
 SELECT nm.*, n.title FROM notify_messages nm 
