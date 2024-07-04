@@ -13,9 +13,37 @@ type ScheduleLog struct {
 	ScheduleID int        `json:"schedule_id" validate:"required"`
 	Took       float32    `json:"took" validate:"required"`
 	Result     any        `json:"result" validate:"required"`
+	Schedule   *Schedule  `json:"schedule,omitempty"`
 	StartedAt  *time.Time `json:"started_at,omitempty"`
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
+}
+
+func (m *ScheduleLog) Count(userID int) int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["SCHEDULE_LOGS_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query(userID)
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
 }
 
 func (m *ScheduleLog) Get(id, schedule_id, user_id int) ([]ScheduleLog, error) {
@@ -51,6 +79,39 @@ func (m *ScheduleLog) Get(id, schedule_id, user_id int) ([]ScheduleLog, error) {
 	}
 
 	return scheduleLogs, nil
+}
+
+func (m *ScheduleLog) Paginate(userID, offset, limit int, search string) []*ScheduleLog {
+	scheduleLogs := []*ScheduleLog{}
+
+	// prepare paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["SCHEDULE_LOGS_PAGINATE"])
+	if err != nil {
+		return scheduleLogs
+	}
+
+	// query
+	rows, err := stmt.Query(userID, "%"+search+"%", offset, limit)
+	if err != nil {
+		return scheduleLogs
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		scheduleLog := &ScheduleLog{
+			Schedule: &Schedule{},
+		}
+
+		if err := rows.Scan(&scheduleLog.ID, &scheduleLog.ScheduleID, &scheduleLog.StartedAt, &scheduleLog.FinishedAt, &scheduleLog.Took, &scheduleLog.Result, &scheduleLog.CreatedAt, &scheduleLog.Schedule.Timing); err != nil {
+			return scheduleLogs
+		}
+
+		scheduleLogs = append(scheduleLogs, scheduleLog)
+	}
+
+	return scheduleLogs
 }
 
 func (m *ScheduleLog) Create(scheduleId int) error {

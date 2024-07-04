@@ -1,7 +1,58 @@
 {{template "base" . }}
 
 {{define "scheduleNew" }}
-
-New Schedule
-
+<div class="row justify-content-center mt-2">
+    <div class="col-8">
+        <form hx-post="/requests" hx-target="#request-toast" hx-ext="json-enc" novalidate autocomplete="off">
+            <div class="form-floating mb-2">
+                <select class="form-select" name="group_id" required>
+                    <option value="0" selected>Choose Group</option>
+                    {{ range .groups.groups }}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                </select>
+                <label for="group_id">Group</label>
+            </div>
+            <div class="form-floating mb-2">
+                <select class="form-select" name="request_id" required>
+                    <option value="0" selected>Choose Request</option>
+                    {{ range .requests.requests }}
+                    <option value="{{.ID}}">{{.Url}}</option>
+                    {{end}}
+                </select>
+                <label for="request_id">Request</label>
+            </div>
+            <div class="form-floating mb-2">
+                <select class="form-select" name="notification_id" required>
+                    <option value="0" selected>Choose Notification</option>
+                    {{ range .notifications.notifications }}
+                    <option value="{{.ID}}">{{.Title}}</option>
+                    {{end}}
+                </select>
+                <label for="notification_id">Notification</label>
+            </div>
+            <div class="form-floating mb-2">
+                <input type="text" class="form-control" name="timing" placeholder="timing" required>
+                <label for="timing">Timing</label>
+            </div>
+            <div class="form-floating mb-2">
+                <input type="number" class="form-control" name="timeout" placeholder="timeout" required>
+                <label for="timeout">Timeout</label>
+            </div>
+            <div class="form-floating mb-2">
+                <input type="number" class="form-control" name="retries" placeholder="retries" required>
+                <label for="retries">Retries</label>
+            </div>
+            <div class="form-floating mb-2">
+                <select class="form-select" name="active">
+                    <option value="true" selected>Active</option>
+                    <option value="false">Deactive</option>
+                </select>
+                <label for="active">Status</label>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Request Save</button>
+            <span id="request-toast"></span>
+        </form>
+    </div>
+</div>
 {{end}}

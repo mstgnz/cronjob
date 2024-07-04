@@ -140,11 +140,15 @@ SELECT s.*, g.name, r.url, n.title FROM schedules s
 JOIN groups g ON g.id=s.group_id
 JOIN requests r ON r.id=s.request_id
 JOIN notifications n ON n.id=s.notification_id
-WHERE user_id=$1 AND deleted_at isnull AND (s.timing ilike $2 OR g.name ilike $2 OR r.url ilike $2 OR n.title ilike $2)
+WHERE s.user_id=$1 AND s.deleted_at isnull AND (s.timing ilike $2 OR g.name ilike $2 OR r.url ilike $2 OR n.title ilike $2)
 ORDER BY s.id DESC offset $3 LIMIT $4;
 
 -- SCHEDULES
-SELECT * FROM schedules WHERE user_id=$1 AND deleted_at isnull;
+SELECT s.*, g.name, r.url, n.title FROM schedules s 
+JOIN groups g ON g.id=s.group_id 
+JOIN requests r ON r.id=s.request_id 
+JOIN notifications n ON n.id=s.notification_id 
+WHERE s.user_id=$1 AND s.deleted_at isnull;
 
 -- SCHEDULES_WITH_ID
 SELECT * FROM schedules WHERE user_id=$1 AND id=$2 AND deleted_at isnull;

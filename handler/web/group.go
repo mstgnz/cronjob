@@ -18,9 +18,7 @@ type GroupHandler struct {
 }
 
 func (h *GroupHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-
 	_, data := h.ListService(w, r)
-
 	return services.Render(w, r, "group", map[string]any{"lists": data.Data}, "group/list", "group/new")
 }
 
