@@ -139,10 +139,12 @@ func (h *RequestHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) e
 }
 
 func (h *RequestHandler) PaginationHandler(w http.ResponseWriter, r *http.Request) error {
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
 	request := &models.Request{}
 
 	search := ""
-	total := request.Count()
+	total := request.Count(cUser.ID)
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -170,7 +172,6 @@ func (h *RequestHandler) PaginationHandler(w http.ResponseWriter, r *http.Reques
 		return nil
 	}
 
-	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 	requests := request.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
@@ -281,10 +282,12 @@ func (h *RequestHandler) HeaderDeleteHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *RequestHandler) HeaderPaginationHandler(w http.ResponseWriter, r *http.Request) error {
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
 	requestHeader := &models.RequestHeader{}
 
 	search := ""
-	total := requestHeader.Count()
+	total := requestHeader.Count(cUser.ID)
 	row := 20
 
 	page := config.GetIntQuery(r, "page")
@@ -312,7 +315,6 @@ func (h *RequestHandler) HeaderPaginationHandler(w http.ResponseWriter, r *http.
 		return nil
 	}
 
-	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 	requestHeaders := requestHeader.Paginate(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""

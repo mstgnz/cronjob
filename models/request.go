@@ -39,7 +39,7 @@ type RequestBulk struct {
 	RequestHeaders []*RequestHeaderBulk `json:"request_headers" validate:"required,nonempty,dive"`
 }
 
-func (m *Request) Count() int {
+func (m *Request) Count(userID int) int {
 	rowCount := 0
 
 	// prepare count
@@ -49,7 +49,7 @@ func (m *Request) Count() int {
 	}
 
 	// query
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(userID)
 	if err != nil {
 		return rowCount
 	}
