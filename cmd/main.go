@@ -146,6 +146,11 @@ func main() {
 		r.Delete("/groups/{id}", Catch(webGroupHandler.DeleteHandler))
 		// webhook
 		r.Get("/webhooks", Catch(webWebhookHandler.HomeHandler))
+		r.Get("/webhooks-pagination", Catch(webWebhookHandler.PaginationHandler))
+		r.Post("/webhooks", Catch(webWebhookHandler.CreateHandler))
+		r.Get("/webhooks/{id}", Catch(webWebhookHandler.EditHandler))
+		r.Put("/webhooks/{id}", Catch(webWebhookHandler.UpdateHandler))
+		r.Delete("/webhooks/{id}", Catch(webWebhookHandler.DeleteHandler))
 		// notification
 		r.Get("/notifications", Catch(webNotificationHandler.HomeHandler))
 		r.Get("/notifications-pagination", Catch(webNotificationHandler.PaginationHandler))

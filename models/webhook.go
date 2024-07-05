@@ -13,6 +13,8 @@ type Webhook struct {
 	ScheduleID int        `json:"schedule_id" validate:"required,number"`
 	RequestID  int        `json:"request_id" validate:"required,number"`
 	Active     bool       `json:"active" validate:"boolean"`
+	Schedule   *Schedule  `json:"schedule,omitempty"`
+	Request    *Request   `json:"request,omitempty"`
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 	DeletedAt  *time.Time `json:"deleted_at,omitempty"`
@@ -24,7 +26,34 @@ type WebhookUpdate struct {
 	Active     *bool `json:"active" validate:"omitnil,boolean"`
 }
 
-func (m *Webhook) Get(id, schedule_id, request_id, user_id int) ([]Webhook, error) {
+func (m *Webhook) Count(userID int) int {
+	rowCount := 0
+
+	// prepare count
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["WEBHOOKS_COUNT"])
+	if err != nil {
+		return rowCount
+	}
+
+	// query
+	rows, err := stmt.Query(userID)
+	if err != nil {
+		return rowCount
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&rowCount); err != nil {
+			return rowCount
+		}
+	}
+
+	return rowCount
+}
+
+func (m *Webhook) Get(id, schedule_id, request_id, user_id int) ([]*Webhook, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["WEBHOOKS"], ";")
 
@@ -56,16 +85,55 @@ func (m *Webhook) Get(id, schedule_id, request_id, user_id int) ([]Webhook, erro
 		_ = rows.Close()
 	}()
 
-	var webhooks []Webhook
+	webhooks := []*Webhook{}
 	for rows.Next() {
-		var webhook Webhook
-		if err := rows.Scan(&webhook.ID, &webhook.ScheduleID, &webhook.RequestID, &webhook.Active, &webhook.CreatedAt, &webhook.UpdatedAt, &webhook.DeletedAt); err != nil {
-			return nil, err
+		webhook := &Webhook{
+			Schedule: &Schedule{},
+			Request:  &Request{},
 		}
+
+		if err := rows.Scan(&webhook.ID, &webhook.ScheduleID, &webhook.RequestID, &webhook.Active, &webhook.CreatedAt, &webhook.UpdatedAt, &webhook.DeletedAt, &webhook.Schedule.Timing, &webhook.Request.Url); err != nil {
+			return webhooks, err
+		}
+
 		webhooks = append(webhooks, webhook)
 	}
 
 	return webhooks, nil
+}
+
+func (m *Webhook) Paginate(userID, offset, limit int, search string) []*Webhook {
+	webhooks := []*Webhook{}
+
+	// prepare requests paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["WEBHOOKS_PAGINATE"])
+	if err != nil {
+		return webhooks
+	}
+
+	// query
+	rows, err := stmt.Query(userID, "%"+search+"%", offset, limit)
+	if err != nil {
+		return webhooks
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		webhook := &Webhook{
+			Schedule: &Schedule{},
+			Request:  &Request{},
+		}
+
+		if err := rows.Scan(&webhook.ID, &webhook.ScheduleID, &webhook.RequestID, &webhook.Active, &webhook.CreatedAt, &webhook.UpdatedAt, &webhook.DeletedAt, &webhook.Schedule.Timing, &webhook.Request.Url); err != nil {
+			return webhooks
+		}
+
+		webhooks = append(webhooks, webhook)
+	}
+
+	return webhooks
 }
 
 func (m *Webhook) Create() error {

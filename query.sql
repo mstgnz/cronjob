@@ -180,8 +180,21 @@ ORDER BY sl.id DESC offset $3 LIMIT $4;
 SELECT * FROM schedule_logs sl JOIN schedules s ON s.id=sl.schedule_id WHERE sl.schedule_id=$1 AND s.user_id=$2;
 
 
+-- WEBHOOKS_COUNT
+SELECT count(w.*) FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE s.user_id=$1 AND w.deleted_at isnull;
+
+-- WEBHOOKS_PAGINATE
+SELECT w.*, s.timing, r.url FROM webhooks w
+JOIN schedules s ON s.id=w.schedule_id
+JOIN requests r ON r.id=w.request_id
+WHERE s.user_id=$1 AND w.deleted_at isnull AND (s.timing ilike $2 OR r.url ilike $2)
+ORDER BY w.id DESC offset $3 LIMIT $4;
+
 -- WEBHOOKS
-SELECT w.* FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE s.user_id=$1 AND w.deleted_at isnull;
+SELECT w.*, s.timing, r.url FROM webhooks w
+JOIN schedules s ON s.id=w.schedule_id
+JOIN requests r ON r.id=w.request_id
+WHERE s.user_id=$1 AND w.deleted_at isnull;
 
 -- WEBHOOKS_WITH_ID
 SELECT w.* FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE w.id=$1 AND s.user_id=$2 AND w.deleted_at isnull;
