@@ -75,8 +75,8 @@ func (h *ScheduleHandler) EditHandler(w http.ResponseWriter, r *http.Request) er
             <td>%s</td>
             <td>%s</td>
             <td><input type="text" class="form-control" name="timing" value="%s"></td>
-            <td><input type="number" class="form-control" name="timing" value="%d"></td>
-            <td><input type="number" class="form-control" name="timing" value="%d"></td>
+            <td><input type="number" class="form-control" name="timeout" value="%d"></td>
+            <td><input type="number" class="form-control" name="retries" value="%d"></td>
             <td>%v</td>
             <td><select class="form-select" name="active">
 				<option value="true" %s>Active</option>
@@ -98,7 +98,21 @@ func (h *ScheduleHandler) EditHandler(w http.ResponseWriter, r *http.Request) er
 }
 
 func (h *ScheduleHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := config.ConvertStringIDsToInt(r, "timeout")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	jsonData, err = config.ConvertStringIDsToInt(r, "retries")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	jsonData, err = config.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
