@@ -15,9 +15,7 @@ import (
 )
 
 type WebhookHandler struct {
-	webhook  *services.WebhookService
-	request  *services.RequestService
-	schedule *services.ScheduleService
+	webhook *services.WebhookService
 }
 
 func (h *WebhookHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
@@ -42,13 +40,13 @@ func (h *WebhookHandler) CreateHandler(w http.ResponseWriter, r *http.Request) e
 
 func (h *WebhookHandler) EditHandler(w http.ResponseWriter, r *http.Request) error {
 
+	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 	id := chi.URLParam(r, "id")
 	query := r.URL.Query()
 	query.Set("id", id)
 	r.URL.RawQuery = query.Encode()
 
 	_, response := h.webhook.ListService(w, r)
-
 	data, _ := response.Data["webhooks"].([]*models.Webhook)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
@@ -65,20 +63,20 @@ func (h *WebhookHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 	}
 
 	// requests
-	_, requests := h.request.ListService(w, r)
-	requestData, _ := requests.Data["requests"].([]models.Request)
+	request := &models.Request{}
+	requests, _ := request.Get(cUser.ID, 0, "")
 	requestList := `<select class="form-select" name="request_id">`
-	for _, request := range requestData {
-		requestList += fmt.Sprintf(`<option value="%d" %s>GET</option>`, request.ID, request.Url)
+	for _, request := range requests {
+		requestList += fmt.Sprintf(`<option value="%d">%s</option>`, request.ID, request.Url)
 	}
 	requestList += "</select>"
 
 	// schedules
-	_, schedules := h.schedule.ListService(w, r)
-	schedulesData, _ := schedules.Data["schedules"].([]models.Schedule)
+	schedule := &models.Schedule{}
+	schedules, _ := schedule.Get(0, cUser.ID, 0, 0, 0, "")
 	scheduleList := `<select class="form-select" name="schedule_id">`
-	for _, schedule := range schedulesData {
-		scheduleList += fmt.Sprintf(`<option value="%d" %s>GET</option>`, schedule.ID, schedule.Timing)
+	for _, schedule := range schedules {
+		scheduleList += fmt.Sprintf(`<option value="%d">%s</option>`, schedule.ID, schedule.Timing)
 	}
 	scheduleList += "</select>"
 

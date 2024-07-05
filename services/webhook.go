@@ -24,8 +24,8 @@ func (h *WebhookService) ListService(w http.ResponseWriter, r *http.Request) (in
 	schedule_id, _ := strconv.Atoi(r.URL.Query().Get("schedule_id"))
 	request_id, _ := strconv.Atoi(r.URL.Query().Get("request_id"))
 
-	if schedule_id == 0 {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "schedule_id param required"}
+	if id == 0 && schedule_id == 0 && request_id == 0 {
+		return http.StatusBadRequest, config.Response{Status: false, Message: "id, schedule_id or request_id param required"}
 	}
 
 	webhooks, err := webhook.Get(id, schedule_id, request_id, cUser.ID)

@@ -71,10 +71,10 @@ func (m *Request) Get(userID, id int, url string) ([]Request, error) {
 	query := strings.TrimSuffix(config.App().QUERY["REQUESTS"], ";")
 
 	if id > 0 {
-		query += fmt.Sprintf(" AND id=%v", id)
+		query += fmt.Sprintf(" AND id=%d", id)
 	}
 	if url != "" {
-		query += fmt.Sprintf(" AND url=%v", url)
+		query += fmt.Sprintf(" AND url='%s'", url)
 	}
 
 	// prepare
