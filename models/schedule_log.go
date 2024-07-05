@@ -46,7 +46,7 @@ func (m *ScheduleLog) Count(userID int) int {
 	return rowCount
 }
 
-func (m *ScheduleLog) Get(id, schedule_id, user_id int) ([]ScheduleLog, error) {
+func (m *ScheduleLog) Get(id, schedule_id, user_id int) ([]*ScheduleLog, error) {
 	query := strings.TrimSuffix(config.App().QUERY["SCHEDULE_LOGS"], ";")
 
 	if id > 0 {
@@ -69,9 +69,9 @@ func (m *ScheduleLog) Get(id, schedule_id, user_id int) ([]ScheduleLog, error) {
 		_ = rows.Close()
 	}()
 
-	var scheduleLogs []ScheduleLog
+	scheduleLogs := []*ScheduleLog{}
 	for rows.Next() {
-		var scheduleLog ScheduleLog
+		scheduleLog := &ScheduleLog{}
 		if err := rows.Scan(&scheduleLog.ID, &scheduleLog.ScheduleID, &scheduleLog.StartedAt, &scheduleLog.FinishedAt, &scheduleLog.Took, &scheduleLog.Result, &scheduleLog.CreatedAt); err != nil {
 			return nil, err
 		}

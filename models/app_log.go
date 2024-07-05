@@ -42,7 +42,7 @@ func (m *AppLog) Count() int {
 	return rowCount
 }
 
-func (m *AppLog) Get(offset, limit int, level string) ([]AppLog, error) {
+func (m *AppLog) Get(offset, limit int, level string) ([]*AppLog, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["APP_LOG_PAGINATE"], ";")
 
@@ -66,9 +66,9 @@ func (m *AppLog) Get(offset, limit int, level string) ([]AppLog, error) {
 		_ = rows.Close()
 	}()
 
-	var appLogs []AppLog
+	appLogs := []*AppLog{}
 	for rows.Next() {
-		var appLog AppLog
+		appLog := &AppLog{}
 		if err := rows.Scan(&appLog.ID, &appLog.Level, &appLog.Message, &appLog.CreatedAt); err != nil {
 			return nil, err
 		}

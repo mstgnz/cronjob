@@ -58,7 +58,7 @@ func (m *NotifyMessage) Count(userId int) int {
 	return rowCount
 }
 
-func (m *NotifyMessage) Get(userID, id int, phone string) ([]NotifyMessage, error) {
+func (m *NotifyMessage) Get(userID, id int, phone string) ([]*NotifyMessage, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATION_MESSAGES"], ";")
 
@@ -85,9 +85,9 @@ func (m *NotifyMessage) Get(userID, id int, phone string) ([]NotifyMessage, erro
 		_ = rows.Close()
 	}()
 
-	var notifyMessages []NotifyMessage
+	notifyMessages := []*NotifyMessage{}
 	for rows.Next() {
-		notifyMessage := NotifyMessage{
+		notifyMessage := &NotifyMessage{
 			Notification: &Notification{},
 		}
 		if err := rows.Scan(&notifyMessage.ID, &notifyMessage.NotificationID, &notifyMessage.Phone, &notifyMessage.Active, &notifyMessage.CreatedAt, &notifyMessage.UpdatedAt, &notifyMessage.DeletedAt, &notifyMessage.Notification.Title); err != nil {

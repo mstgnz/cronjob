@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -69,7 +68,7 @@ func (m *Webhook) Get(id, schedule_id, request_id, user_id int) ([]*Webhook, err
 	if request_id > 0 {
 		query += fmt.Sprintf(" AND w.request_id=%d", request_id)
 	}
-	log.Println(query)
+
 	// prepare
 	stmt, err := config.App().DB.Prepare(query)
 	if err != nil {

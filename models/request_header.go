@@ -94,7 +94,7 @@ func (m *RequestHeader) Paginate(userID, offset, limit int, search string) []*Re
 	return requestHeaders
 }
 
-func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]RequestHeader, error) {
+func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]*RequestHeader, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["REQUEST_HEADERS"], ";")
 
@@ -124,9 +124,9 @@ func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]RequestHea
 		_ = rows.Close()
 	}()
 
-	var requestHeaders []RequestHeader
+	requestHeaders := []*RequestHeader{}
 	for rows.Next() {
-		var requestHeader RequestHeader
+		requestHeader := &RequestHeader{}
 		if err := rows.Scan(&requestHeader.ID, &requestHeader.RequestID, &requestHeader.Key, &requestHeader.Value, &requestHeader.Active, &requestHeader.CreatedAt, &requestHeader.UpdatedAt, &requestHeader.DeletedAt); err != nil {
 			return nil, err
 		}

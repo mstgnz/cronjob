@@ -66,7 +66,7 @@ func (m *Request) Count(userID int) int {
 	return rowCount
 }
 
-func (m *Request) Get(userID, id int, url string) ([]Request, error) {
+func (m *Request) Get(userID, id int, url string) ([]*Request, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["REQUESTS"], ";")
 
@@ -93,9 +93,9 @@ func (m *Request) Get(userID, id int, url string) ([]Request, error) {
 		_ = rows.Close()
 	}()
 
-	var requests []Request
+	requests := []*Request{}
 	for rows.Next() {
-		var request Request
+		request := &Request{}
 		if err := rows.Scan(&request.ID, &request.UserID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt); err != nil {
 			return nil, err
 		}

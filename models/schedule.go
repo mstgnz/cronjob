@@ -22,6 +22,7 @@ type Schedule struct {
 	Group          *Group        `json:"group,omitempty"`
 	Request        *Request      `json:"request,omitempty"`
 	Notification   *Notification `json:"notification,omitempty"`
+	Webhook        *Webhook      `json:"webhook,omitempty"`
 	CreatedAt      *time.Time    `json:"created_at,omitempty"`
 	UpdatedAt      *time.Time    `json:"updated_at,omitempty"`
 	DeletedAt      *time.Time    `json:"deleted_at,omitempty"`

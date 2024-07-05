@@ -56,7 +56,7 @@ func (m *Group) Count(userID int) int {
 	return rowCount
 }
 
-func (m *Group) Get(userID, id, uid int) ([]Group, error) {
+func (m *Group) Get(userID, id, uid int) ([]*Group, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["GROUPS"], ";")
 
@@ -83,22 +83,22 @@ func (m *Group) Get(userID, id, uid int) ([]Group, error) {
 		_ = rows.Close()
 	}()
 
-	var groups []Group
+	groups := []*Group{}
 	for rows.Next() {
-		var group Group
+		group := &Group{}
 		var parentID sql.NullInt64
 		if err := rows.Scan(&group.ID, &parentID, &group.Name, &group.Active, &group.CreatedAt, &group.UpdatedAt); err != nil {
 			return nil, err
 		}
 		if parentID.Valid {
 			group.UID = int(parentID.Int64)
-			var parent Group
+			parent := &Group{}
 			row := config.App().DB.QueryRow(config.App().QUERY["GROUPS_WITH_ID"], userID, parentID.Int64)
 			if row.Err() != nil {
 				return nil, err
 			}
 			row.Scan(&parent.ID, &parentID, &parent.Name, &parent.Active, &parent.CreatedAt, &parent.UpdatedAt)
-			group.Parent = &parent
+			group.Parent = parent
 		}
 		groups = append(groups, group)
 	}

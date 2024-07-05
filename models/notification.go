@@ -71,7 +71,7 @@ func (m *Notification) Count(userId int) int {
 	return rowCount
 }
 
-func (m *Notification) Get(userID, id int, title string) ([]Notification, error) {
+func (m *Notification) Get(userID, id int, title string) ([]*Notification, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATIONS"], ";")
 
@@ -98,9 +98,9 @@ func (m *Notification) Get(userID, id int, title string) ([]Notification, error)
 		_ = rows.Close()
 	}()
 
-	var notifications []Notification
+	notifications := []*Notification{}
 	for rows.Next() {
-		var notification Notification
+		notification := &Notification{}
 		if err := rows.Scan(&notification.ID, &notification.UserID, &notification.Title, &notification.Content, &notification.IsMail, &notification.IsMessage, &notification.Active, &notification.CreatedAt, &notification.UpdatedAt, &notification.DeletedAt); err != nil {
 			return nil, err
 		}
