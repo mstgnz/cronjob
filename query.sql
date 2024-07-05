@@ -173,7 +173,7 @@ SELECT count(sl.*) FROM schedule_logs sl JOIN schedules s ON s.id=sl.schedule_id
 -- SCHEDULE_LOGS_PAGINATE
 SELECT sl.*, s.timing FROM schedule_logs sl
 JOIN schedules s ON s.id=sl.schedule_id
-WHERE s.user_id=$1 AND s.deleted_at isnull AND (s.timing ilike $2 OR sl.started_at ilike $2 OR sl.finished_at ilike $2)
+WHERE s.user_id=$1 AND s.deleted_at isnull AND s.timing ilike $2
 ORDER BY sl.id DESC offset $3 LIMIT $4;
 
 -- SCHEDULE_LOGS
