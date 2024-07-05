@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -19,10 +20,11 @@ type Schedule struct {
 	Retries        int           `json:"retries" validate:"number"`
 	Running        bool          `json:"running" validate:"boolean"`
 	Active         bool          `json:"active" validate:"boolean"`
+	User           *User         `json:"user,omitempty"`
 	Group          *Group        `json:"group,omitempty"`
 	Request        *Request      `json:"request,omitempty"`
 	Notification   *Notification `json:"notification,omitempty"`
-	Webhook        *Webhook      `json:"webhook,omitempty"`
+	Webhook        []*Webhook    `json:"webhook,omitempty"`
 	CreatedAt      *time.Time    `json:"created_at,omitempty"`
 	UpdatedAt      *time.Time    `json:"updated_at,omitempty"`
 	DeletedAt      *time.Time    `json:"deleted_at,omitempty"`
@@ -290,4 +292,70 @@ func (m *Schedule) Delete(id, userID int) error {
 	}
 
 	return nil
+}
+
+func (m *Schedule) WithQuery(userID, offset, limit int, search string) []*Schedule {
+	schedules := []*Schedule{}
+
+	// prepare schedules paginate
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["SCHEDULE_MAPS"])
+	if err != nil {
+		return schedules
+	}
+
+	// query
+	rows, err := stmt.Query(userID, "%"+search+"%", offset, limit)
+	if err != nil {
+		return schedules
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		schedule := &Schedule{}
+		var userJson string
+		var groupJson string
+		var requestJson string
+		var notificationJson string
+		var webhookJson string
+
+		if err := rows.Scan(&schedule.ID, &schedule.UserID, &schedule.GroupID, &schedule.RequestID, &schedule.NotificationID, &schedule.Timing, &schedule.Timeout, &schedule.Retries, &schedule.Running, &schedule.Active, &schedule.CreatedAt, &schedule.UpdatedAt, &schedule.DeletedAt, &userJson, &groupJson, &requestJson, &notificationJson, &webhookJson); err != nil {
+			return schedules
+		}
+
+		user := &User{}
+		if err := json.Unmarshal([]byte(userJson), &user); err != nil {
+			return schedules
+		}
+		schedule.User = user
+
+		group := &Group{}
+		if err := json.Unmarshal([]byte(groupJson), &group); err != nil {
+			return schedules
+		}
+		schedule.Group = group
+
+		request := &Request{}
+		if err := json.Unmarshal([]byte(requestJson), &request); err != nil {
+			return schedules
+		}
+		schedule.Request = request
+
+		notification := &Notification{}
+		if err := json.Unmarshal([]byte(notificationJson), &notification); err != nil {
+			return schedules
+		}
+		schedule.Notification = notification
+
+		webhooks := []*Webhook{}
+		if err := json.Unmarshal([]byte(webhookJson), &webhooks); err != nil {
+			return schedules
+		}
+		schedule.Webhook = webhooks
+
+		schedules = append(schedules, schedule)
+	}
+
+	return schedules
 }

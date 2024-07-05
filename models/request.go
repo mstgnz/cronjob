@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -13,7 +14,7 @@ type Request struct {
 	UserID         int              `json:"user_id" validate:"number"`
 	Url            string           `json:"url" validate:"required,url"`
 	Method         string           `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
-	Content        string           `json:"content" validate:"omitempty,json"`
+	Content        json.RawMessage  `json:"content" validate:"omitempty,json"`
 	Active         bool             `json:"active" validate:"boolean"`
 	User           *User            `json:"user,omitempty"`
 	RequestHeaders []*RequestHeader `json:"request_headers,omitempty"`

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -360,7 +361,7 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 
 		request.Url = bulk.Request.Url
 		request.Method = bulk.Request.Method
-		request.Content = bulk.Request.Content
+		request.Content = json.RawMessage(bulk.Request.Content)
 		request.Active = bulk.Request.Active
 
 		exists, err := request.UrlExists()

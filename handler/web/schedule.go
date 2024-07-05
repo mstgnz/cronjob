@@ -156,7 +156,7 @@ func (h *ScheduleHandler) PaginationHandler(w http.ResponseWriter, r *http.Reque
 		return nil
 	}
 
-	schedules := schedule.Paginate(cUser.ID, (current-1)*row, row, search)
+	schedules := schedule.WithQuery(cUser.ID, (current-1)*row, row, search)
 
 	tr := ""
 	for _, v := range schedules {

@@ -301,3 +301,124 @@ WHERE nm.id=$1 AND n.user_id=$2 AND nm.deleted_at isnull AND n.deleted_at isnull
 -- NOTIFICATION_MESSAGE_DELETE
 UPDATE notify_messages SET deleted_at=$1, updated_at=$2 FROM notifications 
 WHERE notifications.id=notify_messages.notification_id AND notify_messages.id=$3 AND notifications.user_id=$4;
+
+
+-- SCHEDULE_MAPS
+WITH schedule_lists AS (
+    SELECT
+        s.*,
+        json_build_object(
+            'id', u.id,
+            'fullname', u.fullname,
+            'email', u.email,
+            'phone', u.phone
+        ) as user,
+        json_build_object(
+            'id', g.id,
+            'uid', g.uid,
+            'name', g.name,
+            'active', g.active,
+            'parent', (
+                SELECT json_build_object(
+                    'id', p.id,
+                    'name', p.name 
+                )
+                FROM groups p 
+                WHERE p.id = g.uid
+            )
+        ) as group,
+        json_build_object(
+            'id', r.id,
+            'user_id', r.user_id,
+            'url', r.url,
+            'method', r.method,
+            'content', r.content,
+            'active', r.active,
+            'headers', (
+                SELECT json_agg(
+                    json_build_object(
+                        'id', rh.id,
+                        'key', rh.key,
+                        'value', rh.value,
+                        'active', rh.active
+                    )
+                )
+                FROM request_headers rh 
+                WHERE rh.request_id = r.id
+            )
+        ) as request,
+        json_build_object(
+            'id', n.id,
+            'user_id', n.user_id,
+            'title', n.title,
+            'content', n.content,
+            'is_mail', n.is_mail,
+            'is_message', n.is_mail,
+            'active', n.active,
+            'emails', (
+                SELECT json_agg(
+                    json_build_object(
+                        'id', ne.id,
+                        'email', ne.email,
+                        'active', ne.active
+                    )
+                )
+                FROM notify_emails ne 
+                WHERE ne.notification_id = n.id
+            ),
+            'messages', (
+                SELECT json_agg(
+                    json_build_object(
+                        'id', nm.id,
+                        'phone', nm.phone,
+                        'active', nm.active
+                    )
+                )
+                FROM notify_messages nm 
+                WHERE nm.notification_id = n.id
+            )
+        ) as notification,
+        json_agg(
+            json_build_object(
+                'id', w.id,
+                'schedule_id', w.schedule_id,
+                'request_id', w.request_id,
+                'active', w.active,
+                'requests', (
+                    SELECT json_agg(
+                        json_build_object(
+                            'id', r.id,
+                            'url', r.url,
+                            'content', r.content,
+                            'active', r.active,
+                            'headers', (
+                                SELECT json_agg(
+                                    json_build_object(
+                                        'id', rh.id,
+                                        'key', rh.key,
+                                        'value', rh.value,
+                                        'active', rh.active
+                                    )
+                                )
+                                FROM request_headers rh 
+                                WHERE rh.request_id = r.id
+                            )
+                        )
+                    )
+                    FROM requests r 
+                    WHERE r.id = w.request_id
+                )
+            )
+        ) as webhooks
+    FROM schedules as s
+    JOIN users AS u ON u.id = s.user_id
+    JOIN groups AS g ON g.id = s.group_id
+    JOIN requests AS r ON r.id = s.request_id
+    JOIN notifications n on n.id=s.notification_id
+    LEFT JOIN webhooks w on w.schedule_id=s.id
+    GROUP BY s.id, u.id, g.id, r.id, n.id
+)
+SELECT * FROM schedule_lists
+WHERE user_id=$1 AND deleted_at isnull 
+AND (timing ilike $2 OR "group"->>'name' ilike $2 OR request->>'url' ilike $2 OR notification->>'title' ilike $2)
+ORDER BY id DESC offset $3 LIMIT $4;

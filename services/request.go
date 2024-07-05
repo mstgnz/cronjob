@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -176,7 +177,7 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 		UserID:  cUser.ID,
 		Url:     bulk.Url,
 		Method:  bulk.Method,
-		Content: bulk.Content,
+		Content: json.RawMessage(bulk.Content),
 		Active:  bulk.Active,
 	}
 
