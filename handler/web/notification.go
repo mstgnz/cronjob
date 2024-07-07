@@ -62,7 +62,7 @@ func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request
 
 	_, response := h.notify.ListService(w, r)
 
-	data, _ := response.Data["notifications"].([]models.Notification)
+	data, _ := response.Data["notifications"].([]*models.Notification)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -406,7 +406,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 
 	_, response := h.email.ListService(w, r)
 
-	data, _ := response.Data["notify_emails"].([]models.NotifyEmail)
+	data, _ := response.Data["notify_emails"].([]*models.NotifyEmail)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -433,7 +433,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/notifications-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
+				<button class="btn btn-warning" hx-get="/notifications/email-pagination" hx-target="#email" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/notifications/email/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
@@ -595,7 +595,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
 
 	_, response := h.message.ListService(w, r)
 
-	data, _ := response.Data["notify_messages"].([]models.NotifyMessage)
+	data, _ := response.Data["notify_messages"].([]*models.NotifyMessage)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -622,7 +622,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/notifications-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
+				<button class="btn btn-warning" hx-get="/notifications/message-pagination" hx-target="#message" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/notifications/message/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
