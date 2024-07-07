@@ -181,14 +181,9 @@ COMMENT ON COLUMN "public"."schedules"."active" IS 'if active, it will be trigge
 
 -- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
 
--- Sequence and defined type
-CREATE SEQUENCE IF NOT EXISTS triggered_id_seq;
-
 -- Table Definition
 CREATE TABLE "public"."triggered" (
-    "id" int4 NOT NULL DEFAULT nextval('triggered_id_seq'::regclass),
-    "schedule_id" int4 NOT NULL,
-    PRIMARY KEY ("id")
+    "schedule_id" int4 NOT NULL
 );
 
 -- Column Comment
@@ -232,18 +227,18 @@ CREATE TABLE "public"."webhooks" (
     PRIMARY KEY ("id")
 );
 
-ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."notifications" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
-ALTER TABLE "public"."notify_emails" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
-ALTER TABLE "public"."notify_messages" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
+ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."notifications" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."notify_emails" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."notify_messages" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."request_headers" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."schedule_logs" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
-ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
-ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
 ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
 ALTER TABLE "public"."triggered" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id");
-ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
+ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id") ON DELETE CASCADE;
