@@ -21,7 +21,7 @@ func CallSchedule(c *cron.Cron) {
 	// Alotech Call - every night at 23:59
 	if _, err = c.AddFunc("* * * * *", func() {
 		config.ShuttingWrapper(func() {
-			// todo
+			log.Println("running schedulr every 1 minute")
 		})
 
 	}); err != nil {

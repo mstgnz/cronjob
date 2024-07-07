@@ -84,8 +84,7 @@ func main() {
 
 	// Scheduler Call
 	schedule.CallSchedule(config.App().Cron)
-	// Start the Cron job scheduler
-	//c.Start()
+	config.App().Cron.Start()
 
 	// Chi Define Routes
 	r := chi.NewRouter()
