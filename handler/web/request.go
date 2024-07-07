@@ -410,7 +410,7 @@ func (h *RequestHandler) HeaderEditHandler(w http.ResponseWriter, r *http.Reques
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/requests-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
+				<button class="btn btn-warning" hx-get="/requests/headers-pagination" hx-target="#header" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/requests/headers/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
