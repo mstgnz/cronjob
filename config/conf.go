@@ -1,6 +1,7 @@
 package config
 
 import (
+	"io"
 	"log"
 	"math"
 	"net/http"
@@ -131,4 +132,12 @@ func ActiveClass(a, b int) string {
 		active = "active"
 	}
 	return active
+}
+
+func WriteBody(r *http.Request) {
+	if body, err := io.ReadAll(r.Body); err != nil {
+		log.Println("WriteBody: ", err)
+	} else {
+		log.Println("WriteBody: ", string(body))
+	}
 }
