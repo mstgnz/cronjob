@@ -61,10 +61,10 @@ func (m *Group) Get(userID, id, uid int) ([]*Group, error) {
 	query := strings.TrimSuffix(config.App().QUERY["GROUPS"], ";")
 
 	if id > 0 {
-		query += fmt.Sprintf(" AND id=%v", id)
+		query += fmt.Sprintf(" AND id=%d", id)
 	}
 	if uid > 0 {
-		query += fmt.Sprintf(" AND uid=%v", uid)
+		query += fmt.Sprintf(" AND uid=%d", uid)
 	}
 
 	// prepare

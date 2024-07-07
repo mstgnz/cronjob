@@ -12,7 +12,6 @@
 {{end}}
 
 {{define "groupList" }}
-
 <table class="table" hx-get="/groups-pagination" hx-target="#tbody" hx-swap="innerHTML" hx-trigger="load">
     <thead>
         <tr>
@@ -25,88 +24,12 @@
             <th scope="col">Actions</th>
         </tr>
     </thead>
-    <tbody id="tbody"></tbody>
+    <tbody id="tbody" hx-target="closest tr" hx-swap="outerHTML"></tbody>
 </table>
 <!-- Pagination -->
 <div class="mt-4">
-    <nav aria-label="Page navigation example">
+    <nav>
         <ul class="pagination justify-content-center" hx-get="/groups-pagination?pagination" hx-target="this" hx-swap="innerHTML" hx-trigger="load"></ul>
     </nav>
 </div>
-<!-- GROUP UPDATE MODAL -->
-<div id="update" class="modal modal-blur fade" style="display: none">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Group Update</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form hx-put="/groups/0" hx-target="#toast" hx-ext="json-enc" novalidate autocomplete="off">
-            <div class="modal-body">
-                <div class="form-floating mb-2">
-                    <input type="text" class="form-control" name="name" placeholder="Name" required>
-                    <label for="name">Name</label>
-                </div>
-                <div class="form-floating mb-2">
-                    <select class="form-select" name="uid">
-                        <option value="0" selected>Choose Parent (optional)</option>
-                        {{ range .lists.groups }}
-                        <option value="{{.ID}}">{{.Name}}</option>
-                        {{end}}
-                    </select>
-                    <label for="uid">Parent</label>
-                </div>
-                <div class="form-floating mb-2">
-                    <select class="form-select" name="active">
-                        <option value="true" selected>Active</option>
-                        <option value="false">Deactive</option>
-                    </select>
-                    <label for="active">Status</label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Change</button>
-            </div>
-            </form>
-        </div>
-    </div>
-</div>
-{{end}}
-
-{{define "js"}}
-<script>
-document.querySelector("tbody").addEventListener("click", function(e) {
-    if (e.target.closest('.btn-info')) {
-        const button = e.target.closest('.btn-info');
-        let group = button.getAttribute('data-group');
-        group = JSON.parse(group)
-        document.getElementById('update').querySelectorAll('input[name="name"]')[0].value = group.name
-        document.getElementById('update').querySelectorAll('select[name="uid"]')[0].value = group.uid
-        document.getElementById('update').querySelectorAll('select[name="active"]')[0].value = group.active
-        document.getElementById('update').getElementsByTagName('form')[0].setAttribute("hx-put","/groups/"+group.id)
-        // report changes to htmx
-        htmx.process(document.getElementById('update').getElementsByTagName('form')[0]);
-        new bootstrap.Modal('#update').show()
-    }
-})
-document.body.addEventListener('htmx:confirm', function(evt) {
-  if (evt.target.matches("[confirm-with-sweet-alert='true']")) {
-    evt.preventDefault();
-    Swal.fire({
-        title: 'Do you approve the deletion?',
-        icon: 'warning',
-        showCancelButton: true,
-        cancelButtonColor: '#d33',
-        cancelButtonText: 'Close',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'Yes Delete'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            evt.detail.issueRequest();
-        }
-    })
-  }
-})
-</script>
 {{end}}

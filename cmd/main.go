@@ -145,6 +145,7 @@ func main() {
 		r.Get("/groups", Catch(webGroupHandler.HomeHandler))
 		r.Get("/groups-pagination", Catch(webGroupHandler.PaginationHandler))
 		r.Post("/groups", Catch(webGroupHandler.CreateHandler))
+		r.Get("/groups/{id}", Catch(webGroupHandler.EditHandler))
 		r.Put("/groups/{id}", Catch(webGroupHandler.UpdateHandler))
 		r.Delete("/groups/{id}", Catch(webGroupHandler.DeleteHandler))
 		// webhook
