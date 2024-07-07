@@ -92,7 +92,7 @@ func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/notifications/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/notifications/%d" hx-trigger='cancel' hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td><input name="title" class="form-control" value="%s"></td>
             <td><input name="content" class="form-control" value="%s"></td>
@@ -112,7 +112,7 @@ func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/notifications">Cancel</button>
+				<button class="btn btn-warning" hx-get="/notifications-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/notifications/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
@@ -421,7 +421,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/notifications/email/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/notifications/email/%d" hx-trigger='cancel' hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td>%s</td>
             <td><input name="email" class="form-control" value="%s" /></td>
@@ -433,7 +433,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/notifications">Cancel</button>
+				<button class="btn btn-warning" hx-get="/notifications-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/notifications/email/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
@@ -610,7 +610,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
 	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/notifications/message/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/notifications/message/%d" hx-trigger='cancel' hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td>%s</td>
             <td><input name="text" class="form-control" value="%s" /></td>
@@ -622,7 +622,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/notifications">Cancel</button>
+				<button class="btn btn-warning" hx-get="/notifications-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/notifications/message/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>

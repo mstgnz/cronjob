@@ -3,7 +3,7 @@
 {{define "userNew" }}
 <div class="row justify-content-center">
     <div class="col-6 p-5">
-        <form hx-post="/settings/users/signup" hx-target="#toast" hx-ext="json-enc" novalidate autocomplete="off">
+        <form hx-post="/settings/users/signup" hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
                 <input type="text" class="form-control" name="fullname" placeholder="Firstname Lastname" required>
                 <label for="fullname">Fullname</label>
@@ -21,7 +21,6 @@
                 <label for="password">Password</label>
             </div>
             <button type="submit" class="btn btn-primary w-100 py-2 mb-1">Sign up</button>
-            <span id="toast"></span>
         </form>
     </div>
 </div>

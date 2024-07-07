@@ -81,7 +81,7 @@ func (h *WebhookHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 	scheduleList += "</select>"
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/webhooks/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/webhooks/%d" hx-trigger='cancel' hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td>%s</td>
             <td>%s</td>
@@ -93,7 +93,7 @@ func (h *WebhookHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 			<td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/webhooks">Cancel</button>
+				<button class="btn btn-warning" hx-get="/webhooks-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/webhooks/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>

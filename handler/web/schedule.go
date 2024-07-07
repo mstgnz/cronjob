@@ -104,7 +104,7 @@ func (h *ScheduleHandler) EditHandler(w http.ResponseWriter, r *http.Request) er
 	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/schedules/%d" hx-trigger='cancel' hx-ext="json-enc" class='editing'>
+		<tr hx-put="/schedules/%d" hx-trigger='cancel' hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td>%s</td>
             <td>%s</td>
@@ -121,7 +121,7 @@ func (h *ScheduleHandler) EditHandler(w http.ResponseWriter, r *http.Request) er
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/schedules">Cancel</button>
+				<button class="btn btn-warning" hx-get="/schedules-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/schedules/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>

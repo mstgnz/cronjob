@@ -83,7 +83,7 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/requests/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/requests/%d" hx-trigger='cancel' hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td><input name="url" class="form-control" value="%s"></td>
             <td><select class="form-select" name="method">
@@ -102,7 +102,7 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/requests">Cancel</button>
+				<button class="btn btn-warning" hx-get="/requests-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/requests/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
@@ -398,7 +398,7 @@ func (h *RequestHandler) HeaderEditHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	form := fmt.Sprintf(`
-		<tr hx-put="/requests/headers/%d" hx-trigger='cancel'  hx-ext="json-enc" class='editing'>
+		<tr hx-put="/requests/headers/%d" hx-trigger='cancel' hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
             <td><input name="key" class="form-control" value="%s" /></td>
             <td><input name="value" class="form-control" value="%s" /></td>
@@ -410,7 +410,7 @@ func (h *RequestHandler) HeaderEditHandler(w http.ResponseWriter, r *http.Reques
             <td>%s</td>
 			<td>
 				<div class="hstack gap-1">
-				<button class="btn btn-warning" hx-get="/requests">Cancel</button>
+				<button class="btn btn-warning" hx-get="/requests-pagination" hx-target="#tbody" hx-swap="innerHTML">Cancel</button>
 				<button class="btn btn-danger" hx-put="/requests/headers/%d" hx-include="closest tr">Save</button>
 				</div>
 			</td>
