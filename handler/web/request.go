@@ -49,7 +49,7 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 
 	_, response := h.request.ListService(w, r)
 
-	data, _ := response.Data["requests"].([]models.Request)
+	data, _ := response.Data["requests"].([]*models.Request)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -383,7 +383,7 @@ func (h *RequestHandler) HeaderEditHandler(w http.ResponseWriter, r *http.Reques
 
 	_, response := h.header.ListService(w, r)
 
-	data, _ := response.Data["request_headers"].([]models.RequestHeader)
+	data, _ := response.Data["request_headers"].([]*models.RequestHeader)
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
