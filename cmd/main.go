@@ -103,6 +103,9 @@ func main() {
 		http.ServeFile(w, r, "./views/swagger.html")
 	})
 
+	// test route
+	r.Get("/trigger", Catch(webHomeHandler.TriggerHandler))
+
 	// web without auth
 	r.Group(func(r chi.Router) {
 		r.Use(isAuthMiddleware)
