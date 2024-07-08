@@ -294,17 +294,40 @@ func (m *Schedule) Delete(id, userID int) error {
 	return nil
 }
 
+func (m *Schedule) WithQueryAll() []*Schedule {
+	return m.queryPrepare(config.App().QUERY["SCHEDULE_MAPS"])
+}
+
 func (m *Schedule) WithQuery(userID, offset, limit int, search string) []*Schedule {
 	schedules := []*Schedule{}
 
+	query := strings.TrimSuffix(config.App().QUERY["SCHEDULE_MAPS"], ";")
+
+	if userID == 0 {
+		return schedules
+	}
+	query += fmt.Sprintf(" AND user_id=%d", userID)
+	if search != "" {
+		query += fmt.Sprintf(` AND (timing ilike %s OR "group"->>'name' ilike %s OR request->>'url' ilike %s OR notification->>'title' ilike %s)`, search, search, search, search)
+	}
+	if limit > 0 {
+		query += fmt.Sprintf(" ORDER BY id DESC offset %d LIMIT %d;", offset, limit)
+	}
+
+	return m.queryPrepare(query)
+}
+
+func (m *Schedule) queryPrepare(query string) []*Schedule {
+	schedules := []*Schedule{}
+
 	// prepare schedules paginate
-	stmt, err := config.App().DB.Prepare(config.App().QUERY["SCHEDULE_MAPS"])
+	stmt, err := config.App().DB.Prepare(query)
 	if err != nil {
 		return schedules
 	}
 
 	// query
-	rows, err := stmt.Query(userID, "%"+search+"%", offset, limit)
+	rows, err := stmt.Query()
 	if err != nil {
 		return schedules
 	}

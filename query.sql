@@ -418,7 +418,4 @@ WITH schedule_lists AS (
     LEFT JOIN webhooks w on w.schedule_id=s.id
     GROUP BY s.id, u.id, g.id, r.id, n.id
 )
-SELECT * FROM schedule_lists
-WHERE user_id=$1 AND deleted_at isnull 
-AND (timing ilike $2 OR "group"->>'name' ilike $2 OR request->>'url' ilike $2 OR notification->>'title' ilike $2)
-ORDER BY id DESC offset $3 LIMIT $4;
+SELECT * FROM schedule_lists WHERE deleted_at isnull;
