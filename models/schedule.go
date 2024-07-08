@@ -24,7 +24,7 @@ type Schedule struct {
 	Group          *Group        `json:"group,omitempty"`
 	Request        *Request      `json:"request,omitempty"`
 	Notification   *Notification `json:"notification,omitempty"`
-	Webhook        []*Webhook    `json:"webhook,omitempty"`
+	Webhooks       []*Webhook    `json:"webhooks,omitempty"`
 	CreatedAt      *time.Time    `json:"created_at,omitempty"`
 	UpdatedAt      *time.Time    `json:"updated_at,omitempty"`
 	DeletedAt      *time.Time    `json:"deleted_at,omitempty"`
@@ -375,7 +375,7 @@ func (m *Schedule) queryPrepare(query string) []*Schedule {
 		if err := json.Unmarshal([]byte(webhookJson), &webhooks); err != nil {
 			return schedules
 		}
-		schedule.Webhook = webhooks
+		schedule.Webhooks = webhooks
 
 		schedules = append(schedules, schedule)
 	}

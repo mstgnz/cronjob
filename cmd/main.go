@@ -80,7 +80,7 @@ func Catch(h HttpHandler) http.HandlerFunc {
 func main() {
 
 	// test mail with attach
-	//err := config.App().Mail.SetSubject("cron").SetContent("mail geldi mi?").SetTo("mesutgenez@hotmail.com").SetAttachment(map[string][]byte{"query.sql": []byte("1. dosya içeriği"), "query2.sql": []byte("2. dosya içeriği")}).SendText()
+	//err := config.App().Mail.SetSubject("cron").SetContent("test mail").SetTo("mesutgenez@hotmail.com").SetAttachment(map[string][]byte{"query.sql": []byte("1. folder content"), "query2.sql": []byte("2. folder content")}).SendText()
 
 	// Scheduler Call
 	schedule.CallSchedule(config.App().Cron)
@@ -290,10 +290,9 @@ func main() {
 		time.Sleep(time.Second * 5)
 	}
 
-	config.App().Log.Info("Shutting down gracefully...")
-
 	config.App().Cron.Stop()
 	config.App().DB.CloseDatabase()
+	config.App().Log.Info("Shutting down gracefully...")
 }
 
 func webAuthMiddleware(next http.Handler) http.Handler {
