@@ -37,9 +37,10 @@ func CallSchedule(c *cron.Cron) {
 }
 
 func AddSchedules(c *cron.Cron, schedules []*models.Schedule, scheduleMap map[int]cron.EntryID) {
+	triggered := &models.Triggered{}
 	scheduleLog := &models.ScheduleLog{}
 	for _, schedule := range schedules {
-		if !schedule.Active {
+		if !schedule.Active || schedule.Request == nil {
 			continue
 		}
 		if _, exists := scheduleMap[schedule.ID]; !exists {
@@ -68,6 +69,7 @@ func AddSchedules(c *cron.Cron, schedules []*models.Schedule, scheduleMap map[in
 					req.Header.Set(header.Key, header.Value)
 				}
 
+				triggered.Create(schedule.ID)
 				scheduleUpdate(schedule, true)
 				var resp *http.Response
 				for retries := 0; retries < schedule.Retries; retries++ {
@@ -79,6 +81,7 @@ func AddSchedules(c *cron.Cron, schedules []*models.Schedule, scheduleMap map[in
 					time.Sleep(1 * time.Second)
 				}
 				scheduleUpdate(schedule, false)
+				triggered.Delete(schedule.ID)
 				defer resp.Body.Close()
 
 				body, err := io.ReadAll(resp.Body)
@@ -115,6 +118,9 @@ func scheduleUpdate(schedule *models.Schedule, running bool) {
 }
 
 func notification(schedule *models.Schedule, body []byte) {
+	if schedule.Notification == nil {
+		return
+	}
 	if schedule.Notification.IsMail {
 		for _, mail := range schedule.Notification.NotifyEmails {
 			err := config.App().Mail.SetSubject(schedule.Timing + " is running").SetContent(string(body)).SetTo(mail.Email).SendText()
@@ -132,14 +138,14 @@ func notification(schedule *models.Schedule, body []byte) {
 
 func webhooks(schedule *models.Schedule) {
 	for _, webhook := range schedule.Webhooks {
+		if webhook.Request == nil {
+			continue
+		}
 		go func() {
 			client := &http.Client{
 				CheckRedirect: func(req *http.Request, via []*http.Request) error {
 					return http.ErrUseLastResponse
 				},
-			}
-			if webhook.Request == nil {
-				return
 			}
 
 			req, err := http.NewRequest(webhook.Request.Method, webhook.Request.Url, strings.NewReader(string(webhook.Request.Content)))
