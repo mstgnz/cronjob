@@ -1,13 +1,29 @@
-# cronjob
+# Cronjob
+### Timed Trigger
 
-Defining cronjob tasks in the crontab on a server and tracking and managing these tasks can be challenging. In this project, you can input cronjob definitions for all your projects and the corresponding URL information. This allows requests to be sent to the specified URLs on your behalf at the designated times.
-
-The time taken by triggered tasks, their responses, are logged, and notifications can be optionally sent to the email addresses you specify.
+It is difficult to manage cronjob tasks on a server. This project provides an environment where you can define your cronjob tasks. It allows you to manage and track your scheduled tasks in a more flexible way.
 
 
-## atention
-This application utilizes a database locking mechanism to prevent duplicate cronjob tasks when running multiple instances in a Kubernetes (k8s) environment.
+## Features
+- Cronjob Definitions: Define cronjob tasks for each of your projects.
+- URL Information: Specify which URL to send requests to for each cronjob.
+- Task Scheduling: Determine when tasks will execute.
+- Logging: Detailed logs include task execution times and responses.
+- Email Notifications: Optionally send notifications to specified email addresses.
+- Message Notifications: Optionally send notifications to specified phone number.
 
-The instance that first adds a record to the triggered table will be the instance that triggers the cronjob task. Subsequent instances will not be able to create a new record due to an existing record, preventing them from executing the task. The completed task will be unregistered from the triggered table.
 
-Nevertheless, it is strongly advised for users of this project to establish an additional control mechanism on their own systems.
+## Considerations
+This application utilizes a database locking mechanism to prevent duplicated cronjob tasks when running multiple instances in a Kubernetes (k8s) environment. 
+
+The instance that first adds a record to the "triggered" table will be the one to trigger the cronjob task. Subsequent instances will be prevented from creating a new record due to an existing one, thereby preventing duplicate task executions. Completed tasks are then removed from the "triggered" table.
+
+However, it is strongly recommended that users implement additional control mechanisms on their own systems.
+
+
+## Contributing
+This project is open-source, and contributions are welcome. Feel free to contribute or provide feedback of any kind.
+
+
+## License
+This project is licensed under the Apache License. See the [LICENSE](LICENSE) file for more details.
