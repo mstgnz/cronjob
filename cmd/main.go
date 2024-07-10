@@ -291,8 +291,8 @@ func main() {
 	}
 
 	config.App().Cron.Stop()
-	config.App().DB.CloseDatabase()
 	config.App().Log.Info("Shutting down gracefully...")
+	config.App().DB.CloseDatabase()
 }
 
 func webAuthMiddleware(next http.Handler) http.Handler {
