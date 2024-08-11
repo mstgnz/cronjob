@@ -9,13 +9,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
+	"github.com/mstgnz/cronjob/pkg/validate"
 )
 
 type RequestService struct{}
 
-func (h *RequestService) ListService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (h *RequestService) ListService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	request := &models.Request{}
 
 	// get auth user in context
@@ -26,21 +28,21 @@ func (h *RequestService) ListService(w http.ResponseWriter, r *http.Request) (in
 
 	requests, err := request.Get(cUser.ID, id, url)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"requests": requests}}
+	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"requests": requests}}
 }
 
-func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	request := &models.Request{}
-	if err := config.ReadJSON(w, r, request); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, request); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(request)
+	err := validate.Validate(request)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -50,29 +52,29 @@ func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (
 
 	exists, err := request.UrlExists()
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if exists {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Url already exists"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Url already exists"}
 	}
 
 	err = request.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Request created", Data: map[string]any{"request": request}}
+	return http.StatusCreated, response.Response{Status: true, Message: "Request created", Data: map[string]any{"request": request}}
 }
 
-func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.RequestUpdate{}
-	if err := config.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, &updateData); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(updateData)
+	err := validate.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -82,10 +84,10 @@ func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Request not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
 	}
 
 	queryParts := []string{"UPDATE requests SET"}
@@ -114,7 +116,7 @@ func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	}
 
 	if len(params) == 0 {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "No fields to update"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "No fields to update"}
 	}
 
 	// update at
@@ -130,13 +132,13 @@ func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	err = request.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
+	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
-func (h *RequestService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (h *RequestService) DeleteService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
@@ -144,30 +146,30 @@ func (h *RequestService) DeleteService(w http.ResponseWriter, r *http.Request) (
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Request not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
 	}
 
 	err = request.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Soft delte success"}
+	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}
 }
 
-func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	bulk := &models.RequestBulk{}
-	if err := config.ReadJSON(w, r, bulk); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, bulk); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(bulk)
+	err := validate.Validate(bulk)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -183,23 +185,23 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 
 	exists, err := request.UrlExists()
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if exists {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Url already exists"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Url already exists"}
 	}
 
 	tx, err := config.App().DB.Begin()
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
 	err = request.Create(tx)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 		}
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
 	for _, header := range bulk.RequestHeaders {
@@ -224,8 +226,8 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "test", Data: map[string]any{"request": request}}
+	return http.StatusCreated, response.Response{Status: true, Message: "test", Data: map[string]any{"request": request}}
 }

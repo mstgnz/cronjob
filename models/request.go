@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mstgnz/cronjob/config"
+	"github.com/mstgnz/cronjob/pkg/config"
 )
 
 type Request struct {

@@ -9,8 +9,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
 
@@ -23,7 +24,7 @@ func (h *WebhookHandler) HomeHandler(w http.ResponseWriter, r *http.Request) err
 }
 
 func (h *WebhookHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -105,7 +106,7 @@ func (h *WebhookHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 }
 
 func (h *WebhookHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil

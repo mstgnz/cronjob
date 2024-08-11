@@ -8,13 +8,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
+	"github.com/mstgnz/cronjob/pkg/validate"
 )
 
 type WebhookService struct{}
 
-func (h *WebhookService) ListService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (h *WebhookService) ListService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	webhook := &models.Webhook{}
 
 	// get auth user in context
@@ -25,26 +27,26 @@ func (h *WebhookService) ListService(w http.ResponseWriter, r *http.Request) (in
 	request_id, _ := strconv.Atoi(r.URL.Query().Get("request_id"))
 
 	if id == 0 && schedule_id == 0 && request_id == 0 {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "id, schedule_id or request_id param required"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "id, schedule_id or request_id param required"}
 	}
 
 	webhooks, err := webhook.Get(id, schedule_id, request_id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"webhooks": webhooks}}
+	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"webhooks": webhooks}}
 }
 
-func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	webhook := &models.Webhook{}
-	if err := config.ReadJSON(w, r, webhook); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, webhook); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(webhook)
+	err := validate.Validate(webhook)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -54,48 +56,48 @@ func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (
 	schedule := &models.Schedule{}
 	exists, err := schedule.IDExists(webhook.ScheduleID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Schedule not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Schedule not found"}
 	}
 
 	// check request_id
 	request := &models.Request{}
 	exists, err = request.IDExists(webhook.RequestID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Request not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
 	}
 
 	// check schedule_id and request_id
 	exists, err = webhook.UniqExists(webhook.ScheduleID, webhook.RequestID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Webhook already exists"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Webhook already exists"}
 	}
 
 	err = webhook.Create()
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Webhook created", Data: map[string]any{"webhook": webhook}}
+	return http.StatusCreated, response.Response{Status: true, Message: "Webhook created", Data: map[string]any{"webhook": webhook}}
 }
 
-func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.WebhookUpdate{}
-	if err := config.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, &updateData); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(updateData)
+	err := validate.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -105,10 +107,10 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := webhook.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Webhook not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Webhook not found"}
 	}
 
 	queryParts := []string{"UPDATE webhooks SET"}
@@ -132,7 +134,7 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	}
 
 	if len(params) == 0 {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "No fields to update"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "No fields to update"}
 	}
 
 	// update at
@@ -148,13 +150,13 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	err = webhook.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
+	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
-func (h *WebhookService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (h *WebhookService) DeleteService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
@@ -162,17 +164,17 @@ func (h *WebhookService) DeleteService(w http.ResponseWriter, r *http.Request) (
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := webhook.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Webhook not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Webhook not found"}
 	}
 
 	err = webhook.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Soft delte success"}
+	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}
 }

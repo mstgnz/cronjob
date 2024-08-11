@@ -1,4 +1,4 @@
-package config
+package conn
 
 import (
 	"database/sql"

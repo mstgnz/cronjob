@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mstgnz/cronjob/config"
+	"github.com/mstgnz/cronjob/pkg/auth"
+	"github.com/mstgnz/cronjob/pkg/config"
 )
 
 type User struct {
@@ -109,7 +110,7 @@ func (m *User) Create(register *Register) error {
 		return err
 	}
 
-	hashPass := config.HashAndSalt(register.Password)
+	hashPass := auth.HashAndSalt(register.Password)
 	err = stmt.QueryRow(register.Fullname, register.Email, hashPass, register.Phone).Scan(&m.ID, &m.Fullname, &m.Email, &m.Phone)
 	if err != nil {
 		return err
@@ -266,7 +267,7 @@ func (m *User) PasswordUpdate(password string) error {
 	}
 
 	updateAt := time.Now().Format("2006-01-02 15:04:05")
-	hashPass := config.HashAndSalt(password)
+	hashPass := auth.HashAndSalt(password)
 	result, err := stmt.Exec(hashPass, updateAt, m.ID)
 	if err != nil {
 		return err

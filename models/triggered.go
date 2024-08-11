@@ -1,6 +1,6 @@
 package models
 
-import "github.com/mstgnz/cronjob/config"
+import "github.com/mstgnz/cronjob/pkg/config"
 
 type Triggered struct {
 	ScheduleID int `json:"schedule_id"`

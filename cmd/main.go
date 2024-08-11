@@ -16,10 +16,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/handler/api"
 	"github.com/mstgnz/cronjob/handler/web"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/auth"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/load"
+	"github.com/mstgnz/cronjob/pkg/logger"
+	"github.com/mstgnz/cronjob/pkg/response"
+	"github.com/mstgnz/cronjob/pkg/validate"
 	"github.com/mstgnz/cronjob/schedule"
 )
 
@@ -48,17 +53,17 @@ var (
 func init() {
 	// Load Env
 	if err := godotenv.Load(".env"); err != nil {
-		config.App().Log.Warn(fmt.Sprintf("Load Env Error: %v", err))
+		logger.Warn(fmt.Sprintf("Load Env Error: %v", err))
 		log.Fatalf("Load Env Error: %v", err)
 	}
 	// init conf
 	_ = config.App()
-	config.CustomValidate()
+	validate.CustomValidate()
 
 	// Load Sql
 	config.App().QUERY = make(map[string]string)
-	if query, err := config.LoadSQLQueries(); err != nil {
-		config.App().Log.Warn(fmt.Sprintf("Load Sql Error: %v", err))
+	if query, err := load.LoadSQLQueries(); err != nil {
+		logger.Warn(fmt.Sprintf("Load Sql Error: %v", err))
 		log.Fatalf("Load Sql Error: %v", err)
 	} else {
 		config.App().QUERY = query
@@ -72,7 +77,7 @@ type HttpHandler func(w http.ResponseWriter, r *http.Request) error
 func Catch(h HttpHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := h(w, r); err != nil {
-			config.App().Log.Info("HTTP Handler Error", "err", err.Error(), "path", r.URL.Path)
+			logger.Info("HTTP Handler Error", "err", err.Error(), "path", r.URL.Path)
 		}
 	}
 }
@@ -250,7 +255,7 @@ func main() {
 	// Not Found
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "api") {
-			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Not Found"})
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: "Not Found"})
 			return
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -264,17 +269,17 @@ func main() {
 	go func() {
 		err := http.ListenAndServe(fmt.Sprintf(":%s", PORT), r)
 		if err != nil && err != http.ErrServerClosed {
-			config.App().Log.Warn("Fatal Error", "err", err.Error())
+			logger.Warn("Fatal Error", "err", err.Error())
 			log.Fatal(err.Error())
 		}
 	}()
 
-	config.App().Log.Info("Cron is running on", PORT)
+	logger.Info("Cron is running on", PORT)
 
 	// Block until a signal is received
 	<-ctx.Done()
 
-	config.App().Log.Info("Cron is shutting on", PORT)
+	logger.Info("Cron is shutting on", PORT)
 
 	// set Shutting
 	config.App().Shutting = true
@@ -282,16 +287,16 @@ func main() {
 	// check Running
 	for {
 		if config.App().Running <= 0 {
-			config.App().Log.Info("Cronjobs all done")
+			logger.Info("Cronjobs all done")
 			break
 		} else {
-			config.App().Log.Info(fmt.Sprintf("Currently %d active jobs in progress. pending completion...", config.App().Running))
+			logger.Info(fmt.Sprintf("Currently %d active jobs in progress. pending completion...", config.App().Running))
 		}
 		time.Sleep(time.Second * 5)
 	}
 
 	config.App().Cron.Stop()
-	config.App().Log.Info("Shutting down gracefully...")
+	logger.Info("Shutting down gracefully...")
 	config.App().DB.CloseDatabase()
 }
 
@@ -305,7 +310,7 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 		}
 		token := strings.Replace(cookie.Value, "Bearer ", "", 1)
 
-		userId, err := config.GetUserIDByToken(token)
+		userId, err := auth.GetUserIDByToken(token)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -334,20 +339,20 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		if token == "" {
-			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: "Invalid Token"})
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: "Invalid Token"})
 			return
 		}
 		token = strings.Replace(token, "Bearer ", "", 1)
 
-		userId, err := config.GetUserIDByToken(token)
+		userId, err := auth.GetUserIDByToken(token)
 		if err != nil {
-			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: err.Error()})
 			return
 		}
 
 		user_id, err := strconv.Atoi(userId)
 		if err != nil && user_id == 0 {
-			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: err.Error()})
 			return
 		}
 
@@ -355,7 +360,7 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 		err = user.GetWithId(user_id)
 
 		if err != nil {
-			_ = config.WriteJSON(w, http.StatusUnauthorized, config.Response{Status: false, Message: err.Error()})
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: err.Error()})
 			return
 		}
 
@@ -370,7 +375,7 @@ func isAuthMiddleware(next http.Handler) http.Handler {
 
 		if err == nil {
 			token := strings.Replace(cookie.Value, "Bearer ", "", 1)
-			_, err = config.GetUserIDByToken(token)
+			_, err = auth.GetUserIDByToken(token)
 			if err == nil {
 				http.Redirect(w, r, "/", http.StatusSeeOther)
 				return
@@ -396,7 +401,7 @@ func headerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		checkMethod := r.Method == "POST" || r.Method == "PUT" || r.Method == "PATCH"
 		if checkMethod && r.Header.Get("Content-Type") != "application/json" {
-			_ = config.WriteJSON(w, http.StatusBadRequest, config.Response{Status: false, Message: "Invalid Content-Type"})
+			_ = response.WriteJSON(w, http.StatusBadRequest, response.Response{Status: false, Message: "Invalid Content-Type"})
 			return
 		}
 		next.ServeHTTP(w, r)

@@ -1,4 +1,4 @@
-package config
+package auth
 
 import (
 	"crypto/rand"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/mstgnz/cronjob/pkg/config"
 )
 
 var letterRunes = []rune("0987654321abcçdefgğhıijklmnoöpqrsştuüvwxyzABCÇDEFGĞHIİJKLMNOÖPQRSTUÜVWXYZ-_!?+&%=*")
@@ -20,7 +21,7 @@ func GenerateToken(userId int) (string, error) {
 		Issuer:    strconv.Itoa(userId),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte(App().SecretKey))
+	t, err := token.SignedString([]byte(config.App().SecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -33,7 +34,7 @@ func ValidateToken(token string) (*jwt.Token, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t.Header["alg"])
 		}
-		return []byte(App().SecretKey), nil
+		return []byte(config.App().SecretKey), nil
 	})
 }
 

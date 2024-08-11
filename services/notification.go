@@ -8,13 +8,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
+	"github.com/mstgnz/cronjob/pkg/validate"
 )
 
 type NotificationService struct{}
 
-func (s *NotificationService) ListService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *NotificationService) ListService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	notification := &models.Notification{}
 
 	// get auth user in context
@@ -25,21 +27,21 @@ func (s *NotificationService) ListService(w http.ResponseWriter, r *http.Request
 
 	notifications, err := notification.Get(cUser.ID, id, title)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"notifications": notifications}}
+	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"notifications": notifications}}
 }
 
-func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	notification := &models.Notification{}
-	if err := config.ReadJSON(w, r, notification); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, notification); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(notification)
+	err := validate.Validate(notification)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -49,29 +51,29 @@ func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Reque
 
 	exists, err := notification.TitleExists()
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if exists {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Title already exists"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Title already exists"}
 	}
 
 	err = notification.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Notification created", Data: map[string]any{"notification": notification}}
+	return http.StatusCreated, response.Response{Status: true, Message: "Notification created", Data: map[string]any{"notification": notification}}
 }
 
-func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.NotificationUpdate{}
-	if err := config.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, &updateData); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(updateData)
+	err := validate.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -81,10 +83,10 @@ func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Reque
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notification.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
 	}
 
 	queryParts := []string{"UPDATE notifications SET"}
@@ -118,7 +120,7 @@ func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Reque
 	}
 
 	if len(params) == 0 {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "No fields to update"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "No fields to update"}
 	}
 
 	// update at
@@ -134,13 +136,13 @@ func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Reque
 	err = notification.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
+	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
-func (s *NotificationService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *NotificationService) DeleteService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
@@ -148,30 +150,30 @@ func (s *NotificationService) DeleteService(w http.ResponseWriter, r *http.Reque
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notification.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Notification not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
 	}
 
 	err = notification.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Soft delte success"}
+	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}
 }
 
-func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	bulk := &models.NotificationBulk{}
-	if err := config.ReadJSON(w, r, bulk); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, bulk); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(bulk)
+	err := validate.Validate(bulk)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -188,23 +190,23 @@ func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request
 
 	exists, err := notification.TitleExists()
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if exists {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Title already exists"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Title already exists"}
 	}
 
 	tx, err := config.App().DB.Begin()
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
 	err = notification.Create(tx)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 		}
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
 	for _, email := range bulk.NotifyEmails {
@@ -247,8 +249,8 @@ func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Notification created", Data: map[string]any{"notification": notification}}
+	return http.StatusCreated, response.Response{Status: true, Message: "Notification created", Data: map[string]any{"notification": notification}}
 }

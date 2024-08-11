@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/mstgnz/cronjob/config"
+	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
 
@@ -12,21 +12,21 @@ type WebhookHandler struct {
 }
 
 func (h *WebhookHandler) ListHandler(w http.ResponseWriter, r *http.Request) error {
-	statusCode, response := h.ListService(w, r)
-	return config.WriteJSON(w, statusCode, response)
+	statusCode, result := h.ListService(w, r)
+	return response.WriteJSON(w, statusCode, result)
 }
 
 func (h *WebhookHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
-	statusCode, response := h.CreateService(w, r)
-	return config.WriteJSON(w, statusCode, response)
+	statusCode, result := h.CreateService(w, r)
+	return response.WriteJSON(w, statusCode, result)
 }
 
 func (h *WebhookHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	statusCode, response := h.UpdateService(w, r)
-	return config.WriteJSON(w, statusCode, response)
+	statusCode, result := h.UpdateService(w, r)
+	return response.WriteJSON(w, statusCode, result)
 }
 
 func (h *WebhookHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) error {
-	statusCode, response := h.DeleteService(w, r)
-	return config.WriteJSON(w, statusCode, response)
+	statusCode, result := h.DeleteService(w, r)
+	return response.WriteJSON(w, statusCode, result)
 }

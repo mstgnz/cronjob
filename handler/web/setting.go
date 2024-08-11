@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
 
@@ -53,13 +54,13 @@ func (h *SettingHandler) UsersHandler(w http.ResponseWriter, r *http.Request) er
 	data["users"] = users
 
 	w.Header().Set("Content-Type", "application/json")
-	result := config.MaptoJSON(data)
+	result := response.MaptoJSON(data)
 	_, _ = w.Write(result)
 	return nil
 }
 
 func (h *SettingHandler) UserChangeProfileHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringIDsToInt(r, "id")
+	jsonData, err := response.ConvertStringIDsToInt(r, "id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -76,7 +77,7 @@ func (h *SettingHandler) UserChangeProfileHandler(w http.ResponseWriter, r *http
 }
 
 func (h *SettingHandler) UserChangePasswordHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringIDsToInt(r, "id")
+	jsonData, err := response.ConvertStringIDsToInt(r, "id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil

@@ -1,4 +1,4 @@
-package config
+package conn
 
 import (
 	"crypto/tls"
@@ -15,7 +15,7 @@ type Kraft struct {
 	brokers  []string
 }
 
-func newKafkaClient() (*Kraft, error) {
+func NewKafkaClient() (*Kraft, error) {
 	connStr := fmt.Sprintf("%s:%s", os.Getenv("KRAFT_HOST"), os.Getenv("KRAFT_PORT"))
 	client := &Kraft{
 		brokers: []string{connStr},

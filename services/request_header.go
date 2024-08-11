@@ -8,13 +8,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
+	"github.com/mstgnz/cronjob/pkg/validate"
 )
 
 type RequestHeaderService struct{}
 
-func (s *RequestHeaderService) ListService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *RequestHeaderService) ListService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	requestHeader := &models.RequestHeader{}
 
 	// get auth user in context
@@ -26,21 +28,21 @@ func (s *RequestHeaderService) ListService(w http.ResponseWriter, r *http.Reques
 
 	requestHeaders, err := requestHeader.Get(cUser.ID, id, requestID, key)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"request_headers": requestHeaders}}
+	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"request_headers": requestHeaders}}
 }
 
-func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	requestHeader := &models.RequestHeader{}
-	if err := config.ReadJSON(w, r, requestHeader); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, requestHeader); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(requestHeader)
+	err := validate.Validate(requestHeader)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -50,38 +52,38 @@ func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Requ
 	request := &models.Request{}
 	exists, err := request.IDExists(requestHeader.RequestID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Request not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
 	}
 
 	// check header key
 	exists, err = requestHeader.HeaderExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if exists {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Header already exists"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Header already exists"}
 	}
 
 	err = requestHeader.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusCreated, config.Response{Status: true, Message: "Request Header created", Data: map[string]any{"request_header": requestHeader}}
+	return http.StatusCreated, response.Response{Status: true, Message: "Request Header created", Data: map[string]any{"request_header": requestHeader}}
 }
 
-func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.RequestHeaderUpdate{}
-	if err := config.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: err.Error()}
+	if err := response.ReadJSON(w, r, &updateData); err != nil {
+		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
 	}
 
-	err := config.Validate(updateData)
+	err := validate.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
 	}
 
 	// get auth user in context
@@ -91,10 +93,10 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := requestHeader.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Request Header not found"}
 	}
 
 	queryParts := []string{"UPDATE request_headers SET"}
@@ -123,7 +125,7 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 	}
 
 	if len(params) == 0 {
-		return http.StatusBadRequest, config.Response{Status: false, Message: "No fields to update"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "No fields to update"}
 	}
 
 	// update at
@@ -139,13 +141,13 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 	err = requestHeader.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
+	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
 }
 
-func (s *RequestHeaderService) DeleteService(w http.ResponseWriter, r *http.Request) (int, config.Response) {
+func (s *RequestHeaderService) DeleteService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	// get auth user in context
 	cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
 
@@ -153,17 +155,17 @@ func (s *RequestHeaderService) DeleteService(w http.ResponseWriter, r *http.Requ
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := requestHeader.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 	if !exists {
-		return http.StatusNotFound, config.Response{Status: false, Message: "Request Header not found"}
+		return http.StatusNotFound, response.Response{Status: false, Message: "Request Header not found"}
 	}
 
 	err = requestHeader.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, config.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
 
-	return http.StatusOK, config.Response{Status: true, Message: "Soft delte success"}
+	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}
 }

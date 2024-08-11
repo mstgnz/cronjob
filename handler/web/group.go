@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
 
@@ -24,14 +25,14 @@ func (h *GroupHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error
 
 func (h *GroupHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
 
-	jsonData, err := config.ConvertStringIDsToInt(r, "uid")
+	jsonData, err := response.ConvertStringIDsToInt(r, "uid")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -47,14 +48,14 @@ func (h *GroupHandler) CreateHandler(w http.ResponseWriter, r *http.Request) err
 }
 
 func (h *GroupHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringIDsToInt(r, "uid")
+	jsonData, err := response.ConvertStringIDsToInt(r, "uid")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil

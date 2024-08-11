@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
 )
 
 func Render(w http.ResponseWriter, r *http.Request, page string, data map[string]any, partials ...string) error {

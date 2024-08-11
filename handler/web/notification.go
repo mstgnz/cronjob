@@ -9,8 +9,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
 
@@ -26,19 +27,19 @@ func (h *NotificationHandler) HomeHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (h *NotificationHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
-	jsonData, err = config.ConvertStringBoolsToBool(r, "is_mail")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "is_mail")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
-	jsonData, err = config.ConvertStringBoolsToBool(r, "is_message")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "is_message")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -124,19 +125,19 @@ func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (h *NotificationHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
-	jsonData, err = config.ConvertStringBoolsToBool(r, "is_mail")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "is_mail")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
-	jsonData, err = config.ConvertStringBoolsToBool(r, "is_message")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "is_message")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -257,14 +258,14 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
 
 func (h *NotificationHandler) EmailCreateHandler(w http.ResponseWriter, r *http.Request) error {
 
-	jsonData, err := config.ConvertStringIDsToInt(r, "notification_id")
+	jsonData, err := response.ConvertStringIDsToInt(r, "notification_id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -280,7 +281,7 @@ func (h *NotificationHandler) EmailCreateHandler(w http.ResponseWriter, r *http.
 }
 
 func (h *NotificationHandler) EmailUpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -446,14 +447,14 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 
 func (h *NotificationHandler) MessageCreateHandler(w http.ResponseWriter, r *http.Request) error {
 
-	jsonData, err := config.ConvertStringIDsToInt(r, "notification_id")
+	jsonData, err := response.ConvertStringIDsToInt(r, "notification_id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -469,7 +470,7 @@ func (h *NotificationHandler) MessageCreateHandler(w http.ResponseWriter, r *htt
 }
 
 func (h *NotificationHandler) MessageUpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil

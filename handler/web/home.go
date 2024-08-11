@@ -3,7 +3,7 @@ package web
 import (
 	"net/http"
 
-	"github.com/mstgnz/cronjob/config"
+	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
 
@@ -14,5 +14,5 @@ func (h *HomeHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error 
 }
 
 func (h *HomeHandler) TriggerHandler(w http.ResponseWriter, r *http.Request) error {
-	return config.WriteJSON(w, http.StatusOK, config.Response{Status: true, Message: "triggered", Data: nil})
+	return response.WriteJSON(w, http.StatusOK, response.Response{Status: true, Message: "triggered", Data: nil})
 }

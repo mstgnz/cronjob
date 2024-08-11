@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/mstgnz/cronjob/config"
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
 
@@ -29,42 +30,42 @@ func (h *ScheduleHandler) HomeHandler(w http.ResponseWriter, r *http.Request) er
 }
 
 func (h *ScheduleHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringIDsToInt(r, "group_id")
+	jsonData, err := response.ConvertStringIDsToInt(r, "group_id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringIDsToInt(r, "request_id")
+	jsonData, err = response.ConvertStringIDsToInt(r, "request_id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringIDsToInt(r, "notification_id")
+	jsonData, err = response.ConvertStringIDsToInt(r, "notification_id")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringIDsToInt(r, "timeout")
+	jsonData, err = response.ConvertStringIDsToInt(r, "timeout")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringIDsToInt(r, "retries")
+	jsonData, err = response.ConvertStringIDsToInt(r, "retries")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
@@ -133,21 +134,21 @@ func (h *ScheduleHandler) EditHandler(w http.ResponseWriter, r *http.Request) er
 }
 
 func (h *ScheduleHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := config.ConvertStringIDsToInt(r, "timeout")
+	jsonData, err := response.ConvertStringIDsToInt(r, "timeout")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringIDsToInt(r, "retries")
+	jsonData, err = response.ConvertStringIDsToInt(r, "retries")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil
 	}
 	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
 
-	jsonData, err = config.ConvertStringBoolsToBool(r, "active")
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil

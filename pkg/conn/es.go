@@ -1,4 +1,4 @@
-package config
+package conn
 
 import (
 	"crypto/tls"
@@ -15,7 +15,7 @@ type ES struct {
 	*elasticsearch.Client
 }
 
-func newESClient() (*ES, error) {
+func NewESClient() (*ES, error) {
 	connStr := fmt.Sprintf("%s:%s", os.Getenv("ES_HOST"), os.Getenv("ES_PORT"))
 	cfg := elasticsearch.Config{
 		Addresses: []string{connStr},
