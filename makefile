@@ -15,7 +15,7 @@ help: makefile
 
 ## run: Build the Docker image and run the container
 run: cleanC create_network connect build
-	docker run -d \
+	@docker run -d \
 		--env-file .env \
 		--restart always \
 		--name $(APP_NAME) \
@@ -30,20 +30,20 @@ live:
 
 ## build: Build the Docker image
 build:
-	docker build -t $(APP_NAME) .
+	@docker build -t $(APP_NAME) .
 
 connect:
-ifeq ($(APP_ENV),prod)
-	$(MAKE) db
-	$(MAKE) redis
-else
-	$(MAKE) db
-	@echo "Skipping db target since APP_ENV is not 'prod'"
-endif
+	@if $(APP_ENV) == "prod"; then \
+		$(MAKE) db
+		$(MAKE) redis
+	else \
+		$(MAKE) db
+		@echo "Skipping db target since APP_ENV is not 'prod'"
+	fi
 
 ## db: Run Postgres
 db: create_volume
-	docker run -d --name $(APP_NAME)-postgres \
+	@docker run -d --name $(APP_NAME)-postgres \
 		-p $(DB_PORT):5432  \
 		--network $(APP_NAME) \
 		-e POSTGRES_DB=$(DB_NAME) \
@@ -53,7 +53,7 @@ db: create_volume
 
 ## redis: Run Redis
 redis:
-	docker run -d --name $(APP_NAME)-redis -p 6379:6379 --restart always --network $(APP_NAME) redis:latest
+	@docker run -d --name $(APP_NAME)-redis -p 6379:6379 --restart always --network $(APP_NAME) redis:latest
 
 ## create_network: Create network for this project name
 create_network:
@@ -73,17 +73,18 @@ create_volume:
 
 ## stop: Stop and remove the Docker container 
 stop:
-	docker stop --time=600 $(APP_NAME)
-	docker rm $(APP_NAME)
+	@docker stop --time=600 $(APP_NAME)
+	@docker rm $(APP_NAME)
 
 ## exec: Run the application inside the Docker container
 exec:
-	docker exec -it $(APP_NAME) $(CMD)
+	@docker exec -it $(APP_NAME) $(CMD)
 
 ## cleanI: Clean up the Docker image
 cleanI:
-	docker rmi $(APP_NAME)
-	docker builder prune --filter="image=$(APP_NAME)"
+	@docker rmi $(APP_NAME)
+	@docker builder prune --filter="image=$(APP_NAME)"
+	@docker rmi $(docker images -f "dangling=true" -q)
 
 ## cleanC: Clean up the Docker containers
 cleanC:
@@ -102,4 +103,4 @@ cleanC:
 
 ## test: Run all test
 test: 
-	go test -v ./...
+	@go test -v ./...
