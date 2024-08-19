@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/load"
 	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
@@ -23,7 +24,7 @@ type NotificationHandler struct {
 
 func (h *NotificationHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
 	_, notification := h.notify.ListService(w, r)
-	return services.Render(w, r, "notification", map[string]any{"lists": notification.Data}, "notification/list", "notification/email", "notification/message", "notification/new")
+	return load.Render(w, r, "notification", map[string]any{"lists": notification.Data}, "notification/list", "notification/email", "notification/message", "notification/new")
 }
 
 func (h *NotificationHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {

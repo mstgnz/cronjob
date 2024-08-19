@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/load"
 	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
@@ -26,7 +27,7 @@ func (h *ScheduleHandler) HomeHandler(w http.ResponseWriter, r *http.Request) er
 	_, requests := h.request.ListService(w, r)
 	_, schedules := h.schedule.ListService(w, r)
 	_, notifications := h.notification.ListService(w, r)
-	return services.Render(w, r, "schedule", map[string]any{"lists": schedules.Data, "groups": group.Data, "requests": requests.Data, "notifications": notifications.Data}, "schedule/list", "schedule/log", "schedule/new")
+	return load.Render(w, r, "schedule", map[string]any{"lists": schedules.Data, "groups": group.Data, "requests": requests.Data, "notifications": notifications.Data}, "schedule/list", "schedule/log", "schedule/new")
 }
 
 func (h *ScheduleHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {

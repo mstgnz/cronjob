@@ -9,6 +9,7 @@ import (
 
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/load"
 	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
@@ -18,7 +19,7 @@ type SettingHandler struct {
 }
 
 func (h *SettingHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return services.Render(w, r, "setting", map[string]any{}, "setting/user-list", "setting/user-new", "setting/app-log")
+	return load.Render(w, r, "setting", map[string]any{}, "setting/user-list", "setting/user-new", "setting/app-log")
 }
 
 func (h *SettingHandler) UserSignUpHandler(w http.ResponseWriter, r *http.Request) error {

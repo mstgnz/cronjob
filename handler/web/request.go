@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/load"
 	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
@@ -22,7 +23,7 @@ type RequestHandler struct {
 
 func (h *RequestHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
 	_, requests := h.request.ListService(w, r)
-	return services.Render(w, r, "request", map[string]any{"lists": requests.Data}, "request/list", "request/header", "request/new")
+	return load.Render(w, r, "request", map[string]any{"lists": requests.Data}, "request/list", "request/header", "request/new")
 }
 
 func (h *RequestHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {

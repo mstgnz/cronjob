@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/load"
 	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/services"
 )
@@ -20,7 +21,7 @@ type GroupHandler struct {
 
 func (h *GroupHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
 	_, data := h.ListService(w, r)
-	return services.Render(w, r, "group", map[string]any{"lists": data.Data}, "group/list", "group/new")
+	return load.Render(w, r, "group", map[string]any{"lists": data.Data}, "group/list", "group/new")
 }
 
 func (h *GroupHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
