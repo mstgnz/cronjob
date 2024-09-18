@@ -46,7 +46,7 @@ func App() *Manager {
 			Cache:     &cache.Cache{},
 			Kafka:     &conn.Kraft{},
 			Redis:     &conn.Redis{},
-			Validator: &validator.Validate{},
+			Validator: validator.New(),
 			// the secret key will change every time the application is restarted.
 			SecretKey: "asdf1234", //RandomString(8),
 			Mail: &response.Mail{
