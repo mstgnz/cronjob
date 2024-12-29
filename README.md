@@ -21,6 +21,21 @@ The instance that first adds a record to the "triggered" table will be the one t
 However, it is strongly recommended that users implement additional control mechanisms on their own systems.
 
 
+## Kubernetes Deployment
+
+The application is designed to run in a Kubernetes environment with high availability and scalability in mind. We provide comprehensive Kubernetes configurations and deployment guides in the [k8s](k8s) directory.
+
+Key deployment features include:
+- High availability with multiple replicas
+- Automatic scaling based on CPU and Memory usage
+- Rolling updates for zero-downtime deployments
+- Health checks and self-healing capabilities
+- SSL/TLS termination with automatic certificate management
+- Centralized configuration management
+
+For detailed deployment instructions and configuration options, please refer to the [Kubernetes Deployment Guide](k8s/README.md).
+
+
 ## Contributing
 This project is open-source, and contributions are welcome. Feel free to contribute or provide feedback of any kind.
 

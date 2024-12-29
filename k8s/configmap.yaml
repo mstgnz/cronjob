@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cronjob-config
+  namespace: default
+data:
+  APP_PORT: "8080"
+  APP_NAME: "Cronjob Manager"
+  APP_ENV: "production"
+  APP_URL: "https://cronjob.example.com"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "cronjob"
+  DB_USER: "postgres"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  TZ: "Europe/Istanbul"
