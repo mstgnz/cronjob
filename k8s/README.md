@@ -11,7 +11,15 @@ k8s/
 ├── deployment.yaml   # Application deployment
 ├── service.yaml      # Service configuration
 ├── ingress.yaml      # Ingress configuration
-└── hpa.yaml         # Horizontal Pod Autoscaler
+├── hpa.yaml         # Horizontal Pod Autoscaler
+├── prometheus/         # Prometheus configuration
+│   ├── prometheus-config.yaml
+│   └── prometheus-deployment.yaml
+└── grafana/           # Grafana configuration
+    ├── grafana-deployment.yaml
+    ├── grafana-datasource.yaml
+    ├── grafana-secret.yaml
+    └── grafana-ingress.yaml
 ```
 
 ## Prerequisites
@@ -62,6 +70,79 @@ Configures automatic scaling:
 - Min 3 replicas
 - Max 10 replicas
 - CPU and Memory based scaling
+
+## Monitoring Setup
+
+The application includes comprehensive monitoring capabilities using Prometheus and Grafana.
+
+### 1. Create Monitoring Namespace
+```bash
+kubectl create namespace monitoring
+```
+
+### 2. Deploy Prometheus
+```bash
+# Deploy Prometheus configurations
+kubectl apply -f k8s/prometheus/
+
+# Verify Prometheus deployment
+kubectl get pods -n monitoring -l app=prometheus
+kubectl get svc -n monitoring prometheus-service
+```
+
+### 3. Deploy Grafana
+```bash
+# Deploy Grafana configurations
+kubectl apply -f k8s/grafana/
+
+# Verify Grafana deployment
+kubectl get pods -n monitoring -l app=grafana
+kubectl get svc -n monitoring grafana-service
+```
+
+### 4. Access Monitoring Dashboards
+
+1. **Prometheus UI**
+   - Access via port-forward:
+     ```bash
+     kubectl port-forward svc/prometheus-service 9090:9090 -n monitoring
+     ```
+   - Open http://localhost:9090 in your browser
+
+2. **Grafana Dashboard**
+   - Access via Ingress: https://grafana.example.com
+   - Default credentials:
+     - Username: admin
+     - Password: admin (change after first login)
+
+### 5. Available Metrics
+
+The application exposes the following metrics:
+
+1. **Cronjob Execution Metrics**
+   - `cronjob_execution_total`: Total number of cronjob executions
+   - `cronjob_execution_duration_seconds`: Duration of cronjob executions
+   - `cronjob_last_execution_timestamp`: Timestamp of last execution
+   - `cronjob_errors_total`: Total number of errors
+   - `cronjob_active_jobs`: Number of currently active jobs
+   - `cronjob_scheduler_leader_info`: Information about scheduler leadership
+
+### 6. Grafana Dashboards
+
+The default dashboard includes:
+- Cronjob execution statistics
+- Error rates and types
+- Active jobs monitoring
+- Execution duration metrics
+- Leadership status
+
+### 7. Alerting
+
+Configure alerts in Grafana for:
+- High error rates
+- Long execution durations
+- Job failures
+- Leadership changes
 
 ## Deployment Steps
 
