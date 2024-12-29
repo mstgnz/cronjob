@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	// CronjobExecutionTotal toplam cronjob çalıştırma sayısı
+	// Total number of cronjob executions
 	CronjobExecutionTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "cronjob_execution_total",
@@ -15,7 +15,7 @@ var (
 		[]string{"job_id", "status"},
 	)
 
-	// CronjobExecutionDuration cronjob çalışma süresi
+	// Duration of cronjob execution
 	CronjobExecutionDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "cronjob_execution_duration_seconds",
@@ -25,7 +25,7 @@ var (
 		[]string{"job_id"},
 	)
 
-	// CronjobLastExecutionTime son çalışma zamanı
+	// Last execution time
 	CronjobLastExecutionTime = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "cronjob_last_execution_timestamp",
@@ -34,7 +34,7 @@ var (
 		[]string{"job_id"},
 	)
 
-	// CronjobErrors hata sayısı
+	// Number of errors
 	CronjobErrors = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "cronjob_errors_total",
@@ -43,7 +43,7 @@ var (
 		[]string{"job_id", "error_type"},
 	)
 
-	// ActiveCronjobs aktif cronjob sayısı
+	// Number of active cronjobs
 	ActiveCronjobs = promauto.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "cronjob_active_jobs",
@@ -51,7 +51,7 @@ var (
 		},
 	)
 
-	// SchedulerLeaderInfo scheduler leader bilgisi
+	// Scheduler leader information
 	SchedulerLeaderInfo = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "cronjob_scheduler_leader_info",
@@ -60,7 +60,7 @@ var (
 		[]string{"instance_id", "job_id"},
 	)
 
-	// Yeni detaylı metrikler
+	// New detailed metrics
 	CronjobMemoryUsage = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "cronjob_memory_usage_bytes",
