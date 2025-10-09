@@ -46,6 +46,7 @@ func App() *Manager {
 			Cache:     &cache.Cache{},
 			Kafka:     &conn.Kraft{},
 			Redis:     &conn.Redis{},
+			Cron:      cron.New(),
 			Validator: validator.New(),
 			// the secret key will change every time the application is restarted.
 			SecretKey: "asdf1234", //RandomString(8),
@@ -61,17 +62,17 @@ func App() *Manager {
 		// Connect to Postgres DB
 		instance.DB.ConnectDatabase()
 		// Connect to Kafka Kraft
-		if kraft, err := conn.NewKafkaClient(); err != nil {
+		/* if kraft, err := conn.NewKafkaClient(); err != nil {
 			log.Println(err)
 		} else {
 			instance.Kafka = kraft
-		}
+		} */
 		// Connect to Elastic Search
-		if es, err := conn.NewESClient(); err != nil {
+		/* if es, err := conn.NewESClient(); err != nil {
 			log.Println(err)
 		} else {
 			instance.ES = es
-		}
+		} */
 	}
 	return instance
 }
