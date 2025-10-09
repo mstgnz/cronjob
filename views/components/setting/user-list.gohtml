@@ -104,7 +104,7 @@
 
 {{define "js"}}
 <script>
-document.addEventListener("htmx:load", function() {
+document.addEventListener("DOMContentLoaded", function() {
     loadUsers = (url) => {
         fetch(url)
         .then(response => response.json())
@@ -130,9 +130,9 @@ document.addEventListener("htmx:load", function() {
                             <button class="btn btn-warning" data-user='${JSON.stringify(user)}'>
                             <i class="bi bi-key-fill"></i>
                             </button>
-                            <button class="btn btn-danger" data-id="${user.id}">
+                            {{/* <button class="btn btn-danger" data-id="${user.id}">
                                 <i class="bi bi-trash-fill"></i>
-                            </button>
+                            </button> */}}
                         </div>
                     </td>
                 </tr>
