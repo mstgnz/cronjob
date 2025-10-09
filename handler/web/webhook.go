@@ -66,7 +66,7 @@ func (h *WebhookHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 
 	// requests
 	request := &models.Request{}
-	requests, _ := request.Get(cUser.ID, 0, "")
+	requests, _ := request.Get(cUser.ID, 0, 0, "")
 	requestList := `<select class="form-select" name="request_id">`
 	for _, request := range requests {
 		requestList += fmt.Sprintf(`<option value="%d">%s</option>`, request.ID, request.Url)

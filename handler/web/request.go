@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -23,6 +24,26 @@ type RequestHandler struct {
 }
 
 func (h *RequestHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
+
+	groupID := r.URL.Query().Get("group_id")
+
+	if groupID != "" {
+		cUser, _ := r.Context().Value(config.CKey("user")).(*models.User)
+
+		groupIDInt, _ := strconv.Atoi(groupID)
+
+		request := &models.Request{}
+		requests, _ := request.Get(cUser.ID, 0, groupIDInt, "")
+
+		requestSelect := `<option value="0" selected disabled>Choose Request</option>`
+		for _, v := range requests {
+			requestSelect += fmt.Sprintf(`<option value="%d">%s</option>`, v.ID, v.Url)
+		}
+
+		_, _ = w.Write([]byte(requestSelect))
+		return nil
+	}
+
 	_, group := h.group.ListService(w, r)
 	_, requests := h.request.ListService(w, r)
 	return load.Render(w, r, "request", map[string]any{"lists": requests.Data, "groups": group.Data}, "request/list", "request/header", "request/new")
@@ -133,7 +154,14 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 }
 
 func (h *RequestHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := response.ConvertStringIDsToInt(r, "group_id")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil

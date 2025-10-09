@@ -71,12 +71,15 @@ func (m *Request) Count(userID int) int {
 	return rowCount
 }
 
-func (m *Request) Get(userID, id int, url string) ([]*Request, error) {
+func (m *Request) Get(userID, id, groupID int, url string) ([]*Request, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["REQUESTS"], ";")
 
 	if id > 0 {
 		query += fmt.Sprintf(" AND r.id=%d", id)
+	}
+	if groupID > 0 {
+		query += fmt.Sprintf(" AND r.group_id=%d", groupID)
 	}
 	if url != "" {
 		query += fmt.Sprintf(" AND r.url='%s'", url)

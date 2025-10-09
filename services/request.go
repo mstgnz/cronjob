@@ -26,7 +26,7 @@ func (h *RequestService) ListService(w http.ResponseWriter, r *http.Request) (in
 	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	url := r.URL.Query().Get("url")
 
-	requests, err := request.Get(cUser.ID, id, url)
+	requests, err := request.Get(cUser.ID, id, 0, url)
 	if err != nil {
 		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 	}
