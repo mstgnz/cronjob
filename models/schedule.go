@@ -382,3 +382,29 @@ func (m *Schedule) queryPrepare(query string) []*Schedule {
 
 	return schedules
 }
+
+func (m *Schedule) GroupExists(groupID int) (bool, error) {
+	exists := 0
+
+	// prepare
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["SCHEDULES_GROUP_EXISTS"])
+	if err != nil {
+		return false, err
+	}
+
+	// query
+	rows, err := stmt.Query(groupID)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&exists); err != nil {
+			return false, err
+		}
+	}
+	return exists > 0, nil
+}

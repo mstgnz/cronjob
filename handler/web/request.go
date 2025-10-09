@@ -18,12 +18,14 @@ import (
 
 type RequestHandler struct {
 	request *services.RequestService
+	group   *services.GroupService
 	header  *services.RequestHeaderService
 }
 
 func (h *RequestHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
+	_, group := h.group.ListService(w, r)
 	_, requests := h.request.ListService(w, r)
-	return load.Render(w, r, "request", map[string]any{"lists": requests.Data}, "request/list", "request/header", "request/new")
+	return load.Render(w, r, "request", map[string]any{"lists": requests.Data, "groups": group.Data}, "request/list", "request/header", "request/new")
 }
 
 func (h *RequestHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
@@ -52,6 +54,7 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 	_, response := h.request.ListService(w, r)
 
 	data, _ := response.Data["requests"].([]*models.Request)
+
 	var updatedAt = ""
 	if data[0].UpdatedAt != nil {
 		updatedAt = data[0].UpdatedAt.Format("2006-01-02 15:04:05")
@@ -84,9 +87,23 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 		deactiveSelected = "selected"
 	}
 
+	group := &models.Group{}
+	groups, _ := group.Get(data[0].UserID, 0, 0)
+
+	groupSelect := `<select class="form-select" name="group_id">`
+	for _, v := range groups {
+		if v.ID == data[0].GroupID {
+			groupSelect += fmt.Sprintf(`<option value="%d" selected>%s</option>`, v.ID, v.Name)
+		} else {
+			groupSelect += fmt.Sprintf(`<option value="%d">%s</option>`, v.ID, v.Name)
+		}
+	}
+	groupSelect += `</select>`
+
 	form := fmt.Sprintf(`
 		<tr hx-put="/requests/%d" hx-trigger='cancel' hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" class='editing'>
 			<th scope="row">%d</th>
+			<td>%s</td>
             <td><input name="url" class="form-control" value="%s"></td>
             <td><select class="form-select" name="method">
                     <option value="GET" %s>GET</option>
@@ -109,7 +126,7 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Url, methodGetSelected, methodPostSelected, methodPutSelected, methodPatchSelected, methodDeleteSelected, data[0].Content, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, groupSelect, data[0].Url, methodGetSelected, methodPostSelected, methodPutSelected, methodPatchSelected, methodDeleteSelected, data[0].Content, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil
@@ -191,6 +208,7 @@ func (h *RequestHandler) PaginationHandler(w http.ResponseWriter, r *http.Reques
             <td>%s</td>
             <td>%s</td>
             <td>%s</td>
+            <td>%s</td>
             <td>%v</td>
             <td>%s</td>
             <td>%s</td>
@@ -228,7 +246,7 @@ func (h *RequestHandler) PaginationHandler(w http.ResponseWriter, r *http.Reques
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Url, v.Method, v.Content, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataRequest, v.ID, v.ID)
+        </tr>`, v.ID, v.Group.Name, v.Url, v.Method, v.Content, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataRequest, v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil

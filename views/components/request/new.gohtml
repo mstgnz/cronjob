@@ -5,6 +5,15 @@
     <div class="col-6 mt-2">
         <form hx-post="/requests" hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" novalidate autocomplete="off">
             <div class="form-floating mb-2">
+                <select class="form-select" name="group_id" required>
+                    <option value="0" selected>Choose Group</option>
+                    {{ range .groups.groups }}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                </select>
+                <label for="group_id">Group</label>
+            </div>
+            <div class="form-floating mb-2">
                 <input type="text" class="form-control" name="url" placeholder="Url" required>
                 <label for="url">Url</label>
             </div>

@@ -115,6 +115,7 @@ CREATE SEQUENCE IF NOT EXISTS requests_id_seq;
 CREATE TABLE "public"."requests" (
     "id" int4 NOT NULL DEFAULT nextval('requests_id_seq'::regclass),
     "user_id" int4 NOT NULL,
+    "group_id" int4 NOT NULL,
     "url" varchar NOT NULL,
     "method" varchar NOT NULL CHECK ((method)::text = ANY (ARRAY['GET'::text, 'POST'::text, 'PUT'::text, 'DELETE'::text, 'PATCH'::text])),
     "content" jsonb,
@@ -234,6 +235,7 @@ ALTER TABLE "public"."notify_emails" ADD FOREIGN KEY ("notification_id") REFEREN
 ALTER TABLE "public"."notify_messages" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."request_headers" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."requests" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
 ALTER TABLE "public"."schedule_logs" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
 ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");

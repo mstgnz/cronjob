@@ -78,19 +78,20 @@ UPDATE groups SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
 SELECT count(*) FROM requests WHERE user_id=$1 AND deleted_at isnull;
 
 -- REQUESTS_PAGINATE
-SELECT r.*, u.fullname FROM requests r 
+SELECT r.*, u.fullname, g.name as group_name FROM requests r 
 JOIN users u ON u.id=r.user_id 
+JOIN groups g ON g.id=r.group_id
 WHERE (r.url ilike $1 OR r.method ilike $1 OR r.content::text ilike $1 OR u.fullname ilike $1) AND r.user_id=$2 AND r.deleted_at isnull 
 ORDER BY r.id DESC offset $3 LIMIT $4;
 
 -- REQUESTS
-SELECT * FROM requests WHERE user_id=$1 AND deleted_at isnull;
+SELECT r.*, g.name as group_name FROM requests r JOIN groups g ON g.id=r.group_id WHERE r.user_id=$1 AND r.deleted_at isnull;
 
 -- REQUESTS_WITH_ID
-SELECT * FROM requests WHERE user_id=$1 AND id=$2 AND deleted_at isnull;
+SELECT r.*, g.name as group_name FROM requests r JOIN groups g ON g.id=r.group_id WHERE r.user_id=$1 AND id=$2 AND r.deleted_at isnull;
 
 -- REQUEST_INSERT
-INSERT INTO requests (user_id,url,method,content,active) VALUES ($1,$2,$3,$4,$5) RETURNING id,user_id,url,method,content,active;
+INSERT INTO requests (user_id,group_id,url,method,content,active) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id,user_id,group_id,url,method,content,active;
 
 -- REQUEST_URL_EXISTS_WITH_USER
 SELECT count(*) FROM requests WHERE url=$1 AND user_id=$2 AND deleted_at isnull;
@@ -98,9 +99,11 @@ SELECT count(*) FROM requests WHERE url=$1 AND user_id=$2 AND deleted_at isnull;
 -- REQUEST_ID_EXISTS_WITH_USER
 SELECT count(*) FROM requests WHERE id=$1 AND user_id=$2 AND deleted_at isnull;
 
+-- REQUEST_GROUP_EXISTS
+SELECT count(*) FROM requests WHERE group_id=$1 AND deleted_at isnull;
+
 -- REQUEST_DELETE
 UPDATE requests SET deleted_at=$1, updated_at=$2 WHERE id=$3 AND user_id=$4;
-
 
 -- REQUEST_HEADERS_COUNT
 SELECT count(rh.*) FROM request_headers rh JOIN requests r ON r.id=rh.request_id WHERE r.user_id=$1 AND rh.deleted_at isnull;
@@ -159,6 +162,9 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,user_id,group_id,request_id,notifi
 
 -- SCHEDULES_ID_EXISTS_WITH_USER
 SELECT count(*) FROM schedules WHERE id=$1 AND user_id=$2 AND deleted_at isnull;
+
+-- SCHEDULES_GROUP_EXISTS
+SELECT count(*) FROM schedules WHERE group_id=$1 AND deleted_at isnull;
 
 -- SCHEDULES_TIMING_EXISTS_WITH_USER
 SELECT count(*) FROM schedules WHERE user_id=$1 AND request_id=$2 AND timing=$3 AND deleted_at isnull;

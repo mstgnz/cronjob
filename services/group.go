@@ -146,6 +146,21 @@ func (s *GroupService) DeleteService(w http.ResponseWriter, r *http.Request) (in
 		return http.StatusNotFound, response.Response{Status: false, Message: "Group not found"}
 	}
 
+	// schedules and requests check
+	schedules := &models.Schedule{}
+	requests := &models.Request{}
+	schedulesCount, err := schedules.GroupExists(id)
+	if err != nil {
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+	}
+	requestsCount, err := requests.GroupExists(id)
+	if err != nil {
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+	}
+	if schedulesCount || requestsCount {
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Group has schedules or requests"}
+	}
+
 	err = groups.Delete(id, cUser.ID)
 
 	if err != nil {

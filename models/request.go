@@ -12,11 +12,13 @@ import (
 type Request struct {
 	ID             int              `json:"id"`
 	UserID         int              `json:"user_id" validate:"number"`
+	GroupID        int              `json:"group_id" validate:"required,number"`
 	Url            string           `json:"url" validate:"required,url"`
 	Method         string           `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
 	Content        json.RawMessage  `json:"content" validate:"omitempty,json"`
 	Active         bool             `json:"active" validate:"boolean"`
 	User           *User            `json:"user,omitempty"`
+	Group          *Group           `json:"group,omitempty"`
 	RequestHeaders []*RequestHeader `json:"request_headers,omitempty"`
 	CreatedAt      *time.Time       `json:"created_at,omitempty"`
 	UpdatedAt      *time.Time       `json:"updated_at,omitempty"`
@@ -24,6 +26,7 @@ type Request struct {
 }
 
 type RequestUpdate struct {
+	GroupID int    `json:"group_id" validate:"omitempty,number"`
 	UserID  int    `json:"user_id" validate:"omitempty,number"`
 	Url     string `json:"url" validate:"omitempty,url"`
 	Method  string `json:"method" validate:"omitempty,oneof=GET POST PUT PATCH"`
@@ -32,6 +35,7 @@ type RequestUpdate struct {
 }
 
 type RequestBulk struct {
+	GroupID        int                  `json:"group_id" validate:"omitempty,number"`
 	UserID         int                  `json:"user_id" validate:"number"`
 	Url            string               `json:"url" validate:"required,url"`
 	Method         string               `json:"method" validate:"required,oneof=GET POST PUT PATCH"`
@@ -72,10 +76,10 @@ func (m *Request) Get(userID, id int, url string) ([]*Request, error) {
 	query := strings.TrimSuffix(config.App().QUERY["REQUESTS"], ";")
 
 	if id > 0 {
-		query += fmt.Sprintf(" AND id=%d", id)
+		query += fmt.Sprintf(" AND r.id=%d", id)
 	}
 	if url != "" {
-		query += fmt.Sprintf(" AND url='%s'", url)
+		query += fmt.Sprintf(" AND r.url='%s'", url)
 	}
 
 	// prepare
@@ -96,8 +100,10 @@ func (m *Request) Get(userID, id int, url string) ([]*Request, error) {
 
 	requests := []*Request{}
 	for rows.Next() {
-		request := &Request{}
-		if err := rows.Scan(&request.ID, &request.UserID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt); err != nil {
+		request := &Request{
+			Group: &Group{},
+		}
+		if err := rows.Scan(&request.ID, &request.UserID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt, &request.GroupID, &request.Group.Name); err != nil {
 			return nil, err
 		}
 		requests = append(requests, request)
@@ -126,10 +132,11 @@ func (m *Request) Paginate(userID, offset, limit int, search string) []*Request 
 	}()
 	for rows.Next() {
 		request := &Request{
-			User: &User{},
+			User:  &User{},
+			Group: &Group{},
 		}
 
-		if err := rows.Scan(&request.ID, &request.UserID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt, &request.User.Fullname); err != nil {
+		if err := rows.Scan(&request.ID, &request.UserID, &request.Url, &request.Method, &request.Content, &request.Active, &request.CreatedAt, &request.UpdatedAt, &request.DeletedAt, &request.GroupID, &request.User.Fullname, &request.Group.Name); err != nil {
 			return requests
 		}
 
@@ -146,7 +153,7 @@ func (m *Request) Create(exec any) error {
 	}
 
 	// user_id,url,method,content,active
-	err = stmt.QueryRow(m.UserID, m.Url, m.Method, m.Content, m.Active).Scan(&m.ID, &m.UserID, &m.Url, &m.Method, &m.Content, &m.Active)
+	err = stmt.QueryRow(m.UserID, m.GroupID, m.Url, m.Method, m.Content, m.Active).Scan(&m.ID, &m.UserID, &m.GroupID, &m.Url, &m.Method, &m.Content, &m.Active)
 	if err != nil {
 		return err
 	}
@@ -260,4 +267,30 @@ func (m *Request) Delete(id, userID int) error {
 	}
 
 	return nil
+}
+
+func (m *Request) GroupExists(groupID int) (bool, error) {
+	exists := 0
+
+	// prepare
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["REQUEST_GROUP_EXISTS"])
+	if err != nil {
+		return false, err
+	}
+
+	// query
+	rows, err := stmt.Query(groupID)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&exists); err != nil {
+			return false, err
+		}
+	}
+	return exists > 0, nil
 }

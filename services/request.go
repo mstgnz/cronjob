@@ -94,6 +94,11 @@ func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	params := []any{}
 	paramCount := 1
 
+	if updateData.GroupID != 0 {
+		queryParts = append(queryParts, fmt.Sprintf("group_id=$%d,", paramCount))
+		params = append(params, updateData.GroupID)
+		paramCount++
+	}
 	if updateData.Url != "" {
 		queryParts = append(queryParts, fmt.Sprintf("url=$%d,", paramCount))
 		params = append(params, updateData.Url)
@@ -177,6 +182,7 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 
 	request := &models.Request{
 		UserID:  cUser.ID,
+		GroupID: bulk.GroupID,
 		Url:     bulk.Url,
 		Method:  bulk.Method,
 		Content: json.RawMessage(bulk.Content),
