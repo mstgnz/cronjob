@@ -1,8 +1,6 @@
 module github.com/mstgnz/cronjob
 
-go 1.22.7
-
-toolchain go1.23.4
+go 1.25
 
 require (
 	github.com/IBM/sarama v1.43.2
