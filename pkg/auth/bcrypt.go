@@ -5,7 +5,7 @@ import (
 )
 
 func HashAndSalt(password string) string {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(hash)
 }
 

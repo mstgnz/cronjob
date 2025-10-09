@@ -50,7 +50,14 @@ func (h *RequestHandler) HomeHandler(w http.ResponseWriter, r *http.Request) err
 }
 
 func (h *RequestHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {
-	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
+	jsonData, err := response.ConvertStringIDsToInt(r, "group_id")
+	if err != nil {
+		_, _ = w.Write([]byte(err.Error()))
+		return nil
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return nil

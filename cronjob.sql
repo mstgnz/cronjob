@@ -1,3 +1,14 @@
+-- -------------------------------------------------------------
+-- TablePlus 6.7.1(636)
+--
+-- https://tableplus.com/
+--
+-- Database: cron
+-- Generation Time: 2025-10-09 16:12:24.4560
+-- -------------------------------------------------------------
+
+
+DROP TABLE IF EXISTS "public"."app_logs";
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS app_logs_id_seq;
 
@@ -13,8 +24,7 @@ CREATE TABLE "public"."app_logs" (
 -- Column Comment
 COMMENT ON COLUMN "public"."app_logs"."level" IS 'info, error, warning, debug';
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
-
+DROP TABLE IF EXISTS "public"."groups";
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS groups_id_seq;
 
@@ -34,8 +44,29 @@ CREATE TABLE "public"."groups" (
 -- Column Comment
 COMMENT ON COLUMN "public"."groups"."uid" IS 'parent id';
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
+DROP TABLE IF EXISTS "public"."requests";
+-- Sequence and defined type
+CREATE SEQUENCE IF NOT EXISTS requests_id_seq;
 
+-- Table Definition
+CREATE TABLE "public"."requests" (
+    "id" int4 NOT NULL DEFAULT nextval('requests_id_seq'::regclass),
+    "user_id" int4 NOT NULL,
+    "url" varchar NOT NULL,
+    "method" varchar NOT NULL CHECK ((method)::text = ANY (ARRAY['GET'::text, 'POST'::text, 'PUT'::text, 'DELETE'::text, 'PATCH'::text])),
+    "content" jsonb,
+    "active" bool NOT NULL DEFAULT true,
+    "created_at" timestamp DEFAULT now(),
+    "updated_at" timestamp,
+    "deleted_at" timestamp,
+    "group_id" int4 NOT NULL,
+    PRIMARY KEY ("id")
+);
+
+-- Column Comment
+COMMENT ON COLUMN "public"."requests"."method" IS 'GET-POST-PUT-DELETE-PATCH';
+
+DROP TABLE IF EXISTS "public"."notifications";
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS notifications_id_seq;
 
@@ -54,8 +85,7 @@ CREATE TABLE "public"."notifications" (
     PRIMARY KEY ("id")
 );
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
-
+DROP TABLE IF EXISTS "public"."notify_emails";
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS notify_emails_id_seq;
 
@@ -71,8 +101,7 @@ CREATE TABLE "public"."notify_emails" (
     PRIMARY KEY ("id")
 );
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
-
+DROP TABLE IF EXISTS "public"."notify_messages";
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS notify_messages_id_seq;
 
@@ -88,8 +117,7 @@ CREATE TABLE "public"."notify_messages" (
     PRIMARY KEY ("id")
 );
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
-
+DROP TABLE IF EXISTS "public"."request_headers";
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS request_headers_id_seq;
 
@@ -106,52 +134,7 @@ CREATE TABLE "public"."request_headers" (
     PRIMARY KEY ("id")
 );
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
-
--- Sequence and defined type
-CREATE SEQUENCE IF NOT EXISTS requests_id_seq;
-
--- Table Definition
-CREATE TABLE "public"."requests" (
-    "id" int4 NOT NULL DEFAULT nextval('requests_id_seq'::regclass),
-    "user_id" int4 NOT NULL,
-    "group_id" int4 NOT NULL,
-    "url" varchar NOT NULL,
-    "method" varchar NOT NULL CHECK ((method)::text = ANY (ARRAY['GET'::text, 'POST'::text, 'PUT'::text, 'DELETE'::text, 'PATCH'::text])),
-    "content" jsonb,
-    "active" bool NOT NULL DEFAULT true,
-    "created_at" timestamp DEFAULT now(),
-    "updated_at" timestamp,
-    "deleted_at" timestamp,
-    PRIMARY KEY ("id")
-);
-
--- Column Comment
-COMMENT ON COLUMN "public"."requests"."method" IS 'GET-POST-PUT-DELETE-PATCH';
-
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
-
--- Sequence and defined type
-CREATE SEQUENCE IF NOT EXISTS schedule_logs_id_seq;
-
--- Table Definition
-CREATE TABLE "public"."schedule_logs" (
-    "id" int4 NOT NULL DEFAULT nextval('schedule_logs_id_seq'::regclass),
-    "schedule_id" int4 NOT NULL,
-    "started_at" timestamp NOT NULL,
-    "finished_at" timestamp NOT NULL,
-    "took" float4 NOT NULL,
-    "result" text NOT NULL,
-    "created_at" timestamp DEFAULT now(),
-    PRIMARY KEY ("id")
-);
-
--- Column Comment
-COMMENT ON COLUMN "public"."schedule_logs"."took" IS 'processing time';
-COMMENT ON COLUMN "public"."schedule_logs"."result" IS 'endpoint response';
-
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
-
+DROP TABLE IF EXISTS "public"."schedules";
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS schedules_id_seq;
 
@@ -180,8 +163,27 @@ COMMENT ON COLUMN "public"."schedules"."retries" IS 'Select the number of retrie
 COMMENT ON COLUMN "public"."schedules"."running" IS 'will be true when triggered and false again when it is done.';
 COMMENT ON COLUMN "public"."schedules"."active" IS 'if active, it will be triggered in due time';
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
+DROP TABLE IF EXISTS "public"."schedule_logs";
+-- Sequence and defined type
+CREATE SEQUENCE IF NOT EXISTS schedule_logs_id_seq;
 
+-- Table Definition
+CREATE TABLE "public"."schedule_logs" (
+    "id" int4 NOT NULL DEFAULT nextval('schedule_logs_id_seq'::regclass),
+    "schedule_id" int4 NOT NULL,
+    "started_at" timestamp NOT NULL,
+    "finished_at" timestamp NOT NULL,
+    "took" float4 NOT NULL,
+    "result" text NOT NULL,
+    "created_at" timestamp DEFAULT now(),
+    PRIMARY KEY ("id")
+);
+
+-- Column Comment
+COMMENT ON COLUMN "public"."schedule_logs"."took" IS 'processing time';
+COMMENT ON COLUMN "public"."schedule_logs"."result" IS 'endpoint response';
+
+DROP TABLE IF EXISTS "public"."triggered";
 -- Table Definition
 CREATE TABLE "public"."triggered" (
     "schedule_id" int4 NOT NULL
@@ -190,8 +192,23 @@ CREATE TABLE "public"."triggered" (
 -- Column Comment
 COMMENT ON COLUMN "public"."triggered"."schedule_id" IS 'database lock will be used, there can be only one schedule_id record. it will be deleted when the process is complete.';
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
+DROP TABLE IF EXISTS "public"."webhooks";
+-- Sequence and defined type
+CREATE SEQUENCE IF NOT EXISTS webhooks_id_seq;
 
+-- Table Definition
+CREATE TABLE "public"."webhooks" (
+    "id" int4 NOT NULL DEFAULT nextval('webhooks_id_seq'::regclass),
+    "schedule_id" int4 NOT NULL,
+    "request_id" int4 NOT NULL,
+    "active" bool NOT NULL,
+    "created_at" timestamp DEFAULT now(),
+    "updated_at" timestamp,
+    "deleted_at" timestamp,
+    PRIMARY KEY ("id")
+);
+
+DROP TABLE IF EXISTS "public"."users";
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS users_id_seq;
 
@@ -211,36 +228,19 @@ CREATE TABLE "public"."users" (
     PRIMARY KEY ("id")
 );
 
--- This script only contains the table creation statements and does not fully represent the table in the database. It's still missing: indices, triggers. Do not use it as a backup.
-
--- Sequence and defined type
-CREATE SEQUENCE IF NOT EXISTS webhooks_id_seq;
-
--- Table Definition
-CREATE TABLE "public"."webhooks" (
-    "id" int4 NOT NULL DEFAULT nextval('webhooks_id_seq'::regclass),
-    "schedule_id" int4 NOT NULL,
-    "request_id" int4 NOT NULL,
-    "active" bool NOT NULL,
-    "created_at" timestamp DEFAULT now(),
-    "updated_at" timestamp,
-    "deleted_at" timestamp,
-    PRIMARY KEY ("id")
-);
-
-ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."requests" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
+ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."notifications" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."notify_emails" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."notify_messages" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."request_headers" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."requests" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."requests" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
-ALTER TABLE "public"."schedule_logs" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
-ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
-ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
 ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id");
+ALTER TABLE "public"."schedules" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id");
+ALTER TABLE "public"."schedule_logs" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."triggered" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("request_id") REFERENCES "public"."requests"("id") ON DELETE CASCADE;
+ALTER TABLE "public"."webhooks" ADD FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("id") ON DELETE CASCADE;

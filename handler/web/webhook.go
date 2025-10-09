@@ -17,11 +17,15 @@ import (
 )
 
 type WebhookHandler struct {
-	webhook *services.WebhookService
+	group    *services.GroupService
+	webhook  *services.WebhookService
+	schedule *services.ScheduleService
 }
 
 func (h *WebhookHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
-	return load.Render(w, r, "webhook", map[string]any{}, "webhook/list", "webhook/new")
+	_, group := h.group.ListService(w, r)
+	_, schedules := h.schedule.ListService(w, r)
+	return load.Render(w, r, "webhook", map[string]any{"schedules": schedules.Data, "groups": group.Data}, "webhook/list", "webhook/new")
 }
 
 func (h *WebhookHandler) CreateHandler(w http.ResponseWriter, r *http.Request) error {

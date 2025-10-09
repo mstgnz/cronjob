@@ -45,7 +45,9 @@ func AddSchedules(c *cron.Cron, schedules []*models.Schedule, scheduleMap map[in
 			continue
 		}
 		if _, exists := scheduleMap[schedule.ID]; !exists {
-			id, err := c.AddFunc(schedule.Timing, func() {
+			// Capture the schedule variable by value to avoid closure issues
+			currentSchedule := schedule
+			id, err := c.AddFunc(currentSchedule.Timing, func() {
 				defer func() {
 					if r := recover(); r != nil {
 						logger.Warn("Recovered from panic in schedule", fmt.Sprintf("%v", r))
@@ -55,34 +57,40 @@ func AddSchedules(c *cron.Cron, schedules []*models.Schedule, scheduleMap map[in
 				startAt := time.Now()
 
 				client := &http.Client{
-					Timeout: time.Duration(schedule.Timeout) * time.Second,
+					Timeout: time.Duration(currentSchedule.Timeout) * time.Second,
 					CheckRedirect: func(req *http.Request, via []*http.Request) error {
 						return http.ErrUseLastResponse
 					},
 				}
-				req, err := http.NewRequest(schedule.Request.Method, schedule.Request.Url, strings.NewReader(string(schedule.Request.Content)))
+				req, err := http.NewRequest(currentSchedule.Request.Method, currentSchedule.Request.Url, strings.NewReader(string(currentSchedule.Request.Content)))
 				if err != nil {
 					logger.Warn("Schedule Request Error", err.Error())
 					return
 				}
 
-				for _, header := range schedule.Request.RequestHeaders {
+				for _, header := range currentSchedule.Request.RequestHeaders {
 					req.Header.Set(header.Key, header.Value)
 				}
 
-				triggered.Create(schedule.ID)
-				scheduleUpdate(schedule, true)
+				triggered.Create(currentSchedule.ID)
+				scheduleUpdate(currentSchedule, true)
 				var resp *http.Response
-				for retries := 0; retries < schedule.Retries; retries++ {
+				for retries := 0; retries < currentSchedule.Retries; retries++ {
 					resp, err = client.Do(req)
 					if err == nil {
 						break
 					}
-					logger.Warn("Schedule Do Error, retrying", fmt.Sprintf("Attempt %d/%d: %v", retries+1, schedule.Retries, err.Error()))
+					logger.Warn("Schedule Do Error, retrying", fmt.Sprintf("Attempt %d/%d: %v", retries+1, currentSchedule.Retries, err.Error()))
 					time.Sleep(1 * time.Second)
 				}
-				scheduleUpdate(schedule, false)
-				triggered.Delete(schedule.ID)
+				scheduleUpdate(currentSchedule, false)
+				triggered.Delete(currentSchedule.ID)
+
+				// Check if resp is nil before accessing it
+				if resp == nil {
+					logger.Warn("Schedule Error", "All retries failed, no response received")
+					return
+				}
 				defer resp.Body.Close()
 
 				body, err := io.ReadAll(resp.Body)
@@ -90,16 +98,16 @@ func AddSchedules(c *cron.Cron, schedules []*models.Schedule, scheduleMap map[in
 					logger.Warn("Schedule Body Error", err.Error())
 					return
 				}
-				notification(schedule, body)
+				notification(currentSchedule, body)
 
 				finishAt := time.Now()
 				scheduleLog.StartedAt = &startAt
 				scheduleLog.FinishedAt = &finishAt
 				scheduleLog.Took = float32(finishAt.Sub(startAt).Seconds())
 				scheduleLog.Result = string(body)
-				scheduleLog.Create(schedule.ID)
+				scheduleLog.Create(currentSchedule.ID)
 
-				webhooks(schedule)
+				webhooks(currentSchedule)
 			})
 			if err != nil {
 				logger.Warn("Schedule Error", err.Error())

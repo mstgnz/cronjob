@@ -49,7 +49,7 @@ func App() *Manager {
 			Cron:      cron.New(),
 			Validator: validator.New(),
 			// the secret key will change every time the application is restarted.
-			SecretKey: "asdf1234", //RandomString(8),
+			SecretKey: os.Getenv("JWT_SECRET"), //RandomString(8),
 			Mail: &response.Mail{
 				From: os.Getenv("MAIL_FROM"),
 				Name: os.Getenv("MAIL_FROM_NAME"),
