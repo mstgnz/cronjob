@@ -14,7 +14,7 @@ help: makefile
 	@echo
 
 ## run: Build the Docker image and run the container
-run: cleanC create_network connect build
+run: build cleanC 
 	@docker run -d \
 		--env-file .env \
 		--restart always \
