@@ -72,6 +72,23 @@ func (h *RequestHandler) CreateHandler(w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
+func (h *RequestHandler) ModalCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	jsonData, err := response.ConvertStringIDsToInt(r, "group_id")
+	if err != nil {
+		return response.WriteJSON(w, http.StatusBadRequest, response.Response{Status: false, Message: err.Error()})
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
+	if err != nil {
+		return response.WriteJSON(w, http.StatusBadRequest, response.Response{Status: false, Message: err.Error()})
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	code, resp := h.request.CreateService(w, r)
+	return response.WriteJSON(w, code, resp)
+}
+
 func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) error {
 
 	id := chi.URLParam(r, "id")

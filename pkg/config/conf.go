@@ -77,7 +77,7 @@ func App() *Manager {
 	return instance
 }
 
-func StructToMap(obj interface{}) map[string]any {
+func StructToMap(obj any) map[string]any {
 	result := make(map[string]any)
 	v := reflect.ValueOf(obj)
 	t := reflect.TypeOf(obj)

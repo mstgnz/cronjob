@@ -4,30 +4,39 @@
 <div class="row justify-content-center mt-2">
     <div class="col-8">
         <form hx-post="/schedules" hx-target="#toast" hx-swap="innerHTML" hx-ext="json-enc" novalidate autocomplete="off">
-            <div class="form-floating mb-2">
-                <select class="form-select" name="group_id" required hx-get="/requests{{.group_id}}" hx-target="#request_id" hx-swap="innerHTML">
-                    <option value="0" selected>Choose Group</option>
-                    {{ range .groups.groups }}
-                    <option value="{{.ID}}">{{.Name}}</option>
-                    {{end}}
-                </select>
-                <label for="group_id">Group</label>
+            <div class="input-group mb-3">
+                <div class="form-floating flex-grow-1">
+                    <select class="form-select" name="group_id" required hx-get="/requests{{.group_id}}" hx-target="#request_id" hx-swap="innerHTML">
+                        <option value="0" selected>Choose Group</option>
+                        {{ range .groups.groups }}
+                        <option value="{{.ID}}">{{.Name}}</option>
+                        {{end}}
+                    </select>
+                    <label for="group_id">Group</label>
+                </div>
+                <button class="btn btn-primary h-100" type="button" onclick="openGroupModal()">New</button>
             </div>
-            <div class="form-floating mb-2">
-                <!-- get request from group id -->
-                <select class="form-select" name="request_id" required id="request_id">
-                    <option value="0" selected disabled>Choose Request</option>
-                </select>
-                <label for="request_id">Request</label>
+            <div class="input-group mb-3">
+                <div class="form-floating flex-grow-1">
+                    <!-- get request from group id -->
+                    <select class="form-select" name="request_id" required id="request_id">
+                        <option value="0" selected disabled>Choose Request</option>
+                    </select>
+                    <label for="request_id">Request</label>
+                </div>
+                <button class="btn btn-primary h-100" type="button" onclick="openRequestModal()">New</button>
             </div>
-            <div class="form-floating mb-2">
-                <select class="form-select" name="notification_id" required>
-                    <option value="0" selected>Choose Notification</option>
-                    {{ range .notifications.notifications }}
-                    <option value="{{.ID}}">{{.Title}}</option>
-                    {{end}}
-                </select>
-                <label for="notification_id">Notification</label>
+            <div class="input-group mb-3">
+                <div class="form-floating flex-grow-1">
+                    <select class="form-select" name="notification_id" required>
+                        <option value="0" selected>Choose Notification</option>
+                        {{ range .notifications.notifications }}
+                        <option value="{{.ID}}">{{.Title}}</option>
+                        {{end}}
+                    </select>
+                    <label for="notification_id">Notification</label>
+                </div>
+                <button class="btn btn-primary h-100" type="button" onclick="openNotificationModal()">New</button>
             </div>
             <div class="form-floating mb-2">
                 <input type="text" class="form-control" name="timing" placeholder="timing" required>
@@ -52,4 +61,365 @@
         </form>
     </div>
 </div>
+
+<!-- Group Modal -->
+<div class="modal fade" id="groupModal" tabindex="-1" aria-labelledby="groupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="groupModalLabel">New Group</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="groupModalForm" hx-post="/groups/modal" hx-target="#groupModalResponse" hx-swap="innerHTML" hx-ext="json-enc" hx-on::after-request="handleGroupCreated(event)" hx-on::htmx:after-request="handleGroupCreated(event)">
+                <div class="modal-body">
+                    <div id="groupModalResponse"></div>
+                    <div class="form-floating mb-2">
+                        <input type="text" class="form-control" name="name" placeholder="Name" required>
+                        <label for="name">Name</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <select class="form-select" name="uid">
+                            <option value="0" selected>Choose Parent (optional)</option>
+                            {{ range .groups.groups }}
+                            <option value="{{.ID}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                        <label for="uid">Parent</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <select class="form-select" name="active">
+                            <option value="true" selected>Active</option>
+                            <option value="false">Deactive</option>
+                        </select>
+                        <label for="active">Status</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Request Modal -->
+<div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="requestModalLabel">New Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="requestModalForm" hx-post="/requests/modal" hx-target="#requestModalResponse" hx-swap="innerHTML" hx-ext="json-enc" hx-on::after-request="handleRequestCreated(event)" hx-on::htmx:after-request="handleRequestCreated(event)">
+                <div class="modal-body">
+                    <div id="requestModalResponse"></div>
+                    <div class="form-floating mb-2">
+                        <select class="form-select" name="group_id" id="requestModalGroupId" required>
+                            <option value="0" selected>Choose Group</option>
+                            {{ range .groups.groups }}
+                            <option value="{{.ID}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                        <label for="requestModalGroupId">Group</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <input type="text" class="form-control" name="url" placeholder="Url" required>
+                        <label for="url">Url</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <select class="form-select" name="method">
+                            <option value="GET" selected>GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="PATCH">PATCH</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                        <label for="method">Method</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <textarea class="form-control" name="content" placeholder="Content" style="height: 100px"></textarea>
+                        <label for="content">Content</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <select class="form-select" name="active">
+                            <option value="true" selected>Active</option>
+                            <option value="false">Deactive</option>
+                        </select>
+                        <label for="active">Status</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">New Notification</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="notificationModalForm" hx-post="/notifications/modal" hx-target="#notificationModalResponse" hx-swap="innerHTML" hx-ext="json-enc" hx-on::after-request="handleNotificationCreated(event)" hx-on::htmx:after-request="handleNotificationCreated(event)">
+                <div class="modal-body">
+                    <div id="notificationModalResponse"></div>
+                    <div class="form-floating mb-2">
+                        <input type="text" class="form-control" name="title" placeholder="title" required>
+                        <label for="title">Title</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <input type="text" class="form-control" name="content" placeholder="content" required>
+                        <label for="content">Content</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <select class="form-select" name="is_mail">
+                            <option value="true" selected>Active</option>
+                            <option value="false">Deactive</option>
+                        </select>
+                        <label for="is_mail">Is Mail</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <select class="form-select" name="is_message">
+                            <option value="true" selected>Active</option>
+                            <option value="false">Deactive</option>
+                        </select>
+                        <label for="is_message">Is Message</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <select class="form-select" name="active">
+                            <option value="true" selected>Active</option>
+                            <option value="false">Deactive</option>
+                        </select>
+                        <label for="active">Status</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Notification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Functions to open modals
+function openGroupModal() {
+    const modalElement = document.getElementById('groupModal');
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+}
+
+function openRequestModal() {
+    const modalElement = document.getElementById('requestModal');
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+}
+
+function openNotificationModal() {
+    const modalElement = document.getElementById('notificationModal');
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+}
+
+// Handle select change for "new" option
+document.addEventListener('DOMContentLoaded', function() {
+    const groupSelect = document.getElementById('group_id');
+    const requestSelect = document.getElementById('request_id');
+    const notificationSelect = document.getElementById('notification_id');
+    const webhookGroupSelect = document.getElementById('webhook_group_id');
+    const webhookRequestSelect = document.getElementById('webhook_request_id');
+    
+    // Group select handler
+    if (groupSelect) {
+        groupSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                openGroupModal();
+                this.value = '0';
+            }
+        });
+    }
+    
+    // Request select handler
+    if (requestSelect) {
+        requestSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                openRequestModal();
+                this.value = '0';
+            }
+        });
+    }
+    
+    // Notification select handler
+    if (notificationSelect) {
+        notificationSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                openNotificationModal();
+                this.value = '0';
+            }
+        });
+    }
+    
+    // Webhook Group select handler
+    if (webhookGroupSelect) {
+        webhookGroupSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                openGroupModal();
+                this.value = '0';
+            }
+        });
+    }
+    
+    // Webhook Request select handler
+    if (webhookRequestSelect) {
+        webhookRequestSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                openRequestModal();
+                this.value = '0';
+            }
+        });
+    }
+});
+
+// Handle group created
+function handleGroupCreated(event) {
+    // Support both htmx event formats
+    const xhr = event.detail?.xhr || event.detail?.elt?.xhr;
+    const status = xhr?.status || (event.detail?.xhr ? event.detail.xhr.status : null);
+    
+    if (status === 201) {
+        const response = JSON.parse(xhr.responseText);
+        if (response.status && response.data && response.data.group) {
+            const group = response.data.group;
+            const groupSelect = document.getElementById('group_id');
+            const webhookGroupSelect = document.getElementById('webhook_group_id');
+            
+            // Add to both selects
+            [groupSelect, webhookGroupSelect].forEach(select => {
+                if (select) {
+                    const option = document.createElement('option');
+                    option.value = group.id;
+                    option.textContent = group.name;
+                    option.selected = true;
+                    // Insert before "new" option
+                    const newOption = select.querySelector('option[value="new"]');
+                    if (newOption) {
+                        select.insertBefore(option, newOption);
+                    } else {
+                        select.appendChild(option);
+                    }
+                }
+            });
+            
+            // Close modal
+            const modalElement = document.getElementById('groupModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) modal.hide();
+            }
+            
+            // Clear form
+            const form = document.getElementById('groupModalForm');
+            if (form) form.reset();
+        }
+    }
+}
+
+// Handle request created
+function handleRequestCreated(event) {
+    // Support both htmx event formats
+    const xhr = event.detail?.xhr || event.detail?.elt?.xhr;
+    const status = xhr?.status || (event.detail?.xhr ? event.detail.xhr.status : null);
+    
+    if (status === 201) {
+        const response = JSON.parse(xhr.responseText);
+        if (response.status && response.data && response.data.request) {
+            const request = response.data.request;
+            const requestSelect = document.getElementById('request_id');
+            const webhookRequestSelect = document.getElementById('webhook_request_id');
+            
+            // Add to both selects
+            [requestSelect, webhookRequestSelect].forEach(select => {
+                if (select) {
+                    const option = document.createElement('option');
+                    option.value = request.id;
+                    option.textContent = request.url;
+                    option.selected = true;
+                    // Insert before "new" option
+                    const newOption = select.querySelector('option[value="new"]');
+                    if (newOption) {
+                        select.insertBefore(option, newOption);
+                    } else {
+                        select.appendChild(option);
+                    }
+                }
+            });
+            
+            // Close modal
+            const modalElement = document.getElementById('requestModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) modal.hide();
+            }
+            
+            // Clear form
+            const form = document.getElementById('requestModalForm');
+            if (form) form.reset();
+        }
+    }
+}
+
+// Handle notification created
+function handleNotificationCreated(event) {
+    // Support both htmx event formats
+    const xhr = event.detail?.xhr || event.detail?.elt?.xhr;
+    const status = xhr?.status || (event.detail?.xhr ? event.detail.xhr.status : null);
+    
+    if (status === 201) {
+        const response = JSON.parse(xhr.responseText);
+        if (response.status && response.data && response.data.notification) {
+            const notification = response.data.notification;
+            const notificationSelect = document.getElementById('notification_id');
+            
+            if (notificationSelect) {
+                const option = document.createElement('option');
+                option.value = notification.id;
+                option.textContent = notification.title;
+                option.selected = true;
+                // Insert before "new" option
+                const newOption = notificationSelect.querySelector('option[value="new"]');
+                if (newOption) {
+                    notificationSelect.insertBefore(option, newOption);
+                } else {
+                    notificationSelect.appendChild(option);
+                }
+            }
+            
+            // Close modal
+            const modalElement = document.getElementById('notificationModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) modal.hide();
+            }
+            
+            // Clear form
+            const form = document.getElementById('notificationModalForm');
+            if (form) form.reset();
+        }
+    }
+}
+</script>
 {{end}}

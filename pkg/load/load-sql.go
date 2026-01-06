@@ -73,7 +73,7 @@ func HasPrefixInList(str string, prefixes []string) bool {
 }
 
 // ContainsElement checks if a value exists in a slice.
-func ContainsElement(val interface{}, array interface{}) bool {
+func ContainsElement(val any, array any) bool {
 	arr := reflect.ValueOf(array)
 	if arr.Kind() != reflect.Slice {
 		return false

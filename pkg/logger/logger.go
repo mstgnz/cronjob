@@ -20,7 +20,7 @@ func logToDB(level string, message string) {
 func Info(message ...string) {
 	msg := strings.Join(message, ", ")
 	slog.Info(msg)
-	logToDB("INFO", msg)
+	//logToDB("INFO", msg)
 }
 
 func Error(message ...string) {

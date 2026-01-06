@@ -48,6 +48,23 @@ func (h *GroupHandler) CreateHandler(w http.ResponseWriter, r *http.Request) err
 	return nil
 }
 
+func (h *GroupHandler) ModalCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	jsonData, err := response.ConvertStringIDsToInt(r, "uid")
+	if err != nil {
+		return response.WriteJSON(w, http.StatusBadRequest, response.Response{Status: false, Message: err.Error()})
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	jsonData, err = response.ConvertStringBoolsToBool(r, "active")
+	if err != nil {
+		return response.WriteJSON(w, http.StatusBadRequest, response.Response{Status: false, Message: err.Error()})
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	code, resp := h.CreateService(w, r)
+	return response.WriteJSON(w, code, resp)
+}
+
 func (h *GroupHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) error {
 	jsonData, err := response.ConvertStringIDsToInt(r, "uid")
 	if err != nil {

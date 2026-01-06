@@ -55,6 +55,27 @@ func (h *NotificationHandler) CreateHandler(w http.ResponseWriter, r *http.Reque
 	return nil
 }
 
+func (h *NotificationHandler) ModalCreateHandler(w http.ResponseWriter, r *http.Request) error {
+	jsonData, err := response.ConvertStringBoolsToBool(r, "active")
+	if err != nil {
+		return response.WriteJSON(w, http.StatusBadRequest, response.Response{Status: false, Message: err.Error()})
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+	jsonData, err = response.ConvertStringBoolsToBool(r, "is_mail")
+	if err != nil {
+		return response.WriteJSON(w, http.StatusBadRequest, response.Response{Status: false, Message: err.Error()})
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+	jsonData, err = response.ConvertStringBoolsToBool(r, "is_message")
+	if err != nil {
+		return response.WriteJSON(w, http.StatusBadRequest, response.Response{Status: false, Message: err.Error()})
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(jsonData)))
+
+	code, resp := h.notify.CreateService(w, r)
+	return response.WriteJSON(w, code, resp)
+}
+
 func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request) error {
 
 	id := chi.URLParam(r, "id")
