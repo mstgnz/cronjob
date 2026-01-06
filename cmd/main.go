@@ -125,6 +125,7 @@ func main() {
 		r.Get("/", Catch(webHomeHandler.HomeHandler))
 		r.Get("/logout", Catch(webUserHandler.LogoutHandler))
 		r.Get("/profile", Catch(webUserHandler.ProfileHandler))
+		r.Put("/profile/change-password", Catch(webUserHandler.ChangePasswordHandler))
 		// schedule
 		r.Get("/schedules", Catch(webScheduleHandler.HomeHandler))
 		r.Post("/schedules", Catch(webScheduleHandler.CreateHandler))

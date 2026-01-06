@@ -27,10 +27,10 @@ SELECT count(*) FROM users WHERE id=$1;
 SELECT count(*) FROM users WHERE email=$1;
 
 -- USER_GET_WITH_ID
-SELECT id, fullname, email, is_admin, password FROM users WHERE id=$1 AND deleted_at isnull;
+SELECT id, fullname, email, phone, is_admin, active, password, last_login, created_at, updated_at FROM users WHERE id=$1 AND deleted_at isnull;
 
 -- USER_GET_WITH_EMAIL
-SELECT id, fullname, email, is_admin, password FROM users WHERE email=$1 AND deleted_at isnull;
+SELECT id, fullname, email, phone, is_admin, active, password, last_login, created_at, updated_at FROM users WHERE email=$1 AND deleted_at isnull;
 
 -- USER_INSERT
 INSERT INTO users (fullname,email,password,phone) VALUES ($1,$2,$3,$4) RETURNING id,fullname,email,phone;

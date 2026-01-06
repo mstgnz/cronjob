@@ -189,7 +189,7 @@ func (m *User) GetWithId(id int) error {
 
 	found := false
 	for rows.Next() {
-		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.IsAdmin, &m.Password); err != nil {
+		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.Phone, &m.IsAdmin, &m.Active, &m.Password, &m.LastLogin, &m.CreatedAt, &m.UpdatedAt); err != nil {
 			return err
 		}
 		found = true
@@ -220,7 +220,7 @@ func (m *User) GetWithMail(email string) error {
 
 	found := false
 	for rows.Next() {
-		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.IsAdmin, &m.Password); err != nil {
+		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.Phone, &m.IsAdmin, &m.Active, &m.Password, &m.LastLogin, &m.CreatedAt, &m.UpdatedAt); err != nil {
 			return err
 		}
 		found = true

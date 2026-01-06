@@ -72,6 +72,15 @@ func (h *UserHandler) ProfileHandler(w http.ResponseWriter, r *http.Request) err
 	return load.Render(w, r, "profile", map[string]any{})
 }
 
+func (h *UserHandler) ChangePasswordHandler(w http.ResponseWriter, r *http.Request) error {
+	code, response := h.PassUpdateService(w, r)
+	if response.Status && code == http.StatusOK {
+		w.Header().Set("HX-Redirect", "/profile")
+	}
+	_, _ = w.Write([]byte(response.Message))
+	return nil
+}
+
 func (h *UserHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) error {
 	cookie, err := r.Cookie("Authorization")
 	if err != nil {
