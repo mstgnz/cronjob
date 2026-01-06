@@ -128,3 +128,46 @@ func (m *ScheduleLog) Create(scheduleId int) error {
 
 	return nil
 }
+
+// DailyCounts returns daily log counts for the last N days
+func (m *ScheduleLog) DailyCounts(userID int, days int) map[string]int {
+	result := make(map[string]int)
+
+	query := fmt.Sprintf(`
+		SELECT 
+			DATE(sl.created_at)::text as date,
+			COUNT(*)::int as count
+		FROM schedule_logs sl
+		JOIN schedules s ON s.id = sl.schedule_id
+		WHERE s.user_id = $1 
+			AND s.deleted_at IS NULL
+			AND sl.created_at >= NOW() - INTERVAL '%d days'
+		GROUP BY DATE(sl.created_at)
+		ORDER BY date ASC
+	`, days)
+
+	stmt, err := config.App().DB.Prepare(query)
+	if err != nil {
+		return result
+	}
+
+	rows, err := stmt.Query(userID)
+	if err != nil {
+		return result
+	}
+	defer func() {
+		_ = stmt.Close()
+		_ = rows.Close()
+	}()
+
+	for rows.Next() {
+		var date string
+		var count int
+		if err := rows.Scan(&date, &count); err != nil {
+			continue
+		}
+		result[date] = count
+	}
+
+	return result
+}
