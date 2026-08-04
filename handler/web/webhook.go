@@ -73,7 +73,7 @@ func (h *WebhookHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 	requests, _ := request.Get(cUser.ID, 0, 0, "")
 	requestList := `<select class="form-select" name="request_id">`
 	for _, request := range requests {
-		requestList += fmt.Sprintf(`<option value="%d">%s</option>`, request.ID, request.Url)
+		requestList += fmt.Sprintf(`<option value="%d">%s</option>`, request.ID, esc(request.Url))
 	}
 	requestList += "</select>"
 
@@ -82,7 +82,7 @@ func (h *WebhookHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 	schedules, _ := schedule.Get(0, cUser.ID, 0, 0, 0, "")
 	scheduleList := `<select class="form-select" name="schedule_id">`
 	for _, schedule := range schedules {
-		scheduleList += fmt.Sprintf(`<option value="%d">%s</option>`, schedule.ID, schedule.Timing)
+		scheduleList += fmt.Sprintf(`<option value="%d">%s</option>`, schedule.ID, esc(schedule.Timing))
 	}
 	scheduleList += "</select>"
 
@@ -222,7 +222,7 @@ func (h *WebhookHandler) PaginationHandler(w http.ResponseWriter, r *http.Reques
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Schedule.Timing, v.Request.Url, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataRequest, v.ID, v.ID)
+        </tr>`, v.ID, esc(v.Schedule.Timing), esc(v.Request.Url), v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, escBytes(dataRequest), v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil

@@ -98,14 +98,20 @@ func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]*RequestHe
 
 	query := strings.TrimSuffix(config.App().QUERY["REQUEST_HEADERS"], ";")
 
+	// $1 is the user id carried by the base query; every filter is bound, never interpolated
+	params := []any{userID}
+
 	if id > 0 {
-		query += fmt.Sprintf(" AND rh.id=%d", id)
+		params = append(params, id)
+		query += fmt.Sprintf(" AND rh.id=$%d", len(params))
 	}
 	if requestID > 0 {
-		query += fmt.Sprintf(" AND rh.request_id=%d", requestID)
+		params = append(params, requestID)
+		query += fmt.Sprintf(" AND rh.request_id=$%d", len(params))
 	}
 	if key != "" {
-		query += fmt.Sprintf(" AND rh.key='%s'", key)
+		params = append(params, key)
+		query += fmt.Sprintf(" AND rh.key=$%d", len(params))
 	}
 
 	// prepare
@@ -115,7 +121,7 @@ func (m *RequestHeader) Get(userID, id, requestID int, key string) ([]*RequestHe
 	}
 
 	// query
-	rows, err := stmt.Query(userID)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}

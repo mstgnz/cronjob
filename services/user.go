@@ -226,18 +226,12 @@ func (s *UserService) DeleteService(w http.ResponseWriter, r *http.Request) (int
 	user := &models.User{}
 
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	exists, err := user.IDExists(id)
-	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
-	}
-	if !exists {
+	// the row has to be loaded, not just probed: the guards below read its fields,
+	// and they have to run before the delete, not after it
+	if err := user.GetWithId(id); err != nil {
 		return http.StatusNotFound, response.Response{Status: false, Message: "User not found"}
 	}
 
-	err = user.Delete(id)
-	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
-	}
 	if user.ID == cUser.ID {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "You can't erase yourself!"}
 	}
@@ -245,5 +239,9 @@ func (s *UserService) DeleteService(w http.ResponseWriter, r *http.Request) (int
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Admin cannot delete admin!"}
 	}
 
-	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}
+	if err := user.Delete(id); err != nil {
+		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+	}
+
+	return http.StatusOK, response.Response{Status: true, Message: "Soft delete success"}
 }

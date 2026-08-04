@@ -62,11 +62,16 @@ func (m *NotifyMessage) Get(userID, id int, phone string) ([]*NotifyMessage, err
 
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATION_MESSAGES"], ";")
 
+	// $1 is the user id carried by the base query; every filter is bound, never interpolated
+	params := []any{userID}
+
 	if id > 0 {
-		query += fmt.Sprintf(" AND nm.id=%d", id)
+		params = append(params, id)
+		query += fmt.Sprintf(" AND nm.id=$%d", len(params))
 	}
 	if phone != "" {
-		query += fmt.Sprintf(" AND nm.phone='%s'", phone)
+		params = append(params, phone)
+		query += fmt.Sprintf(" AND nm.phone=$%d", len(params))
 	}
 
 	// prepare
@@ -76,7 +81,7 @@ func (m *NotifyMessage) Get(userID, id int, phone string) ([]*NotifyMessage, err
 	}
 
 	// query
-	rows, err := stmt.Query(userID)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}

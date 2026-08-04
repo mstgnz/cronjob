@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -44,10 +43,14 @@ func (m *AppLog) Count() int {
 
 func (m *AppLog) Get(offset, limit int, level string) ([]*AppLog, error) {
 
+	// the level filter needs its own statement: the paginated query ends with
+	// offset/limit, so a predicate cannot simply be appended to it
 	query := strings.TrimSuffix(config.App().QUERY["APP_LOG_PAGINATE"], ";")
+	params := []any{offset, limit}
 
 	if level != "" {
-		query += fmt.Sprintf(" AND level='%s'", level)
+		query = strings.TrimSuffix(config.App().QUERY["APP_LOG_PAGINATE_LEVEL"], ";")
+		params = append(params, level)
 	}
 
 	// prepare
@@ -57,7 +60,7 @@ func (m *AppLog) Get(offset, limit int, level string) ([]*AppLog, error) {
 	}
 
 	// query
-	rows, err := stmt.Query(offset, limit)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}

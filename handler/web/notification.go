@@ -140,7 +140,7 @@ func (h *NotificationHandler) EditHandler(w http.ResponseWriter, r *http.Request
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Title, data[0].Content, activeEmailSelected, deactiveEmailSelected, activeMessageSelected, deactiveMessageSelected, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, esc(data[0].Title), esc(data[0].Content), activeEmailSelected, deactiveEmailSelected, activeMessageSelected, deactiveMessageSelected, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil
@@ -272,7 +272,7 @@ func (h *NotificationHandler) PaginationHandler(w http.ResponseWriter, r *http.R
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Title, v.Content, v.IsMail, v.IsMessage, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataRequest, v.ID, v.ID)
+        </tr>`, v.ID, esc(v.Title), esc(v.Content), v.IsMail, v.IsMessage, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, escBytes(dataRequest), v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -414,7 +414,7 @@ func (h *NotificationHandler) EmailPaginationHandler(w http.ResponseWriter, r *h
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Notification.Title, v.Email, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataHeader, v.ID, v.ID)
+        </tr>`, v.ID, esc(v.Notification.Title), esc(v.Email), v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, escBytes(dataHeader), v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -461,7 +461,7 @@ func (h *NotificationHandler) EmailEditHandler(w http.ResponseWriter, r *http.Re
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Notification.Title, data[0].Email, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, esc(data[0].Notification.Title), esc(data[0].Email), activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil
@@ -603,7 +603,7 @@ func (h *NotificationHandler) MessagePaginationHandler(w http.ResponseWriter, r 
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Notification.Title, v.Phone, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataHeader, v.ID, v.ID)
+        </tr>`, v.ID, esc(v.Notification.Title), esc(v.Phone), v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, escBytes(dataHeader), v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -650,7 +650,7 @@ func (h *NotificationHandler) MessageEditHandler(w http.ResponseWriter, r *http.
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Notification.Title, data[0].Phone, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, esc(data[0].Notification.Title), esc(data[0].Phone), activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil

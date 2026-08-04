@@ -4,6 +4,9 @@ SELECT count(*) FROM app_logs;
 -- APP_LOG_PAGINATE
 SELECT * FROM app_logs ORDER BY id DESC offset $1 LIMIT $2;
 
+-- APP_LOG_PAGINATE_LEVEL
+SELECT * FROM app_logs WHERE level=$3 ORDER BY id DESC offset $1 LIMIT $2;
+
 -- APP_LOG_INSERT
 INSERT INTO app_logs (level,message) VALUES ($1,$2);
 
@@ -185,6 +188,9 @@ ORDER BY sl.id DESC offset $3 LIMIT $4;
 -- SCHEDULE_LOGS
 SELECT * FROM schedule_logs sl JOIN schedules s ON s.id=sl.schedule_id WHERE sl.schedule_id=$1 AND s.user_id=$2;
 
+-- SCHEDULE_LOG_INSERT
+INSERT INTO schedule_logs (schedule_id,started_at,finished_at,took,result) VALUES ($1,$2,$3,$4,$5) RETURNING id,schedule_id,started_at,finished_at,took,result,created_at;
+
 
 -- WEBHOOKS_COUNT
 SELECT count(w.*) FROM webhooks w JOIN schedules s ON s.id=w.schedule_id WHERE s.user_id=$1 AND w.deleted_at isnull;
@@ -291,7 +297,7 @@ ORDER BY nm.id DESC offset $3 LIMIT $4;
 SELECT nm.*, n.title FROM notify_messages nm JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.deleted_at isnull AND n.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGE_WITH_ID
-SELECT nm.* FROM notify_messages nm JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.id=$2 AND ns.deleted_at isnull AND n.deleted_at isnull;
+SELECT nm.* FROM notify_messages nm JOIN notifications n ON n.id=nm.notification_id WHERE n.user_id=$1 AND nm.id=$2 AND nm.deleted_at isnull AND n.deleted_at isnull;
 
 -- NOTIFICATION_MESSAGE_INSERT
 INSERT INTO notify_messages (notification_id,phone,active) VALUES ($1,$2,$3) RETURNING id,notification_id,phone,active;

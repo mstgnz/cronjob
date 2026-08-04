@@ -86,20 +86,28 @@ func (m *Schedule) Get(id, userID, groupID, requestID, NotificationID int, timin
 
 	query := strings.TrimSuffix(config.App().QUERY["SCHEDULES"], ";")
 
+	// $1 is the user id carried by the base query; every filter is bound, never interpolated
+	params := []any{userID}
+
 	if id > 0 {
-		query += fmt.Sprintf(" AND s.id=%d", id)
+		params = append(params, id)
+		query += fmt.Sprintf(" AND s.id=$%d", len(params))
 	}
 	if groupID > 0 {
-		query += fmt.Sprintf(" AND s.group_id=%d", groupID)
+		params = append(params, groupID)
+		query += fmt.Sprintf(" AND s.group_id=$%d", len(params))
 	}
 	if requestID > 0 {
-		query += fmt.Sprintf(" AND s.request_id=%d", requestID)
+		params = append(params, requestID)
+		query += fmt.Sprintf(" AND s.request_id=$%d", len(params))
 	}
 	if NotificationID > 0 {
-		query += fmt.Sprintf(" AND s.notification_id=%d", NotificationID)
+		params = append(params, NotificationID)
+		query += fmt.Sprintf(" AND s.notification_id=$%d", len(params))
 	}
 	if timing != "" {
-		query += fmt.Sprintf(" AND s.timing='%s'", timing)
+		params = append(params, timing)
+		query += fmt.Sprintf(" AND s.timing=$%d", len(params))
 	}
 
 	// prepare
@@ -109,7 +117,7 @@ func (m *Schedule) Get(id, userID, groupID, requestID, NotificationID int, timin
 	}
 
 	// query
-	rows, err := stmt.Query(userID)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}
@@ -306,18 +314,25 @@ func (m *Schedule) WithQuery(userID, offset, limit int, search string) []*Schedu
 	if userID == 0 {
 		return schedules
 	}
-	query += fmt.Sprintf(" AND user_id=%d", userID)
+
+	// every value below is bound; the search term in particular reaches four ILIKE predicates
+	params := []any{userID}
+	query += fmt.Sprintf(" AND user_id=$%d", len(params))
+
 	if search != "" {
-		query += fmt.Sprintf(` AND (timing ilike %s OR "group"->>'name' ilike %s OR request->>'url' ilike %s OR notification->>'title' ilike %s)`, search, search, search, search)
+		params = append(params, "%"+search+"%")
+		query += fmt.Sprintf(` AND (timing ilike $%d OR "group"->>'name' ilike $%d OR request->>'url' ilike $%d OR notification->>'title' ilike $%d)`,
+			len(params), len(params), len(params), len(params))
 	}
 	if limit > 0 {
-		query += fmt.Sprintf(" ORDER BY id DESC offset %d LIMIT %d;", offset, limit)
+		params = append(params, offset, limit)
+		query += fmt.Sprintf(" ORDER BY id DESC offset $%d LIMIT $%d;", len(params)-1, len(params))
 	}
 
-	return m.queryPrepare(query)
+	return m.queryPrepare(query, params...)
 }
 
-func (m *Schedule) queryPrepare(query string) []*Schedule {
+func (m *Schedule) queryPrepare(query string, params ...any) []*Schedule {
 	schedules := []*Schedule{}
 
 	// prepare schedules paginate
@@ -327,7 +342,7 @@ func (m *Schedule) queryPrepare(query string) []*Schedule {
 	}
 
 	// query
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return schedules
 	}

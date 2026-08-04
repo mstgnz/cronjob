@@ -75,14 +75,20 @@ func (m *Request) Get(userID, id, groupID int, url string) ([]*Request, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["REQUESTS"], ";")
 
+	// $1 is the user id carried by the base query; every filter is bound, never interpolated
+	params := []any{userID}
+
 	if id > 0 {
-		query += fmt.Sprintf(" AND r.id=%d", id)
+		params = append(params, id)
+		query += fmt.Sprintf(" AND r.id=$%d", len(params))
 	}
 	if groupID > 0 {
-		query += fmt.Sprintf(" AND r.group_id=%d", groupID)
+		params = append(params, groupID)
+		query += fmt.Sprintf(" AND r.group_id=$%d", len(params))
 	}
 	if url != "" {
-		query += fmt.Sprintf(" AND r.url='%s'", url)
+		params = append(params, url)
+		query += fmt.Sprintf(" AND r.url=$%d", len(params))
 	}
 
 	// prepare
@@ -92,7 +98,7 @@ func (m *Request) Get(userID, id, groupID int, url string) ([]*Request, error) {
 	}
 
 	// query
-	rows, err := stmt.Query(userID)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}

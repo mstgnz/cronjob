@@ -183,7 +183,7 @@ func (h *GroupHandler) PaginationHandler(w http.ResponseWriter, r *http.Request)
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Name, v.Parent.Name, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, v.ID, v.ID)
+        </tr>`, v.ID, esc(v.Name), esc(v.Parent.Name), v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -219,7 +219,7 @@ func (h *GroupHandler) EditHandler(w http.ResponseWriter, r *http.Request) error
 
 	groupSelect := `<select name="uid" class="form-control">`
 	for _, v := range groups {
-		groupSelect += fmt.Sprintf(`<option value="%d">%s</option>`, v.ID, v.Name)
+		groupSelect += fmt.Sprintf(`<option value="%d">%s</option>`, v.ID, esc(v.Name))
 	}
 	groupSelect += `</select>`
 
@@ -241,7 +241,7 @@ func (h *GroupHandler) EditHandler(w http.ResponseWriter, r *http.Request) error
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Name, groupSelect, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, esc(data[0].Name), groupSelect, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil

@@ -2,8 +2,6 @@ package web
 
 import (
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/pkg/load"
@@ -25,34 +23,7 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) error
 			token, ok1 := response.Data["token"].(string)
 			if ok && ok1 && user.ID > 0 {
 				w.Header().Set("HX-Redirect", "/")
-				http.SetCookie(w, &http.Cookie{
-					Name:    "Authorization",
-					Value:   strings.Join([]string{"Bearer", token}, " "),
-					Expires: time.Now().Add(12 * time.Hour),
-				})
-			}
-		}
-		_, _ = w.Write([]byte(response.Message))
-	}
-	return nil
-}
-
-func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) error {
-	switch r.Method {
-	case http.MethodGet:
-		return load.Render(w, r, "register", map[string]any{})
-	case http.MethodPost:
-		code, response := h.RegisterService(w, r)
-		if response.Status && code == http.StatusCreated {
-			user, ok := response.Data["user"].(*models.User)
-			token, ok1 := response.Data["token"].(string)
-			if ok && ok1 && user.ID > 0 {
-				w.Header().Set("HX-Redirect", "/")
-				http.SetCookie(w, &http.Cookie{
-					Name:    "Authorization",
-					Value:   strings.Join([]string{"Bearer", token}, " "),
-					Expires: time.Now().Add(12 * time.Hour),
-				})
+				setAuthCookie(w, token)
 			}
 		}
 		_, _ = w.Write([]byte(response.Message))
@@ -82,15 +53,9 @@ func (h *UserHandler) ChangePasswordHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *UserHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) error {
-	cookie, err := r.Cookie("Authorization")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return nil
-	}
-
-	cookie.MaxAge = -1
-	http.SetCookie(w, cookie)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	clearAuthCookie(w)
+	// htmx submits this as a POST, so the redirect has to be handed to it as a header
+	w.Header().Set("HX-Redirect", "/login")
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 	return nil
 }

@@ -13,11 +13,15 @@ import (
 
 var letterRunes = []rune("0987654321abcçdefgğhıijklmnoöpqrsştuüvwxyzABCÇDEFGĞHIİJKLMNOÖPQRSTUÜVWXYZ-_!?+&%=*")
 
+// TokenTTL is how long an issued token stays valid. The auth cookie is given the
+// same lifetime so the browser never holds a cookie that outlives its token.
+const TokenTTL = 24 * time.Hour
+
 // GenerateToken token generate
 func GenerateToken(userId int) (string, error) {
 	claims := jwt.RegisteredClaims{
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 0, 1)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenTTL)),
 		Issuer:    strconv.Itoa(userId),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

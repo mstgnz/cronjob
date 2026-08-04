@@ -49,8 +49,12 @@ func (m *ScheduleLog) Count(userID int) int {
 func (m *ScheduleLog) Get(id, schedule_id, user_id int) ([]*ScheduleLog, error) {
 	query := strings.TrimSuffix(config.App().QUERY["SCHEDULE_LOGS"], ";")
 
+	// $1 and $2 are carried by the base query; every filter is bound, never interpolated
+	params := []any{schedule_id, user_id}
+
 	if id > 0 {
-		query += fmt.Sprintf(" AND id=%v", id)
+		params = append(params, id)
+		query += fmt.Sprintf(" AND sl.id=$%d", len(params))
 	}
 
 	// prepare
@@ -60,7 +64,7 @@ func (m *ScheduleLog) Get(id, schedule_id, user_id int) ([]*ScheduleLog, error) 
 	}
 
 	// query
-	rows, err := stmt.Query(schedule_id, user_id)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}
@@ -119,8 +123,13 @@ func (m *ScheduleLog) Create(scheduleId int) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = stmt.Close()
+	}()
 
-	// user_id,url,method,content,active
+	// the caller passes the schedule; the receiver only carries the timing fields
+	m.ScheduleID = scheduleId
+
 	err = stmt.QueryRow(m.ScheduleID, m.StartedAt, m.FinishedAt, m.Took, m.Result).Scan(&m.ID, &m.ScheduleID, &m.StartedAt, &m.FinishedAt, &m.Took, &m.Result, &m.CreatedAt)
 	if err != nil {
 		return err

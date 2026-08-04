@@ -57,16 +57,22 @@ func (m *Webhook) Get(id, schedule_id, request_id, user_id int) ([]*Webhook, err
 
 	query := strings.TrimSuffix(config.App().QUERY["WEBHOOKS"], ";")
 
+	// $1 is the user id carried by the base query; every filter is bound, never interpolated
+	params := []any{user_id}
+
 	if id > 0 {
-		query += fmt.Sprintf(" AND w.id=%d", id)
+		params = append(params, id)
+		query += fmt.Sprintf(" AND w.id=$%d", len(params))
 	}
 
 	if schedule_id > 0 {
-		query += fmt.Sprintf(" AND w.schedule_id=%d", schedule_id)
+		params = append(params, schedule_id)
+		query += fmt.Sprintf(" AND w.schedule_id=$%d", len(params))
 	}
 
 	if request_id > 0 {
-		query += fmt.Sprintf(" AND w.request_id=%d", request_id)
+		params = append(params, request_id)
+		query += fmt.Sprintf(" AND w.request_id=$%d", len(params))
 	}
 
 	// prepare
@@ -76,7 +82,7 @@ func (m *Webhook) Get(id, schedule_id, request_id, user_id int) ([]*Webhook, err
 	}
 
 	// query
-	rows, err := stmt.Query(user_id)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}

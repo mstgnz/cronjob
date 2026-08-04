@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"strconv"
 	"sync"
+	"time"
+	_ "time/tzdata"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/mstgnz/cronjob/pkg/cache"
@@ -39,6 +41,30 @@ var (
 	mu       sync.Mutex
 )
 
+// newCron builds the scheduler used by the whole application.
+// Location comes from DB_ZONE; without it robfig/cron falls back to time.Local,
+// which is UTC inside a container and silently shifts every schedule.
+// The job chain is explicit because cron.New() ships an empty chain: without
+// Recover a panic inside a job kills the process, and without SkipIfStillRunning
+// a slow endpoint lets executions of the same schedule pile up.
+func newCron() *cron.Cron {
+	loc := time.Local
+	if zone := os.Getenv("DB_ZONE"); zone != "" {
+		if parsed, err := time.LoadLocation(zone); err != nil {
+			log.Printf("cron: unknown time zone %q, falling back to %s: %v", zone, loc, err)
+		} else {
+			loc = parsed
+		}
+	}
+	return cron.New(
+		cron.WithLocation(loc),
+		cron.WithChain(
+			cron.Recover(cron.DefaultLogger),
+			cron.SkipIfStillRunning(cron.DefaultLogger),
+		),
+	)
+}
+
 func App() *Manager {
 	if instance == nil {
 		instance = &Manager{
@@ -46,7 +72,7 @@ func App() *Manager {
 			Cache:     &cache.Cache{},
 			Kafka:     &conn.Kraft{},
 			Redis:     &conn.Redis{},
-			Cron:      cron.New(),
+			Cron:      newCron(),
 			Validator: validator.New(),
 			// the secret key will change every time the application is restarted.
 			SecretKey: os.Getenv("JWT_SECRET"), //RandomString(8),
@@ -92,7 +118,7 @@ func StructToMap(obj any) map[string]any {
 }
 
 func ShuttingWrapper(fn func()) {
-	if !App().Shutting {
+	if !IsShutting() {
 		fn()
 	}
 }
@@ -107,6 +133,28 @@ func DecrementRunning() {
 	mu.Lock()
 	App().Running--
 	mu.Unlock()
+}
+
+// RunningCount reports how many schedule executions are in flight. Reading the
+// field directly would race with the counter updates above.
+func RunningCount() int {
+	mu.Lock()
+	defer mu.Unlock()
+	return App().Running
+}
+
+// SetShutting marks the application as shutting down so no further jobs start.
+func SetShutting() {
+	mu.Lock()
+	App().Shutting = true
+	mu.Unlock()
+}
+
+// IsShutting reports whether shutdown has started.
+func IsShutting() bool {
+	mu.Lock()
+	defer mu.Unlock()
+	return App().Shutting
 }
 
 func GetIntQuery(r *http.Request, name string) int {

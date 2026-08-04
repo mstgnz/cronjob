@@ -113,6 +113,29 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 		return http.StatusNotFound, response.Response{Status: false, Message: "Webhook not found"}
 	}
 
+	// Owning the webhook row is not enough: the new foreign keys must belong to the
+	// caller too, otherwise a webhook can be re-parented onto someone else's schedule.
+	if updateData.ScheduleID > 0 {
+		schedule := &models.Schedule{}
+		exists, err = schedule.IDExists(updateData.ScheduleID, cUser.ID)
+		if err != nil {
+			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		}
+		if !exists {
+			return http.StatusNotFound, response.Response{Status: false, Message: "Schedule not found"}
+		}
+	}
+	if updateData.RequestID > 0 {
+		request := &models.Request{}
+		exists, err = request.IDExists(updateData.RequestID, cUser.ID)
+		if err != nil {
+			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		}
+		if !exists {
+			return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
+		}
+	}
+
 	queryParts := []string{"UPDATE webhooks SET"}
 	params := []any{}
 	paramCount := 1
@@ -143,8 +166,9 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	params = append(params, updatedAt)
 	paramCount++
 
-	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d", paramCount))
-	params = append(params, id)
+	// ownership is enforced in the statement itself, not only by the check above
+	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d AND schedule_id IN (SELECT id FROM schedules WHERE user_id=$%d)", paramCount, paramCount+1))
+	params = append(params, id, cUser.ID)
 	query := strings.Join(queryParts, " ")
 
 	err = webhook.Update(query, params)

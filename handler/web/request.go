@@ -37,7 +37,7 @@ func (h *RequestHandler) HomeHandler(w http.ResponseWriter, r *http.Request) err
 
 		requestSelect := `<option value="0" selected disabled>Choose Request</option>`
 		for _, v := range requests {
-			requestSelect += fmt.Sprintf(`<option value="%d">%s</option>`, v.ID, v.Url)
+			requestSelect += fmt.Sprintf(`<option value="%d">%s</option>`, v.ID, esc(v.Url))
 		}
 
 		_, _ = w.Write([]byte(requestSelect))
@@ -138,9 +138,9 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 	groupSelect := `<select class="form-select" name="group_id">`
 	for _, v := range groups {
 		if v.ID == data[0].GroupID {
-			groupSelect += fmt.Sprintf(`<option value="%d" selected>%s</option>`, v.ID, v.Name)
+			groupSelect += fmt.Sprintf(`<option value="%d" selected>%s</option>`, v.ID, esc(v.Name))
 		} else {
-			groupSelect += fmt.Sprintf(`<option value="%d">%s</option>`, v.ID, v.Name)
+			groupSelect += fmt.Sprintf(`<option value="%d">%s</option>`, v.ID, esc(v.Name))
 		}
 	}
 	groupSelect += `</select>`
@@ -171,7 +171,7 @@ func (h *RequestHandler) EditHandler(w http.ResponseWriter, r *http.Request) err
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, groupSelect, data[0].Url, methodGetSelected, methodPostSelected, methodPutSelected, methodPatchSelected, methodDeleteSelected, data[0].Content, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, groupSelect, esc(data[0].Url), methodGetSelected, methodPostSelected, methodPutSelected, methodPatchSelected, methodDeleteSelected, esc(data[0].Content), activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil
@@ -298,7 +298,7 @@ func (h *RequestHandler) PaginationHandler(w http.ResponseWriter, r *http.Reques
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Group.Name, v.Url, v.Method, v.Content, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataRequest, v.ID, v.ID)
+        </tr>`, v.ID, esc(v.Group.Name), esc(v.Url), esc(v.Method), esc(v.Content), v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, escBytes(dataRequest), v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -440,7 +440,7 @@ func (h *RequestHandler) HeaderPaginationHandler(w http.ResponseWriter, r *http.
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Key, v.Value, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, dataHeader, v.ID, v.ID)
+        </tr>`, v.ID, esc(v.Key), esc(v.Value), v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, escBytes(dataHeader), v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -487,7 +487,7 @@ func (h *RequestHandler) HeaderEditHandler(w http.ResponseWriter, r *http.Reques
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Key, data[0].Value, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, esc(data[0].Key), esc(data[0].Value), activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil

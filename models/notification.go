@@ -75,11 +75,16 @@ func (m *Notification) Get(userID, id int, title string) ([]*Notification, error
 
 	query := strings.TrimSuffix(config.App().QUERY["NOTIFICATIONS"], ";")
 
+	// $1 is the user id carried by the base query; every filter is bound, never interpolated
+	params := []any{userID}
+
 	if id > 0 {
-		query += fmt.Sprintf(" AND id=%d", id)
+		params = append(params, id)
+		query += fmt.Sprintf(" AND id=$%d", len(params))
 	}
 	if title != "" {
-		query += fmt.Sprintf(" AND title='%s'", title)
+		params = append(params, title)
+		query += fmt.Sprintf(" AND title=$%d", len(params))
 	}
 
 	// prepare
@@ -89,7 +94,7 @@ func (m *Notification) Get(userID, id int, title string) ([]*Notification, error
 	}
 
 	// query
-	rows, err := stmt.Query(userID)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}

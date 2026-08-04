@@ -99,6 +99,20 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 		return http.StatusNotFound, response.Response{Status: false, Message: "Request Header not found"}
 	}
 
+	// Owning the header row is not enough: the new request must belong to the caller
+	// too, otherwise an attacker-controlled header can be attached to someone else's
+	// outbound request.
+	if updateData.RequestID > 0 {
+		request := &models.Request{}
+		exists, err = request.IDExists(updateData.RequestID, cUser.ID)
+		if err != nil {
+			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		}
+		if !exists {
+			return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
+		}
+	}
+
 	queryParts := []string{"UPDATE request_headers SET"}
 	params := []any{}
 	paramCount := 1
@@ -134,8 +148,9 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 	params = append(params, updatedAt)
 	paramCount++
 
-	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d", paramCount))
-	params = append(params, id)
+	// ownership is enforced in the statement itself, not only by the check above
+	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d AND request_id IN (SELECT id FROM requests WHERE user_id=$%d)", paramCount, paramCount+1))
+	params = append(params, id, cUser.ID)
 	query := strings.Join(queryParts, " ")
 
 	err = requestHeader.Update(query, params)

@@ -14,20 +14,21 @@ It is difficult to manage cronjob tasks on a server. This project provides an en
 
 
 ## Considerations
-This application utilizes a database locking mechanism to prevent duplicated cronjob tasks when running multiple instances in a Kubernetes (k8s) environment. 
+**Run a single instance.** Overlapping executions of the same schedule are prevented in process: the scheduler wraps every job with `SkipIfStillRunning`, so a run is skipped while the previous one is still going.
 
-The instance that first adds a record to the "triggered" table will be the one to trigger the cronjob task. Subsequent instances will be prevented from creating a new record due to an existing one, thereby preventing duplicate task executions. Completed tasks are then removed from the "triggered" table.
+There is **no cross-instance locking yet**. The `triggered` table records which schedules are currently executing, but it carries no unique constraint and is not consulted before a job starts, so running several replicas would fire every schedule once per replica. Distributed locking has to be implemented before scaling out.
 
-However, it is strongly recommended that users implement additional control mechanisms on their own systems.
+It is strongly recommended that users implement additional control mechanisms on their own systems.
 
 
 ## Kubernetes Deployment
 
 The application is designed to run in a Kubernetes environment with high availability and scalability in mind. We provide comprehensive Kubernetes configurations and deployment guides in the [k8s](k8s) directory.
 
+Note that the manifests scale horizontally, which the scheduler does not support yet (see Considerations above). Keep the replica count at 1 and the autoscaler disabled until cross-instance locking exists.
+
 Key deployment features include:
-- High availability with multiple replicas
-- Automatic scaling based on CPU and Memory usage
+- Automatic scaling based on CPU and Memory usage (leave disabled for now)
 - Rolling updates for zero-downtime deployments
 - Health checks and self-healing capabilities
 - SSL/TLS termination with automatic certificate management

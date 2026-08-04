@@ -3,119 +3,204 @@ package schedule
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 	_ "time/tzdata"
 
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/conn"
 	"github.com/mstgnz/cronjob/pkg/logger"
 	"github.com/robfig/cron/v3"
 )
 
-func CallSchedule(c *cron.Cron) {
-	// set location
-	loc, err := time.LoadLocation("Europe/Istanbul")
-	if err != nil {
-		log.Println(err)
-	}
-
-	cron.WithLocation(loc)
-
-	schedule := &models.Schedule{}
-	schedules := schedule.WithQueryAll()
-
-	scheduleMap := make(map[int]cron.EntryID)
-	AddSchedules(c, schedules, scheduleMap)
-
-	// Check for new schedules every minute
-	c.AddFunc("@every 1m", func() {
-		newSchedules := schedule.WithQueryAll()
-		AddSchedules(c, newSchedules, scheduleMap)
-	})
+// entry is what we remember about a schedule already registered on the scheduler.
+// Timing is kept so a retimed schedule can be detected and re-registered.
+type entry struct {
+	ID     cron.EntryID
+	Timing string
 }
 
-func AddSchedules(c *cron.Cron, schedules []*models.Schedule, scheduleMap map[int]cron.EntryID) {
-	triggered := &models.Triggered{}
-	scheduleLog := &models.ScheduleLog{}
+// registry tracks registered entries by schedule id. It is written from the
+// reconcile tick, which runs on a cron goroutine, so every access is guarded.
+type registry struct {
+	mu      sync.Mutex
+	entries map[int]entry
+}
+
+func newRegistry() *registry {
+	return &registry{entries: make(map[int]entry)}
+}
+
+func (r *registry) get(scheduleID int) (entry, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	e, ok := r.entries[scheduleID]
+	return e, ok
+}
+
+func (r *registry) set(scheduleID int, e entry) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.entries[scheduleID] = e
+}
+
+func (r *registry) delete(scheduleID int) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.entries, scheduleID)
+}
+
+func (r *registry) snapshot() map[int]entry {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make(map[int]entry, len(r.entries))
+	for k, v := range r.entries {
+		out[k] = v
+	}
+	return out
+}
+
+// CallSchedule performs the first sync and then reconciles every minute.
+// The scheduler itself (location and job chain) is built in pkg/config.
+func CallSchedule(c *cron.Cron) {
+	schedule := &models.Schedule{}
+	reg := newRegistry()
+
+	SyncSchedules(c, schedule.WithQueryAll(), reg)
+
+	if _, err := c.AddFunc("@every 1m", func() {
+		SyncSchedules(c, schedule.WithQueryAll(), reg)
+	}); err != nil {
+		logger.Warn("Schedule Sync Error", err.Error())
+	}
+}
+
+// SyncSchedules reconciles the scheduler with the active schedules in the database:
+// new ones are registered, retimed ones are re-registered, and ones that were
+// deactivated or deleted are removed. Without the removal side, disabling a
+// schedule in the UI would have no effect until the process restarts.
+func SyncSchedules(c *cron.Cron, schedules []*models.Schedule, reg *registry) {
+	seen := make(map[int]struct{}, len(schedules))
+
 	for _, schedule := range schedules {
 		if !schedule.Active || schedule.Request == nil {
 			continue
 		}
-		if _, exists := scheduleMap[schedule.ID]; !exists {
-			// Capture the schedule variable by value to avoid closure issues
-			currentSchedule := schedule
-			id, err := c.AddFunc(currentSchedule.Timing, func() {
-				defer func() {
-					if r := recover(); r != nil {
-						logger.Warn("Recovered from panic in schedule", fmt.Sprintf("%v", r))
-					}
-				}()
+		seen[schedule.ID] = struct{}{}
 
-				startAt := time.Now()
-
-				client := &http.Client{
-					Timeout: time.Duration(currentSchedule.Timeout) * time.Second,
-					CheckRedirect: func(req *http.Request, via []*http.Request) error {
-						return http.ErrUseLastResponse
-					},
-				}
-				req, err := http.NewRequest(currentSchedule.Request.Method, currentSchedule.Request.Url, strings.NewReader(string(currentSchedule.Request.Content)))
-				if err != nil {
-					logger.Warn("Schedule Request Error", err.Error())
-					return
-				}
-
-				for _, header := range currentSchedule.Request.RequestHeaders {
-					req.Header.Set(header.Key, header.Value)
-				}
-
-				triggered.Create(currentSchedule.ID)
-				scheduleUpdate(currentSchedule, true)
-				var resp *http.Response
-				for retries := 0; retries < currentSchedule.Retries; retries++ {
-					resp, err = client.Do(req)
-					if err == nil {
-						break
-					}
-					logger.Warn("Schedule Do Error, retrying", fmt.Sprintf("Attempt %d/%d: %v", retries+1, currentSchedule.Retries, err.Error()))
-					time.Sleep(1 * time.Second)
-				}
-				scheduleUpdate(currentSchedule, false)
-				triggered.Delete(currentSchedule.ID)
-
-				// Check if resp is nil before accessing it
-				if resp == nil {
-					logger.Warn("Schedule Error", "All retries failed, no response received")
-					return
-				}
-				defer resp.Body.Close()
-
-				body, err := io.ReadAll(resp.Body)
-				if err != nil {
-					logger.Warn("Schedule Body Error", err.Error())
-					return
-				}
-				notification(currentSchedule, body)
-
-				finishAt := time.Now()
-				scheduleLog.StartedAt = &startAt
-				scheduleLog.FinishedAt = &finishAt
-				scheduleLog.Took = float32(finishAt.Sub(startAt).Seconds())
-				scheduleLog.Result = string(body)
-				scheduleLog.Create(currentSchedule.ID)
-
-				webhooks(currentSchedule)
-			})
-			if err != nil {
-				logger.Warn("Schedule Error", err.Error())
-			} else {
-				scheduleMap[schedule.ID] = id
+		if existing, ok := reg.get(schedule.ID); ok {
+			if existing.Timing == schedule.Timing {
+				continue
 			}
+			// timing changed: drop the old entry before registering the new one
+			c.Remove(existing.ID)
+			reg.delete(schedule.ID)
+		}
+
+		currentSchedule := schedule
+		id, err := c.AddFunc(currentSchedule.Timing, func() {
+			runSchedule(currentSchedule)
+		})
+		if err != nil {
+			logger.Warn("Schedule Error", err.Error())
+			continue
+		}
+		reg.set(currentSchedule.ID, entry{ID: id, Timing: currentSchedule.Timing})
+	}
+
+	// anything registered but no longer active in the database has to go
+	for scheduleID, e := range reg.snapshot() {
+		if _, ok := seen[scheduleID]; ok {
+			continue
+		}
+		c.Remove(e.ID)
+		reg.delete(scheduleID)
+	}
+}
+
+// runSchedule executes a single schedule: it fires the configured request,
+// notifies, logs the result and triggers the webhooks.
+func runSchedule(currentSchedule *models.Schedule) {
+	// no new work once shutdown started
+	if config.IsShutting() {
+		return
+	}
+
+	config.IncrementRunning()
+	defer config.DecrementRunning()
+
+	triggered := &models.Triggered{}
+	scheduleLog := &models.ScheduleLog{}
+
+	startAt := time.Now()
+
+	client := conn.NewOutboundClient(time.Duration(currentSchedule.Timeout) * time.Second)
+
+	if err := triggered.Create(currentSchedule.ID); err != nil {
+		logger.Warn("Schedule Triggered Insert Error", err.Error())
+	}
+	scheduleUpdate(currentSchedule, true)
+
+	var resp *http.Response
+	var err error
+	// Retries counts the extra attempts after the first one, so a schedule with
+	// retries=0 (the column default) still performs exactly one request.
+	attempts := currentSchedule.Retries + 1
+	for attempt := 1; attempt <= attempts; attempt++ {
+		// the body reader is consumed by a failed attempt, so the request is rebuilt each time
+		req, reqErr := http.NewRequest(currentSchedule.Request.Method, currentSchedule.Request.Url, strings.NewReader(string(currentSchedule.Request.Content)))
+		if reqErr != nil {
+			logger.Warn("Schedule Request Error", reqErr.Error())
+			break
+		}
+		for _, header := range currentSchedule.Request.RequestHeaders {
+			req.Header.Set(header.Key, header.Value)
+		}
+
+		resp, err = client.Do(req)
+		if err == nil {
+			break
+		}
+		logger.Warn("Schedule Do Error, retrying", fmt.Sprintf("Attempt %d/%d: %v", attempt, attempts, err.Error()))
+		if attempt < attempts {
+			time.Sleep(1 * time.Second)
 		}
 	}
+
+	scheduleUpdate(currentSchedule, false)
+	if err := triggered.Delete(currentSchedule.ID); err != nil {
+		logger.Warn("Schedule Triggered Delete Error", err.Error())
+	}
+
+	// Check if resp is nil before accessing it
+	if resp == nil {
+		logger.Warn("Schedule Error", "All retries failed, no response received")
+		return
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Warn("Schedule Body Error", err.Error())
+		return
+	}
+	notification(currentSchedule, body)
+
+	finishAt := time.Now()
+	scheduleLog.StartedAt = &startAt
+	scheduleLog.FinishedAt = &finishAt
+	scheduleLog.Took = float32(finishAt.Sub(startAt).Seconds())
+	scheduleLog.Result = string(body)
+	if err := scheduleLog.Create(currentSchedule.ID); err != nil {
+		logger.Warn("Schedule Log Error", err.Error())
+	}
+
+	webhooks(currentSchedule)
 }
 
 func scheduleUpdate(schedule *models.Schedule, running bool) {
@@ -146,28 +231,39 @@ func notification(schedule *models.Schedule, body []byte) {
 }
 
 func webhooks(schedule *models.Schedule) {
+	var wg sync.WaitGroup
 	for _, webhook := range schedule.Webhooks {
 		if webhook.Request == nil {
 			continue
 		}
+		currentWebhook := webhook
+		wg.Add(1)
 		go func() {
-			client := &http.Client{
-				CheckRedirect: func(req *http.Request, via []*http.Request) error {
-					return http.ErrUseLastResponse
-				},
-			}
+			defer wg.Done()
+			// this goroutine is outside the cron job chain, so it needs its own recover
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Warn("Recovered from panic in webhook", fmt.Sprintf("%v", r))
+				}
+			}()
 
-			req, err := http.NewRequest(webhook.Request.Method, webhook.Request.Url, strings.NewReader(string(webhook.Request.Content)))
+			client := conn.NewOutboundClient(time.Duration(schedule.Timeout) * time.Second)
+
+			req, err := http.NewRequest(currentWebhook.Request.Method, currentWebhook.Request.Url, strings.NewReader(string(currentWebhook.Request.Content)))
 			if err != nil {
 				logger.Warn("Schedule Webhook Error", err.Error())
 				return
 			}
 
-			_, err = client.Do(req)
+			resp, err := client.Do(req)
 			if err != nil {
 				logger.Warn("Schedule Webhook Error", err.Error())
 				return
 			}
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
 		}()
 	}
+	// waiting keeps the webhooks inside the job's lifetime, so graceful shutdown covers them
+	wg.Wait()
 }

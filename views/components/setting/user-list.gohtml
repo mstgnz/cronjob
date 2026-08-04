@@ -105,6 +105,13 @@
 {{define "js"}}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // These rows are built as HTML strings, so every user supplied value has to be
+    // escaped first. Without this a self chosen fullname runs as script in the
+    // admin's session as soon as this page is opened.
+    const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[c]);
+
     loadUsers = (url) => {
         fetch(url)
         .then(response => response.json())
@@ -112,22 +119,22 @@ document.addEventListener("DOMContentLoaded", function() {
             const tbody = document.querySelector("#users tbody");
             tbody.innerHTML = data.users.map(user => `
                 <tr>
-                    <th scope="row">${user.id}</th>
-                    <td>${user.fullname}</td>
-                    <td>${user.email}</td>
-                    <td>${user.phone}</td>
-                    <td>${user.active}</td>
-                    <td>${user.is_admin}</td>
+                    <th scope="row">${esc(user.id)}</th>
+                    <td>${esc(user.fullname)}</td>
+                    <td>${esc(user.email)}</td>
+                    <td>${esc(user.phone)}</td>
+                    <td>${esc(user.active)}</td>
+                    <td>${esc(user.is_admin)}</td>
                     <td>${user.last_login ? new Date(user.last_login).toLocaleDateString() : ''}</td>
                     <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : ''}</td>
                     <td>${user.updated_at ? new Date(user.updated_at).toLocaleDateString() : ''}</td>
                     <td>${user.deleted_at ? new Date(user.deleted_at).toLocaleDateString() : ''}</td>
                     <td>
                         <div class="hstack gap-1">
-                            <button class="btn btn-info" data-user='${JSON.stringify(user)}'>
+                            <button class="btn btn-info" data-user='${esc(JSON.stringify(user))}'>
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-warning" data-user='${JSON.stringify(user)}'>
+                            <button class="btn btn-warning" data-user='${esc(JSON.stringify(user))}'>
                             <i class="bi bi-key-fill"></i>
                             </button>
                             {{/* <button class="btn btn-danger" data-id="${user.id}">
@@ -175,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function() {
             let user = button.getAttribute('data-user');
             user = JSON.parse(user)
             document.getElementById('pass-update').querySelectorAll('input[name="id"]')[0].value = user.id
-            document.getElementById('pass-toast').innerHTML = `Attention: You are changing ${user.fullname}'s password!`
+            document.getElementById('pass-toast').innerHTML = `Attention: You are changing ${esc(user.fullname)}'s password!`
             new bootstrap.Modal('#pass-update').show()
         }
         if (e.target.closest('.btn-danger')) {

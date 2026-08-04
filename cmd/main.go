@@ -28,6 +28,12 @@ import (
 	"github.com/mstgnz/cronjob/schedule"
 )
 
+// minSecretLength is the shortest JWT signing secret the application will start with.
+const minSecretLength = 32
+
+// shutdownTimeout bounds how long the process waits for running jobs on SIGTERM.
+const shutdownTimeout = 60 * time.Second
+
 var (
 	PORT                   string
 	webUserHandler         web.UserHandler
@@ -56,6 +62,12 @@ func init() {
 		logger.Warn(fmt.Sprintf("Load Env Error: %v", err))
 		log.Fatalf("Load Env Error: %v", err)
 	}
+	// A short or missing signing secret makes every session token forgeable, and an
+	// unset env var would silently sign with an empty key, so boot is refused here.
+	if len(os.Getenv("JWT_SECRET")) < minSecretLength {
+		log.Fatalf("startup: JWT_SECRET must be at least %d characters", minSecretLength)
+	}
+
 	// init conf
 	_ = config.App()
 	validate.CustomValidate()
@@ -115,15 +127,14 @@ func main() {
 		r.Use(isAuthMiddleware)
 		r.Get("/login", Catch(webUserHandler.LoginHandler))
 		r.Post("/login", Catch(webUserHandler.LoginHandler))
-		r.Get("/register", Catch(webUserHandler.RegisterHandler))
-		r.Post("/register", Catch(webUserHandler.RegisterHandler))
 	})
 
 	// web with auth
 	r.Group(func(r chi.Router) {
 		r.Use(webAuthMiddleware)
 		r.Get("/", Catch(webHomeHandler.HomeHandler))
-		r.Get("/logout", Catch(webUserHandler.LogoutHandler))
+		// POST only: a GET logout can be fired by any third party page embedding it as an image
+		r.Post("/logout", Catch(webUserHandler.LogoutHandler))
 		r.Get("/profile", Catch(webUserHandler.ProfileHandler))
 		r.Put("/profile/change-password", Catch(webUserHandler.ChangePasswordHandler))
 		// schedule
@@ -195,8 +206,8 @@ func main() {
 	})
 
 	// api without auth
+	// Accounts are created by an admin under /settings/users, there is no public sign up.
 	r.With(headerMiddleware).Post("/api/login", Catch(apiUserHandler.LoginHandler))
-	r.With(headerMiddleware).Post("/api/register", Catch(apiUserHandler.RegisterHandler))
 
 	// api with auth
 	r.Group(func(r chi.Router) {
@@ -265,8 +276,9 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
-	// Create a context that listens for interrupt and terminate signals
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
+	// Create a context that listens for interrupt and terminate signals.
+	// SIGKILL is deliberately absent: it cannot be caught by a process.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	// Run your HTTP server in a goroutine
@@ -285,21 +297,38 @@ func main() {
 
 	logger.Info("Cron is shutting on", PORT)
 
-	// set Shutting
-	config.App().Shutting = true
+	// stop dispatching new executions
+	config.SetShutting()
 
-	// check Running
+	// stop the scheduler and wait for the jobs it already started
+	cronCtx := config.App().Cron.Stop()
+
+	// wait for in-flight executions, bounded so shutdown cannot hang forever
+	deadline := time.After(shutdownTimeout)
+	ticker := time.NewTicker(time.Second * 5)
+	defer ticker.Stop()
+
+waitLoop:
 	for {
-		if config.App().Running <= 0 {
+		if running := config.RunningCount(); running <= 0 {
 			logger.Info("Cronjobs all done")
 			break
 		} else {
-			logger.Info(fmt.Sprintf("Currently %d active jobs in progress. pending completion...", config.App().Running))
+			logger.Info(fmt.Sprintf("Currently %d active jobs in progress. pending completion...", running))
 		}
-		time.Sleep(time.Second * 5)
+		select {
+		case <-deadline:
+			logger.Warn("Shutdown timeout reached", fmt.Sprintf("%d jobs still running, exiting anyway", config.RunningCount()))
+			break waitLoop
+		case <-ticker.C:
+		}
 	}
 
-	config.App().Cron.Stop()
+	select {
+	case <-cronCtx.Done():
+	case <-time.After(5 * time.Second):
+	}
+
 	logger.Info("Shutting down gracefully...")
 	config.App().DB.CloseDatabase()
 }
@@ -393,7 +422,9 @@ func isAdminMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cUser, ok := r.Context().Value(config.CKey("user")).(*models.User)
 
-		if !cUser.IsAdmin || !ok {
+		// ok is checked first: a failed assertion leaves cUser nil, and reading
+		// IsAdmin off it would panic instead of denying access
+		if !ok || cUser == nil || !cUser.IsAdmin {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}

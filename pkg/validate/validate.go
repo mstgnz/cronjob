@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/robfig/cron/v3"
 )
 
 func Validate(structure any) error {
@@ -42,9 +43,11 @@ func CustomValidate() {
 
 // The Go Playground Validator has a “cron” validation mechanism, but it does not work correctly.
 // So we will validate with “robfig/cron parser”.
+// The expression is only parsed here; it must never be registered on the running
+// scheduler, otherwise validation would plant an entry with a nil job that panics on its first tick.
 func CustomCronValidate() {
-	config.App().Validator.RegisterValidation("cron", func(fl validator.FieldLevel) bool {
-		_, err := config.App().Cron.AddFunc(fl.Field().String(), nil)
+	_ = config.App().Validator.RegisterValidation("cron", func(fl validator.FieldLevel) bool {
+		_, err := cron.ParseStandard(fl.Field().String())
 		return err == nil
 	})
 }
@@ -53,7 +56,7 @@ func CustomCronValidate() {
 // In the case of slices, this tag checks if the slice itself exists, but does not check if the contents of the slice are empty.
 // We have written a special validation function to check if slices are empty.
 func CustomNoEmptyValidate() {
-	config.App().Validator.RegisterValidation("nonempty", func(fl validator.FieldLevel) bool {
+	_ = config.App().Validator.RegisterValidation("nonempty", func(fl validator.FieldLevel) bool {
 		field := fl.Field()
 		// Ensure the field is a slice or array
 		if field.Kind() != reflect.Slice && field.Kind() != reflect.Array {

@@ -132,7 +132,8 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 	if updateData.GroupID > 0 {
 		// group check
 		group := &models.Group{}
-		exists, err := group.IDExists(schedule.GroupID, cUser.ID)
+		// the incoming id must be checked; schedule is only an existence probe and stays zero-valued
+		exists, err := group.IDExists(updateData.GroupID, cUser.ID)
 		if err != nil {
 			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 		}
@@ -147,7 +148,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 	if updateData.RequestID > 0 {
 		// request check
 		request := &models.Request{}
-		exists, err = request.IDExists(schedule.RequestID, cUser.ID)
+		exists, err = request.IDExists(updateData.RequestID, cUser.ID)
 		if err != nil {
 			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 		}
@@ -162,7 +163,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 	if updateData.NotificationID > 0 {
 		// request check
 		notification := &models.Notification{}
-		exists, err = notification.IDExists(schedule.NotificationID, cUser.ID)
+		exists, err = notification.IDExists(updateData.NotificationID, cUser.ID)
 		if err != nil {
 			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
 		}

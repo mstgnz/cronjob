@@ -126,7 +126,7 @@ func (h *ScheduleHandler) EditHandler(w http.ResponseWriter, r *http.Request) er
 				</div>
 			</td>
 		</tr>
-	`, data[0].ID, data[0].ID, data[0].Group.Name, data[0].Request.Url, data[0].Notification.Title, data[0].Timing, data[0].Timeout, data[0].Retries, data[0].Running, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
+	`, data[0].ID, data[0].ID, esc(data[0].Group.Name), esc(data[0].Request.Url), esc(data[0].Notification.Title), esc(data[0].Timing), data[0].Timeout, data[0].Retries, data[0].Running, activeSelected, deactiveSelected, data[0].CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, data[0].ID)
 
 	_, _ = w.Write([]byte(form))
 	return nil
@@ -263,7 +263,7 @@ func (h *ScheduleHandler) PaginationHandler(w http.ResponseWriter, r *http.Reque
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Group.Name, v.Request.Url, v.Notification.Title, v.Timing, v.Timeout, v.Retries, v.Running, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, v.ID, v.ID)
+        </tr>`, v.ID, esc(v.Group.Name), esc(v.Request.Url), esc(v.Notification.Title), esc(v.Timing), v.Timeout, v.Retries, v.Running, v.Active, v.CreatedAt.Format("2006-01-02 15:04:05"), updatedAt, v.ID, v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil
@@ -315,7 +315,7 @@ func (h *ScheduleHandler) LogPaginationHandler(w http.ResponseWriter, r *http.Re
             <td>%f</td>
             <td>%v</td>
             <td>%s</td>
-        </tr>`, v.ID, v.Schedule.Timing, v.StartedAt.Format("2006-01-02 15:04:05"), v.FinishedAt.Format("2006-01-02 15:04:05"), v.Took, v.Result, v.CreatedAt.Format("2006-01-02 15:04:05"))
+        </tr>`, v.ID, esc(v.Schedule.Timing), v.StartedAt.Format("2006-01-02 15:04:05"), v.FinishedAt.Format("2006-01-02 15:04:05"), v.Took, esc(v.Result), v.CreatedAt.Format("2006-01-02 15:04:05"))
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil

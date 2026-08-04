@@ -170,7 +170,7 @@ func (h *SettingHandler) AppLogHandler(w http.ResponseWriter, r *http.Request) e
 					</button>
 				</div>
 			</td>
-        </tr>`, v.ID, v.Level, v.Message, v.CreatedAt.Format("2006-01-02 15:04:05"), v.ID)
+        </tr>`, v.ID, esc(v.Level), esc(v.Message), v.CreatedAt.Format("2006-01-02 15:04:05"), v.ID)
 	}
 	_, _ = w.Write([]byte(tr))
 	return nil

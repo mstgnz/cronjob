@@ -60,11 +60,16 @@ func (m *Group) Get(userID, id, uid int) ([]*Group, error) {
 
 	query := strings.TrimSuffix(config.App().QUERY["GROUPS"], ";")
 
+	// $1 is the user id carried by the base query; every filter is bound, never interpolated
+	params := []any{userID}
+
 	if id > 0 {
-		query += fmt.Sprintf(" AND id=%d", id)
+		params = append(params, id)
+		query += fmt.Sprintf(" AND id=$%d", len(params))
 	}
 	if uid > 0 {
-		query += fmt.Sprintf(" AND uid=%d", uid)
+		params = append(params, uid)
+		query += fmt.Sprintf(" AND uid=$%d", len(params))
 	}
 
 	// prepare
@@ -74,7 +79,7 @@ func (m *Group) Get(userID, id, uid int) ([]*Group, error) {
 	}
 
 	// query
-	rows, err := stmt.Query(userID)
+	rows, err := stmt.Query(params...)
 	if err != nil {
 		return nil, err
 	}

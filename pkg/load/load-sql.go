@@ -46,6 +46,16 @@ func parseSQLQueries(file *os.File, query map[string]string) (map[string]string,
 	if err := scanner.Err(); err != nil {
 		return query, fmt.Errorf("error reading file: %w", err)
 	}
+	// A key whose statement never terminated with ';' would be stored empty and later
+	// reach db.Prepare("") as a silent runtime failure, so it is rejected at load time.
+	for name, statement := range query {
+		if strings.TrimSpace(statement) == "" {
+			return query, fmt.Errorf("query %q is empty, check its terminating semicolon", name)
+		}
+	}
+	if len(key) > 0 {
+		return query, fmt.Errorf("query %q was never terminated with a semicolon", key)
+	}
 	return query, nil
 }
 

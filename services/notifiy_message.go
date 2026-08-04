@@ -96,6 +96,19 @@ func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Requ
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notify message not found"}
 	}
 
+	// Owning the notify message row is not enough: the new notification must belong
+	// to the caller too, otherwise this row can be re-parented onto someone else's job.
+	if updateData.NotificationID > 0 {
+		notification := &models.Notification{}
+		exists, err = notification.IDExists(updateData.NotificationID, cUser.ID)
+		if err != nil {
+			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		}
+		if !exists {
+			return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
+		}
+	}
+
 	queryParts := []string{"UPDATE notify_messages SET"}
 	params := []any{}
 	paramCount := 1
@@ -126,8 +139,9 @@ func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Requ
 	params = append(params, updatedAt)
 	paramCount++
 
-	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d", paramCount))
-	params = append(params, id)
+	// ownership is enforced in the statement itself, not only by the check above
+	queryParts = append(queryParts, fmt.Sprintf("WHERE id=$%d AND notification_id IN (SELECT id FROM notifications WHERE user_id=$%d)", paramCount, paramCount+1))
+	params = append(params, id, cUser.ID)
 	query := strings.Join(queryParts, " ")
 
 	err = notifyMessage.Update(query, params)
