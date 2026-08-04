@@ -27,7 +27,7 @@ func (s *NotificationService) ListService(w http.ResponseWriter, r *http.Request
 
 	notifications, err := notification.Get(cUser.ID, id, title)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"notifications": notifications}}
@@ -36,7 +36,7 @@ func (s *NotificationService) ListService(w http.ResponseWriter, r *http.Request
 func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	notification := &models.Notification{}
 	if err := response.ReadJSON(w, r, notification); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(notification)
@@ -51,7 +51,7 @@ func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Reque
 
 	exists, err := notification.TitleExists()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Title already exists"}
@@ -59,7 +59,7 @@ func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Reque
 
 	err = notification.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Notification created", Data: map[string]any{"notification": notification}}
@@ -68,7 +68,7 @@ func (s *NotificationService) CreateService(w http.ResponseWriter, r *http.Reque
 func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.NotificationUpdate{}
 	if err := response.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
@@ -83,7 +83,7 @@ func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Reque
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notification.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
@@ -136,7 +136,7 @@ func (s *NotificationService) UpdateService(w http.ResponseWriter, r *http.Reque
 	err = notification.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -150,7 +150,7 @@ func (s *NotificationService) DeleteService(w http.ResponseWriter, r *http.Reque
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notification.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
@@ -159,7 +159,7 @@ func (s *NotificationService) DeleteService(w http.ResponseWriter, r *http.Reque
 	err = notification.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}
@@ -168,7 +168,7 @@ func (s *NotificationService) DeleteService(w http.ResponseWriter, r *http.Reque
 func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	bulk := &models.NotificationBulk{}
 	if err := response.ReadJSON(w, r, bulk); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(bulk)
@@ -190,7 +190,7 @@ func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request
 
 	exists, err := notification.TitleExists()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Title already exists"}
@@ -198,15 +198,20 @@ func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request
 
 	tx, err := config.App().DB.Begin()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
+	// Catches every early return below. After a successful commit this is a no-op
+	// (ErrTxDone); without it an abandoned transaction holds its connection open.
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	err = notification.Create(tx)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	for _, email := range bulk.NotifyEmails {
@@ -249,7 +254,7 @@ func (s *NotificationService) BulkService(w http.ResponseWriter, r *http.Request
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Notification created", Data: map[string]any{"notification": notification}}

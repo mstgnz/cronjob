@@ -11,35 +11,66 @@ import (
 	"github.com/mstgnz/cronjob/models"
 	"github.com/mstgnz/cronjob/pkg/auth"
 	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/logger"
 	"github.com/mstgnz/cronjob/pkg/response"
 	"github.com/mstgnz/cronjob/pkg/validate"
 )
 
 type UserService struct{}
 
+// Login attempts are limited per address and per account. Both are needed: the
+// address bucket stops one host walking a password list, the account bucket stops
+// a distributed attempt against a single user.
+var (
+	loginIPLimiter    = auth.NewLimiter(10, 15*time.Minute)
+	loginEmailLimiter = auth.NewLimiter(5, 15*time.Minute)
+)
+
+// invalidCredentials is returned for every failed login. A distinct message or
+// status for an unknown address would tell an attacker which accounts exist.
+const invalidCredentials = "Invalid credentials"
+
 func (s *UserService) LoginService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	login := &models.Login{}
 	if err := response.ReadJSON(w, r, login); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Invalid request body"}
 	}
 
 	err := validate.Validate(login)
 	if err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, response.Response{Status: false, Message: "Content validation invalid", Data: map[string]any{"error": err.Error()}}
+	}
+
+	clientIP := auth.ClientIP(r)
+	emailKey := strings.ToLower(strings.TrimSpace(login.Email))
+	if !loginIPLimiter.Allow(clientIP) || !loginEmailLimiter.Allow(emailKey) {
+		logger.Warn("Login rate limited", fmt.Sprintf("ip=%s", clientIP))
+		return http.StatusTooManyRequests, response.Response{Status: false, Message: "Too many attempts, try again later"}
 	}
 
 	user := &models.User{}
 	err = user.GetWithMail(login.Email)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		// The password is still hashed against a dummy value so an unknown address
+		// does not answer measurably faster than a known one.
+		auth.ComparePassword(auth.DummyHash, login.Password)
+		return http.StatusBadRequest, response.Response{Status: false, Message: invalidCredentials}
 	}
 
 	if !auth.ComparePassword(user.Password, login.Password) {
-		return http.StatusBadRequest, response.Response{Status: false, Message: "Invalid credentials"}
+		return http.StatusBadRequest, response.Response{Status: false, Message: invalidCredentials}
 	}
+
+	if !user.Active {
+		return http.StatusBadRequest, response.Response{Status: false, Message: invalidCredentials}
+	}
+
+	loginIPLimiter.Reset(clientIP)
+	loginEmailLimiter.Reset(emailKey)
 
 	token, err := auth.GenerateToken(user.ID)
 	if err != nil {
+		logger.Warn("Token Generate Error", err.Error())
 		return http.StatusInternalServerError, response.Response{Status: false, Message: "Failed to generate token"}
 	}
 
@@ -55,18 +86,18 @@ func (s *UserService) LoginService(w http.ResponseWriter, r *http.Request) (int,
 func (s *UserService) RegisterService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	register := &models.Register{}
 	if err := response.ReadJSON(w, r, register); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(register)
 	if err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, serverError(err)
 	}
 
 	user := &models.User{}
 	exists, err := user.Exists(register.Email)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Email already exists"}
@@ -74,7 +105,7 @@ func (s *UserService) RegisterService(w http.ResponseWriter, r *http.Request) (i
 
 	err = user.Create(register)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	token, err := auth.GenerateToken(user.ID)
@@ -103,12 +134,12 @@ func (s *UserService) Users(w http.ResponseWriter, r *http.Request) (int, respon
 func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.ProfileUpdate{}
 	if err := response.ReadJSON(w, r, updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, serverError(err)
 	}
 
 	user := &models.User{}
@@ -133,12 +164,12 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 	if updateData.Email != "" {
 		// check email if not same email
 		if err := user.GetWithId(user.ID); err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if user.Email != updateData.Email {
 			exists, err := user.Exists(updateData.Email)
 			if err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
 			if exists {
 				return http.StatusBadRequest, response.Response{Status: false, Message: "Email already exists"}
@@ -175,7 +206,7 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 	err = user.ProfileUpdate(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -184,12 +215,12 @@ func (s *UserService) UpdateService(w http.ResponseWriter, r *http.Request) (int
 func (s *UserService) PassUpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.PasswordUpdate{}
 	if err := response.ReadJSON(w, r, updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
 	if err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, serverError(err)
 	}
 
 	if updateData.Password != updateData.RePassword {
@@ -203,17 +234,30 @@ func (s *UserService) PassUpdateService(w http.ResponseWriter, r *http.Request) 
 	user.ID = cUser.ID
 
 	// If the administrator wants to update a user.
-	if updateData.ID > 0 && cUser.IsAdmin {
+	adminActingOnSomeoneElse := updateData.ID > 0 && cUser.IsAdmin && updateData.ID != cUser.ID
+	if adminActingOnSomeoneElse {
 		user.ID = updateData.ID
+	} else {
+		// Changing your own password requires proving you know the current one:
+		// otherwise a momentarily borrowed session becomes permanent access.
+		if updateData.CurrentPassword == "" {
+			return http.StatusBadRequest, response.Response{Status: false, Message: "Current password is required"}
+		}
+		if !auth.ComparePassword(cUser.Password, updateData.CurrentPassword) {
+			return http.StatusBadRequest, response.Response{Status: false, Message: "Current password is incorrect"}
+		}
 	}
 
+	// the update also stamps tokens_valid_after, retiring sessions opened with the old password
 	err = user.PasswordUpdate(updateData.Password)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		logger.Warn("Password Update Error", err.Error())
+		return http.StatusInternalServerError, response.Response{Status: false, Message: "Password could not be updated"}
 	}
 
-	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
+	// the submitted passwords are deliberately not echoed back
+	return http.StatusOK, response.Response{Status: true, Message: "Password updated"}
 }
 
 func (s *UserService) DeleteService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
@@ -240,7 +284,7 @@ func (s *UserService) DeleteService(w http.ResponseWriter, r *http.Request) (int
 	}
 
 	if err := user.Delete(id); err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delete success"}

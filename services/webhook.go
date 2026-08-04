@@ -32,7 +32,7 @@ func (h *WebhookService) ListService(w http.ResponseWriter, r *http.Request) (in
 
 	webhooks, err := webhook.Get(id, schedule_id, request_id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"webhooks": webhooks}}
@@ -41,7 +41,7 @@ func (h *WebhookService) ListService(w http.ResponseWriter, r *http.Request) (in
 func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	webhook := &models.Webhook{}
 	if err := response.ReadJSON(w, r, webhook); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(webhook)
@@ -56,7 +56,7 @@ func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (
 	schedule := &models.Schedule{}
 	exists, err := schedule.IDExists(webhook.ScheduleID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Schedule not found"}
@@ -66,7 +66,7 @@ func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (
 	request := &models.Request{}
 	exists, err = request.IDExists(webhook.RequestID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
@@ -75,7 +75,7 @@ func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (
 	// check schedule_id and request_id
 	exists, err = webhook.UniqExists(webhook.ScheduleID, webhook.RequestID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Webhook already exists"}
@@ -83,7 +83,7 @@ func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (
 
 	err = webhook.Create()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Webhook created", Data: map[string]any{"webhook": webhook}}
@@ -92,7 +92,7 @@ func (h *WebhookService) CreateService(w http.ResponseWriter, r *http.Request) (
 func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.WebhookUpdate{}
 	if err := response.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
@@ -107,7 +107,7 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := webhook.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Webhook not found"}
@@ -119,7 +119,7 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 		schedule := &models.Schedule{}
 		exists, err = schedule.IDExists(updateData.ScheduleID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Schedule not found"}
@@ -129,7 +129,7 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 		request := &models.Request{}
 		exists, err = request.IDExists(updateData.RequestID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
@@ -174,7 +174,7 @@ func (h *WebhookService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	err = webhook.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -188,7 +188,7 @@ func (h *WebhookService) DeleteService(w http.ResponseWriter, r *http.Request) (
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := webhook.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Webhook not found"}
@@ -197,7 +197,7 @@ func (h *WebhookService) DeleteService(w http.ResponseWriter, r *http.Request) (
 	err = webhook.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}

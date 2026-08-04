@@ -10,6 +10,9 @@ SELECT * FROM app_logs WHERE level=$3 ORDER BY id DESC offset $1 LIMIT $2;
 -- APP_LOG_INSERT
 INSERT INTO app_logs (level,message) VALUES ($1,$2);
 
+-- APP_LOGS_PRUNE
+DELETE FROM app_logs WHERE created_at < now() - ($1 || ' days')::interval;
+
 -- TRIGGERED_INSERT
 INSERT INTO triggered (schedule_id) VALUES ($1);
 
@@ -30,16 +33,19 @@ SELECT count(*) FROM users WHERE id=$1;
 SELECT count(*) FROM users WHERE email=$1;
 
 -- USER_GET_WITH_ID
-SELECT id, fullname, email, phone, is_admin, active, password, last_login, created_at, updated_at FROM users WHERE id=$1 AND deleted_at isnull;
+SELECT id, fullname, email, phone, is_admin, active, password, last_login, tokens_valid_after, created_at, updated_at FROM users WHERE id=$1 AND deleted_at isnull;
 
 -- USER_GET_WITH_EMAIL
-SELECT id, fullname, email, phone, is_admin, active, password, last_login, created_at, updated_at FROM users WHERE email=$1 AND deleted_at isnull;
+SELECT id, fullname, email, phone, is_admin, active, password, last_login, tokens_valid_after, created_at, updated_at FROM users WHERE email=$1 AND deleted_at isnull;
 
 -- USER_INSERT
 INSERT INTO users (fullname,email,password,phone) VALUES ($1,$2,$3,$4) RETURNING id,fullname,email,phone;
 
 -- USER_UPDATE_PASS
-UPDATE users SET password=$1, updated_at=$2 WHERE id=$3;
+UPDATE users SET password=$1, updated_at=$2, tokens_valid_after=$2 WHERE id=$3;
+
+-- USER_INVALIDATE_TOKENS
+UPDATE users SET tokens_valid_after=$1 WHERE id=$2;
 
 -- USER_LAST_LOGIN
 UPDATE users SET last_login=$1 WHERE id=$2;
@@ -187,6 +193,9 @@ ORDER BY sl.id DESC offset $3 LIMIT $4;
 
 -- SCHEDULE_LOGS
 SELECT * FROM schedule_logs sl JOIN schedules s ON s.id=sl.schedule_id WHERE sl.schedule_id=$1 AND s.user_id=$2;
+
+-- SCHEDULE_LOGS_PRUNE
+DELETE FROM schedule_logs WHERE created_at < now() - ($1 || ' days')::interval;
 
 -- SCHEDULE_LOG_INSERT
 INSERT INTO schedule_logs (schedule_id,started_at,finished_at,took,result) VALUES ($1,$2,$3,$4,$5) RETURNING id,schedule_id,started_at,finished_at,took,result,created_at;

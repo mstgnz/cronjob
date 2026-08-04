@@ -43,13 +43,29 @@ func ValidateToken(token string) (*jwt.Token, error) {
 }
 
 func GetUserIDByToken(token string) (string, error) {
+	id, _, err := GetUserIDAndIssuedAt(token)
+	return id, err
+}
+
+// GetUserIDAndIssuedAt returns the subject and the moment the token was issued.
+// The issue time is what makes logout and password changes able to retire a token
+// that is otherwise still within its expiry.
+func GetUserIDAndIssuedAt(token string) (string, time.Time, error) {
 	valid, err := ValidateToken(token)
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
-	claims := valid.Claims.(jwt.MapClaims)
+	claims, ok := valid.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", time.Time{}, fmt.Errorf("unexpected claims type")
+	}
 	id := fmt.Sprintf("%v", claims["iss"])
-	return id, nil
+
+	issuedAt, err := claims.GetIssuedAt()
+	if err != nil || issuedAt == nil {
+		return "", time.Time{}, fmt.Errorf("token has no issue time")
+	}
+	return id, issuedAt.Time, nil
 }
 
 func RandomString(length int) string {

@@ -27,7 +27,7 @@ func (s *GroupService) ListService(w http.ResponseWriter, r *http.Request) (int,
 
 	groups, err := group.Get(cUser.ID, id, uid)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"groups": groups}}
@@ -36,7 +36,7 @@ func (s *GroupService) ListService(w http.ResponseWriter, r *http.Request) (int,
 func (s *GroupService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	group := &models.Group{}
 	if err := response.ReadJSON(w, r, group); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(group)
@@ -51,7 +51,7 @@ func (s *GroupService) CreateService(w http.ResponseWriter, r *http.Request) (in
 
 	exists, err := group.NameExists()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Group already exists"}
@@ -59,7 +59,7 @@ func (s *GroupService) CreateService(w http.ResponseWriter, r *http.Request) (in
 
 	err = group.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Group created", Data: map[string]any{"group": group}}
@@ -68,7 +68,7 @@ func (s *GroupService) CreateService(w http.ResponseWriter, r *http.Request) (in
 func (s *GroupService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.GroupUpdate{}
 	if err := response.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
@@ -83,7 +83,7 @@ func (s *GroupService) UpdateService(w http.ResponseWriter, r *http.Request) (in
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := groups.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Group not found"}
@@ -126,7 +126,7 @@ func (s *GroupService) UpdateService(w http.ResponseWriter, r *http.Request) (in
 	err = groups.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -140,7 +140,7 @@ func (s *GroupService) DeleteService(w http.ResponseWriter, r *http.Request) (in
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := groups.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Group not found"}
@@ -151,11 +151,11 @@ func (s *GroupService) DeleteService(w http.ResponseWriter, r *http.Request) (in
 	requests := &models.Request{}
 	schedulesCount, err := schedules.GroupExists(id)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	requestsCount, err := requests.GroupExists(id)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if schedulesCount || requestsCount {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Group has schedules or requests"}
@@ -164,7 +164,7 @@ func (s *GroupService) DeleteService(w http.ResponseWriter, r *http.Request) (in
 	err = groups.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}

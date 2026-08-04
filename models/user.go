@@ -17,7 +17,9 @@ type User struct {
 	Active    bool       `json:"active"`
 	IsAdmin   bool       `json:"is_admin"`
 	LastLogin *time.Time `json:"last_login,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
+	// TokensValidAfter rejects tokens issued before it; set on logout and password change.
+	TokensValidAfter *time.Time `json:"-"`
+	CreatedAt        *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
@@ -42,9 +44,12 @@ type ProfileUpdate struct {
 }
 
 type PasswordUpdate struct {
-	ID         int    `json:"id" validate:"omitempty"` // This field is required if the administrator wants to update a user.
-	Password   string `json:"password" validate:"required,min=6"`
-	RePassword string `json:"re-password" validate:"required,min=6"`
+	ID int `json:"id" validate:"omitempty"` // This field is required if the administrator wants to update a user.
+	// CurrentPassword is required when users change their own password, so a
+	// borrowed session cannot be turned into permanent access.
+	CurrentPassword string `json:"current-password" validate:"omitempty"`
+	Password        string `json:"password" validate:"required,min=6"`
+	RePassword      string `json:"re-password" validate:"required,min=6"`
 }
 
 func (m *User) Count() int {
@@ -189,7 +194,7 @@ func (m *User) GetWithId(id int) error {
 
 	found := false
 	for rows.Next() {
-		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.Phone, &m.IsAdmin, &m.Active, &m.Password, &m.LastLogin, &m.CreatedAt, &m.UpdatedAt); err != nil {
+		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.Phone, &m.IsAdmin, &m.Active, &m.Password, &m.LastLogin, &m.TokensValidAfter, &m.CreatedAt, &m.UpdatedAt); err != nil {
 			return err
 		}
 		found = true
@@ -220,7 +225,7 @@ func (m *User) GetWithMail(email string) error {
 
 	found := false
 	for rows.Next() {
-		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.Phone, &m.IsAdmin, &m.Active, &m.Password, &m.LastLogin, &m.CreatedAt, &m.UpdatedAt); err != nil {
+		if err := rows.Scan(&m.ID, &m.Fullname, &m.Email, &m.Phone, &m.IsAdmin, &m.Active, &m.Password, &m.LastLogin, &m.TokensValidAfter, &m.CreatedAt, &m.UpdatedAt); err != nil {
 			return err
 		}
 		found = true
@@ -260,13 +265,32 @@ func (m *User) ProfileUpdate(query string, params []any) error {
 	return nil
 }
 
+// InvalidateTokens makes every token issued for this user before now unusable.
+func (m *User) InvalidateTokens() error {
+	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_INVALIDATE_TOKENS"])
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = stmt.Close()
+	}()
+
+	// UTC on purpose: the column is timestamp without time zone and is compared
+	// against the token's iat claim, which is epoch based. Writing local time here
+	// would shift the cut-off by the zone offset and retire every valid token.
+	_, err = stmt.Exec(time.Now().UTC(), m.ID)
+	return err
+}
+
 func (m *User) PasswordUpdate(password string) error {
 	stmt, err := config.App().DB.Prepare(config.App().QUERY["USER_UPDATE_PASS"])
 	if err != nil {
 		return err
 	}
 
-	updateAt := time.Now().Format("2006-01-02 15:04:05")
+	// UTC: this value also lands in tokens_valid_after, which is compared against
+	// the token's epoch based iat claim.
+	updateAt := time.Now().UTC().Format("2006-01-02 15:04:05")
 	hashPass := auth.HashAndSalt(password)
 	result, err := stmt.Exec(hashPass, updateAt, m.ID)
 	if err != nil {

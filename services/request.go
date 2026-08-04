@@ -29,7 +29,7 @@ func (h *RequestService) ListService(w http.ResponseWriter, r *http.Request) (in
 
 	requests, err := request.Get(cUser.ID, id, groupID, url)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"requests": requests}}
@@ -38,7 +38,7 @@ func (h *RequestService) ListService(w http.ResponseWriter, r *http.Request) (in
 func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	request := &models.Request{}
 	if err := response.ReadJSON(w, r, request); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(request)
@@ -53,7 +53,7 @@ func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (
 
 	exists, err := request.UrlExists()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Url already exists"}
@@ -61,7 +61,7 @@ func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (
 
 	err = request.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Request created", Data: map[string]any{"request": request}}
@@ -70,7 +70,7 @@ func (h *RequestService) CreateService(w http.ResponseWriter, r *http.Request) (
 func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.RequestUpdate{}
 	if err := response.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
@@ -85,7 +85,7 @@ func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
@@ -138,7 +138,7 @@ func (h *RequestService) UpdateService(w http.ResponseWriter, r *http.Request) (
 	err = request.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -152,7 +152,7 @@ func (h *RequestService) DeleteService(w http.ResponseWriter, r *http.Request) (
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := request.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
@@ -161,7 +161,7 @@ func (h *RequestService) DeleteService(w http.ResponseWriter, r *http.Request) (
 	err = request.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}
@@ -170,7 +170,7 @@ func (h *RequestService) DeleteService(w http.ResponseWriter, r *http.Request) (
 func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	bulk := &models.RequestBulk{}
 	if err := response.ReadJSON(w, r, bulk); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(bulk)
@@ -192,7 +192,7 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 
 	exists, err := request.UrlExists()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Url already exists"}
@@ -200,15 +200,20 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 
 	tx, err := config.App().DB.Begin()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
+	// Catches every early return below. After a successful commit this is a no-op
+	// (ErrTxDone); without it an abandoned transaction holds its connection open.
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	err = request.Create(tx)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	for _, header := range bulk.RequestHeaders {
@@ -233,7 +238,7 @@ func (s *RequestService) RequestBulkService(w http.ResponseWriter, r *http.Reque
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "test", Data: map[string]any{"request": request}}

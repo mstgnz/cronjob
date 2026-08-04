@@ -101,6 +101,7 @@ func main() {
 
 	// Scheduler Call
 	schedule.CallSchedule(config.App().Cron)
+	schedule.CallRetention(config.App().Cron)
 	config.App().Cron.Start()
 
 	// Chi Define Routes
@@ -333,6 +334,20 @@ waitLoop:
 	config.App().DB.CloseDatabase()
 }
 
+// tokenRetired reports whether a token predates the user's last logout or password
+// change. JWTs cannot be withdrawn once issued, so this cut-off is what makes those
+// two actions actually end existing sessions.
+// The comparison is strict. The iat claim has second precision while the cut-off
+// does not, so a token minted in the same second as a logout is treated as retired:
+// asking that user to sign in again is the cheap failure, honouring a token that
+// should be gone is not.
+func tokenRetired(user *models.User, issuedAt time.Time) bool {
+	if user.TokensValidAfter == nil {
+		return false
+	}
+	return issuedAt.Before(*user.TokensValidAfter)
+}
+
 func webAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("Authorization")
@@ -343,7 +358,7 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 		}
 		token := strings.Replace(cookie.Value, "Bearer ", "", 1)
 
-		userId, err := auth.GetUserIDByToken(token)
+		userId, issuedAt, err := auth.GetUserIDAndIssuedAt(token)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -359,6 +374,11 @@ func webAuthMiddleware(next http.Handler) http.Handler {
 		err = user.GetWithId(user_id)
 
 		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		if tokenRetired(user, issuedAt) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -377,15 +397,15 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 		}
 		token = strings.Replace(token, "Bearer ", "", 1)
 
-		userId, err := auth.GetUserIDByToken(token)
+		userId, issuedAt, err := auth.GetUserIDAndIssuedAt(token)
 		if err != nil {
-			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: err.Error()})
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: "Invalid Token"})
 			return
 		}
 
 		user_id, err := strconv.Atoi(userId)
 		if err != nil && user_id == 0 {
-			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: err.Error()})
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: "Invalid Token"})
 			return
 		}
 
@@ -393,7 +413,12 @@ func apiAuthMiddleware(next http.Handler) http.Handler {
 		err = user.GetWithId(user_id)
 
 		if err != nil {
-			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: err.Error()})
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: "Invalid Token"})
+			return
+		}
+
+		if tokenRetired(user, issuedAt) {
+			_ = response.WriteJSON(w, http.StatusUnauthorized, response.Response{Status: false, Message: "Invalid Token"})
 			return
 		}
 

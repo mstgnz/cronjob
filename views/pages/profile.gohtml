@@ -81,6 +81,10 @@
                 <div class="card-body">
                     <form hx-put="/profile/change-password" hx-target="#password-toast" hx-ext="json-enc" novalidate autocomplete="off">
                         <div class="form-floating mb-3">
+                            <input type="password" class="form-control" name="current-password" id="current-password" placeholder="Current Password" required>
+                            <label for="current-password">Current Password</label>
+                        </div>
+                        <div class="form-floating mb-3">
                             <input type="password" class="form-control" name="password" id="password" placeholder="Password" required minlength="6">
                             <label for="password">New Password</label>
                         </div>

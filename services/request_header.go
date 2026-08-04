@@ -28,7 +28,7 @@ func (s *RequestHeaderService) ListService(w http.ResponseWriter, r *http.Reques
 
 	requestHeaders, err := requestHeader.Get(cUser.ID, id, requestID, key)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"request_headers": requestHeaders}}
@@ -37,7 +37,7 @@ func (s *RequestHeaderService) ListService(w http.ResponseWriter, r *http.Reques
 func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	requestHeader := &models.RequestHeader{}
 	if err := response.ReadJSON(w, r, requestHeader); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(requestHeader)
@@ -52,7 +52,7 @@ func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Requ
 	request := &models.Request{}
 	exists, err := request.IDExists(requestHeader.RequestID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
@@ -61,7 +61,7 @@ func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Requ
 	// check header key
 	exists, err = requestHeader.HeaderExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Header already exists"}
@@ -69,7 +69,7 @@ func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Requ
 
 	err = requestHeader.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Request Header created", Data: map[string]any{"request_header": requestHeader}}
@@ -78,7 +78,7 @@ func (s *RequestHeaderService) CreateService(w http.ResponseWriter, r *http.Requ
 func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.RequestHeaderUpdate{}
 	if err := response.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
@@ -93,7 +93,7 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := requestHeader.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Request Header not found"}
@@ -106,7 +106,7 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 		request := &models.Request{}
 		exists, err = request.IDExists(updateData.RequestID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
@@ -156,7 +156,7 @@ func (s *RequestHeaderService) UpdateService(w http.ResponseWriter, r *http.Requ
 	err = requestHeader.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -170,7 +170,7 @@ func (s *RequestHeaderService) DeleteService(w http.ResponseWriter, r *http.Requ
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := requestHeader.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Request Header not found"}
@@ -179,7 +179,7 @@ func (s *RequestHeaderService) DeleteService(w http.ResponseWriter, r *http.Requ
 	err = requestHeader.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}

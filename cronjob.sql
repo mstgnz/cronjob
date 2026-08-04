@@ -222,11 +222,14 @@ CREATE TABLE "public"."users" (
     "is_admin" bool DEFAULT false,
     "active" bool DEFAULT true,
     "last_login" timestamp,
+    "tokens_valid_after" timestamp,
     "created_at" timestamp DEFAULT now(),
     "updated_at" timestamp,
     "deleted_at" timestamp,
     PRIMARY KEY ("id")
 );
+
+COMMENT ON COLUMN "public"."users"."tokens_valid_after" IS 'tokens issued before this moment are rejected; set on logout and password change.';
 
 ALTER TABLE "public"."groups" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."groups" ADD FOREIGN KEY ("uid") REFERENCES "public"."groups"("id") ON DELETE CASCADE;

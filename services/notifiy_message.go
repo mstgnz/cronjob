@@ -27,7 +27,7 @@ func (s *NotifyMessageService) ListService(w http.ResponseWriter, r *http.Reques
 
 	notifyMessages, err := notifyMessage.Get(cUser.ID, id, phone)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"notify_messages": notifyMessages}}
@@ -36,7 +36,7 @@ func (s *NotifyMessageService) ListService(w http.ResponseWriter, r *http.Reques
 func (s *NotifyMessageService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	notifyMessage := &models.NotifyMessage{}
 	if err := response.ReadJSON(w, r, notifyMessage); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(notifyMessage)
@@ -50,7 +50,7 @@ func (s *NotifyMessageService) CreateService(w http.ResponseWriter, r *http.Requ
 	notification := &models.Notification{}
 	exists, err := notification.IDExists(notifyMessage.NotificationID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
@@ -58,7 +58,7 @@ func (s *NotifyMessageService) CreateService(w http.ResponseWriter, r *http.Requ
 
 	exists, err = notifyMessage.PhoneExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Phone already exists"}
@@ -66,7 +66,7 @@ func (s *NotifyMessageService) CreateService(w http.ResponseWriter, r *http.Requ
 
 	err = notifyMessage.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Notify message created", Data: map[string]any{"notify_message": notifyMessage}}
@@ -75,7 +75,7 @@ func (s *NotifyMessageService) CreateService(w http.ResponseWriter, r *http.Requ
 func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.NotifyMessageUpdate{}
 	if err := response.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
@@ -90,7 +90,7 @@ func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Requ
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notifyMessage.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notify message not found"}
@@ -102,7 +102,7 @@ func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Requ
 		notification := &models.Notification{}
 		exists, err = notification.IDExists(updateData.NotificationID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
@@ -147,7 +147,7 @@ func (s *NotifyMessageService) UpdateService(w http.ResponseWriter, r *http.Requ
 	err = notifyMessage.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -161,7 +161,7 @@ func (s *NotifyMessageService) DeleteService(w http.ResponseWriter, r *http.Requ
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notifyMessage.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notify message not found"}
@@ -170,7 +170,7 @@ func (s *NotifyMessageService) DeleteService(w http.ResponseWriter, r *http.Requ
 	err = notifyMessage.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}

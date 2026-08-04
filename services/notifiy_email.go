@@ -27,7 +27,7 @@ func (s *NotifyEmailService) ListService(w http.ResponseWriter, r *http.Request)
 
 	notifyEmails, err := notifyEmail.Get(cUser.ID, id, email)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"notify_emails": notifyEmails}}
@@ -36,7 +36,7 @@ func (s *NotifyEmailService) ListService(w http.ResponseWriter, r *http.Request)
 func (s *NotifyEmailService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	notifyEmail := &models.NotifyEmail{}
 	if err := response.ReadJSON(w, r, notifyEmail); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(notifyEmail)
@@ -50,7 +50,7 @@ func (s *NotifyEmailService) CreateService(w http.ResponseWriter, r *http.Reques
 	notification := &models.Notification{}
 	exists, err := notification.IDExists(notifyEmail.NotificationID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
@@ -58,7 +58,7 @@ func (s *NotifyEmailService) CreateService(w http.ResponseWriter, r *http.Reques
 
 	exists, err = notifyEmail.EmailExists(config.App().DB.DB, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusBadRequest, response.Response{Status: false, Message: "Email already exists"}
@@ -66,7 +66,7 @@ func (s *NotifyEmailService) CreateService(w http.ResponseWriter, r *http.Reques
 
 	err = notifyEmail.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Notify email created", Data: map[string]any{"notify_email": notifyEmail}}
@@ -75,7 +75,7 @@ func (s *NotifyEmailService) CreateService(w http.ResponseWriter, r *http.Reques
 func (s *NotifyEmailService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.NotifyEmailUpdate{}
 	if err := response.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
@@ -90,7 +90,7 @@ func (s *NotifyEmailService) UpdateService(w http.ResponseWriter, r *http.Reques
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notifyEmail.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notify email not found"}
@@ -103,7 +103,7 @@ func (s *NotifyEmailService) UpdateService(w http.ResponseWriter, r *http.Reques
 		notification := &models.Notification{}
 		exists, err = notification.IDExists(updateData.NotificationID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
@@ -148,7 +148,7 @@ func (s *NotifyEmailService) UpdateService(w http.ResponseWriter, r *http.Reques
 	err = notifyEmail.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -162,7 +162,7 @@ func (s *NotifyEmailService) DeleteService(w http.ResponseWriter, r *http.Reques
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := notifyEmail.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notify email not found"}
@@ -171,7 +171,7 @@ func (s *NotifyEmailService) DeleteService(w http.ResponseWriter, r *http.Reques
 	err = notifyEmail.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}

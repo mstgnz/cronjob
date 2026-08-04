@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/mstgnz/cronjob/models"
+	"github.com/mstgnz/cronjob/pkg/config"
+	"github.com/mstgnz/cronjob/pkg/logger"
 	"github.com/mstgnz/cronjob/pkg/load"
 	"github.com/mstgnz/cronjob/services"
 )
@@ -53,6 +55,13 @@ func (h *UserHandler) ChangePasswordHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *UserHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) error {
+	// clearing the cookie alone would leave the token usable until it expires
+	if cUser, ok := r.Context().Value(config.CKey("user")).(*models.User); ok && cUser != nil {
+		if err := cUser.InvalidateTokens(); err != nil {
+			logger.Warn("Logout Invalidate Error", err.Error())
+		}
+	}
+
 	clearAuthCookie(w)
 	// htmx submits this as a POST, so the redirect has to be handed to it as a header
 	w.Header().Set("HX-Redirect", "/login")

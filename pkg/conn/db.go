@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -22,11 +23,26 @@ func (db *DB) ConnectDatabase() {
 	dbName := os.Getenv("DB_NAME")
 	dbZone := os.Getenv("DB_ZONE")
 
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=%s", dbHost, dbPort, dbUser, dbPass, dbName, dbZone)
+	// Encrypted by default. Set DB_SSLMODE=disable only for a local database
+	// reached over the loopback interface.
+	sslMode := os.Getenv("DB_SSLMODE")
+	if sslMode == "" {
+		sslMode = "require"
+	}
+
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=%s", dbHost, dbPort, dbUser, dbPass, dbName, sslMode, dbZone)
 	database, err := sql.Open("postgres", connStr)
 	if err != nil {
 		panic("Failed DB Connection")
 	}
+
+	// Without these the pool is unbounded: a slow query storm opens connections
+	// until the server refuses them, and connections are never recycled.
+	database.SetMaxOpenConns(25)
+	database.SetMaxIdleConns(5)
+	database.SetConnMaxLifetime(30 * time.Minute)
+	database.SetConnMaxIdleTime(5 * time.Minute)
+
 	if err = database.Ping(); err != nil {
 		panic("Failed DB Ping")
 	}

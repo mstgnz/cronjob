@@ -32,7 +32,7 @@ func (s *ScheduleService) ListService(w http.ResponseWriter, r *http.Request) (i
 
 	schedules, err := schedule.Get(id, cUser.ID, group_id, request_id, notification_id, timing)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"schedules": schedules}}
@@ -41,7 +41,7 @@ func (s *ScheduleService) ListService(w http.ResponseWriter, r *http.Request) (i
 func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	schedule := &models.Schedule{}
 	if err := response.ReadJSON(w, r, schedule); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(schedule)
@@ -58,7 +58,7 @@ func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) 
 	groups := &models.Group{}
 	exists, err := groups.IDExists(schedule.GroupID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Group not found"}
@@ -68,7 +68,7 @@ func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) 
 	request := &models.Request{}
 	exists, err = request.IDExists(schedule.RequestID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
@@ -78,7 +78,7 @@ func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) 
 	notification := &models.Notification{}
 	exists, err = notification.IDExists(schedule.NotificationID, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
@@ -87,7 +87,7 @@ func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) 
 	// timinng check with request
 	exists, err = schedule.TimingExists(cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if exists {
 		return http.StatusCreated, response.Response{Status: false, Message: "Timing already exists"}
@@ -95,7 +95,7 @@ func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) 
 
 	err = schedule.Create(config.App().DB.DB)
 	if err != nil {
-		return http.StatusCreated, response.Response{Status: false, Message: err.Error()}
+		return http.StatusCreated, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Schedule created", Data: map[string]any{"schedule": schedule}}
@@ -104,7 +104,7 @@ func (s *ScheduleService) CreateService(w http.ResponseWriter, r *http.Request) 
 func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	updateData := &models.ScheduleUpdate{}
 	if err := response.ReadJSON(w, r, &updateData); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(updateData)
@@ -119,7 +119,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := schedule.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Schedule not found"}
@@ -135,7 +135,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 		// the incoming id must be checked; schedule is only an existence probe and stays zero-valued
 		exists, err := group.IDExists(updateData.GroupID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Group not found"}
@@ -150,7 +150,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 		request := &models.Request{}
 		exists, err = request.IDExists(updateData.RequestID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
@@ -165,7 +165,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 		notification := &models.Notification{}
 		exists, err = notification.IDExists(updateData.NotificationID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
@@ -213,7 +213,7 @@ func (s *ScheduleService) UpdateService(w http.ResponseWriter, r *http.Request) 
 	err = schedule.Update(query, params)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"update": updateData}}
@@ -227,7 +227,7 @@ func (s *ScheduleService) DeleteService(w http.ResponseWriter, r *http.Request) 
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	exists, err := schedule.IDExists(id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Schedule not found"}
@@ -236,7 +236,7 @@ func (s *ScheduleService) DeleteService(w http.ResponseWriter, r *http.Request) 
 	err = schedule.Delete(id, cUser.ID)
 
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Soft delte success"}
@@ -257,7 +257,7 @@ func (s *ScheduleService) LogListService(w http.ResponseWriter, r *http.Request)
 	schedule := &models.Schedule{}
 	exists, err := schedule.IDExists(schedule_id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 	if !exists {
 		return http.StatusNotFound, response.Response{Status: false, Message: "Schedule not found"}
@@ -265,7 +265,7 @@ func (s *ScheduleService) LogListService(w http.ResponseWriter, r *http.Request)
 
 	scheduleLogs, err := scheduleLog.Get(id, schedule_id, cUser.ID)
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusOK, response.Response{Status: true, Message: "Success", Data: map[string]any{"schedule_logs": scheduleLogs}}
@@ -274,7 +274,7 @@ func (s *ScheduleService) LogListService(w http.ResponseWriter, r *http.Request)
 func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (int, response.Response) {
 	bulk := &models.ScheduleBulk{}
 	if err := response.ReadJSON(w, r, bulk); err != nil {
-		return http.StatusBadRequest, response.Response{Status: false, Message: err.Error()}
+		return http.StatusBadRequest, badRequestError(err)
 	}
 
 	err := validate.Validate(bulk)
@@ -298,8 +298,13 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 
 	tx, err := config.App().DB.Begin()
 	if err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
+	// Catches every early return below. After a successful commit this is a no-op
+	// (ErrTxDone); without it an abandoned transaction holds its connection open.
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	// group check
 	group := &models.Group{
@@ -308,7 +313,7 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 	if schedule.GroupID > 0 {
 		exists, err := group.IDExists(schedule.GroupID, cUser.ID)
 		if err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			return http.StatusNotFound, response.Response{Status: false, Message: "Group not found"}
@@ -324,9 +329,9 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 		err = group.Create(tx)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		schedule.GroupID = group.ID
 	}
@@ -339,13 +344,13 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 		exists, err := request.IDExists(schedule.RequestID, cUser.ID)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
 			return http.StatusNotFound, response.Response{Status: false, Message: "Request not found"}
 		}
@@ -353,7 +358,7 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 		/* requestService := RequestService{}
 		bodyBytes, err := json.Marshal(bulk.Request)
 		if err != nil {
-			return http.StatusInternalServerError,response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError,serverError(err)
 		}
 		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		requestService.RequestBulkService(w, r) */
@@ -370,22 +375,22 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 		exists, err := request.UrlExists()
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if exists {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
 			return http.StatusBadRequest, response.Response{Status: false, Message: "Url already exists"}
 		}
 		err = request.Create(tx)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		for _, header := range bulk.Request.RequestHeaders {
 			requestHeader := &models.RequestHeader{
@@ -418,13 +423,13 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 		exists, err := notification.IDExists(schedule.NotificationID, cUser.ID)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if !exists {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
 			return http.StatusNotFound, response.Response{Status: false, Message: "Notification not found"}
 		}
@@ -442,22 +447,22 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 		exists, err := notification.TitleExists()
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		if exists {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
 			return http.StatusBadRequest, response.Response{Status: false, Message: "Title already exists"}
 		}
 		err = notification.Create(tx)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+				return http.StatusInternalServerError, serverError(err)
 			}
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
 		for _, email := range bulk.Notification.NotifyEmails {
 			notifyEmail := &models.NotifyEmail{
@@ -502,14 +507,14 @@ func (s *ScheduleService) BulkService(w http.ResponseWriter, r *http.Request) (i
 	err = schedule.Create(tx)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+			return http.StatusInternalServerError, serverError(err)
 		}
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
-		return http.StatusInternalServerError, response.Response{Status: false, Message: err.Error()}
+		return http.StatusInternalServerError, serverError(err)
 	}
 
 	return http.StatusCreated, response.Response{Status: true, Message: "Schedule created", Data: map[string]any{"schedule": schedule}}
