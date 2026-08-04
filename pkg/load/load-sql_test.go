@@ -69,6 +69,36 @@ func TestEveryReferencedQueryExists(t *testing.T) {
 	}
 }
 
+// TestEveryQueryStartsWithAStatement guards the parser's blind spot: a comment
+// placed between the name and the statement is swallowed into the query text, and
+// because the parser joins everything onto one line the leading "--" turns the whole
+// statement into a comment. The result is a query that loads without error and then
+// fails at runtime with "expected 0 arguments".
+func TestEveryQueryStartsWithAStatement(t *testing.T) {
+	root := repoRoot(t)
+
+	file, err := os.Open(filepath.Join(root, "query.sql"))
+	if err != nil {
+		t.Fatalf("open query.sql: %v", err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	queries, err := parseSQLQueries(file, make(map[string]string))
+	if err != nil {
+		t.Fatalf("parse query.sql: %v", err)
+	}
+
+	keywords := []string{"SELECT", "INSERT", "UPDATE", "DELETE", "WITH"}
+	for name, statement := range queries {
+		statement = strings.TrimSpace(statement)
+		if !HasPrefixInList(strings.ToUpper(statement), keywords) {
+			t.Errorf("query %q does not start with a statement (a comment between the name and the SQL?): %.60s", name, statement)
+		}
+	}
+}
+
 func repoRoot(t *testing.T) string {
 	t.Helper()
 	dir, err := os.Getwd()

@@ -186,11 +186,17 @@ COMMENT ON COLUMN "public"."schedule_logs"."result" IS 'endpoint response';
 DROP TABLE IF EXISTS "public"."triggered";
 -- Table Definition
 CREATE TABLE "public"."triggered" (
-    "schedule_id" int4 NOT NULL
+    "schedule_id" int4 NOT NULL,
+    "instance_id" varchar NOT NULL,
+    "triggered_at" timestamptz NOT NULL DEFAULT now(),
+    "expires_at" timestamptz NOT NULL,
+    PRIMARY KEY ("schedule_id")
 );
 
 -- Column Comment
-COMMENT ON COLUMN "public"."triggered"."schedule_id" IS 'database lock will be used, there can be only one schedule_id record. it will be deleted when the process is complete.';
+COMMENT ON TABLE "public"."triggered" IS 'distributed lock: one row per schedule currently executing. The primary key is what makes the lock exclusive across instances.';
+COMMENT ON COLUMN "public"."triggered"."instance_id" IS 'which process holds the lock; a lock is only released by its holder.';
+COMMENT ON COLUMN "public"."triggered"."expires_at" IS 'lease end. A lock past this moment can be taken over, so a crashed instance cannot block a schedule forever.';
 
 DROP TABLE IF EXISTS "public"."webhooks";
 -- Sequence and defined type

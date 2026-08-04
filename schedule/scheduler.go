@@ -121,8 +121,33 @@ func SyncSchedules(c *cron.Cron, schedules []*models.Schedule, reg *registry) {
 	}
 }
 
+// leaseMargin covers the work around the request itself: notification mail,
+// writing the log row and firing the webhooks.
+const leaseMargin = 2 * time.Minute
+
+// leaseFor is how long the lock is held before another instance may take it over.
+// It is derived from the worst case this schedule can take, all attempts plus the
+// pause between them, so a genuinely slow job is never treated as a crashed one.
+// The lease is a backstop for a dead instance, not a timeout: a healthy run always
+// releases the lock itself when it finishes.
+func leaseFor(schedule *models.Schedule) time.Duration {
+	timeout := time.Duration(schedule.Timeout) * time.Second
+	if timeout <= 0 {
+		timeout = conn.DefaultOutboundTimeout
+	}
+
+	attempts := schedule.Retries + 1
+	worstCase := time.Duration(attempts)*timeout + time.Duration(attempts-1)*time.Second
+
+	return worstCase + leaseMargin
+}
+
 // runSchedule executes a single schedule: it fires the configured request,
 // notifies, logs the result and triggers the webhooks.
+//
+// Every replica reaches this function at the same moment for the same schedule, so
+// the first thing it does is claim the lock. Only the instance that wins carries on;
+// the others return without touching the target endpoint.
 func runSchedule(currentSchedule *models.Schedule) {
 	// no new work once shutdown started
 	if config.IsShutting() {
@@ -134,18 +159,33 @@ func runSchedule(currentSchedule *models.Schedule) {
 
 	triggered := &models.Triggered{}
 	scheduleLog := &models.ScheduleLog{}
+	instanceID := InstanceID()
+
+	acquired, err := triggered.Acquire(currentSchedule.ID, instanceID, leaseFor(currentSchedule))
+	if err != nil {
+		// The lock is the only thing keeping replicas apart, so a lock that cannot be
+		// evaluated means the run has to be skipped rather than risked.
+		logger.Warn("Schedule Lock Error", fmt.Sprintf("schedule %d: %v", currentSchedule.ID, err))
+		return
+	}
+	if !acquired {
+		// another instance is running this schedule, or this one is still running it
+		return
+	}
+	defer func() {
+		if err := triggered.Release(currentSchedule.ID, instanceID); err != nil {
+			logger.Warn("Schedule Unlock Error", fmt.Sprintf("schedule %d: %v", currentSchedule.ID, err))
+		}
+	}()
 
 	startAt := time.Now()
 
 	client := conn.NewOutboundClient(time.Duration(currentSchedule.Timeout) * time.Second)
 
-	if err := triggered.Create(currentSchedule.ID); err != nil {
-		logger.Warn("Schedule Triggered Insert Error", err.Error())
-	}
 	scheduleUpdate(currentSchedule, true)
+	defer scheduleUpdate(currentSchedule, false)
 
 	var resp *http.Response
-	var err error
 	// Retries counts the extra attempts after the first one, so a schedule with
 	// retries=0 (the column default) still performs exactly one request.
 	attempts := currentSchedule.Retries + 1
@@ -168,11 +208,6 @@ func runSchedule(currentSchedule *models.Schedule) {
 		if attempt < attempts {
 			time.Sleep(1 * time.Second)
 		}
-	}
-
-	scheduleUpdate(currentSchedule, false)
-	if err := triggered.Delete(currentSchedule.ID); err != nil {
-		logger.Warn("Schedule Triggered Delete Error", err.Error())
 	}
 
 	// Check if resp is nil before accessing it

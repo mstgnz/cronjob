@@ -13,11 +13,11 @@ INSERT INTO app_logs (level,message) VALUES ($1,$2);
 -- APP_LOGS_PRUNE
 DELETE FROM app_logs WHERE created_at < now() - ($1 || ' days')::interval;
 
--- TRIGGERED_INSERT
-INSERT INTO triggered (schedule_id) VALUES ($1);
+-- TRIGGERED_ACQUIRE
+INSERT INTO triggered (schedule_id, instance_id, triggered_at, expires_at) VALUES ($1, $2, now(), now() + make_interval(secs => $3)) ON CONFLICT (schedule_id) DO UPDATE SET instance_id=EXCLUDED.instance_id, triggered_at=EXCLUDED.triggered_at, expires_at=EXCLUDED.expires_at WHERE triggered.expires_at < now() RETURNING schedule_id;
 
--- TRIGGERED_DELETE
-DELETE FROM triggered WHERE schedule_id=$1;
+-- TRIGGERED_RELEASE
+DELETE FROM triggered WHERE schedule_id=$1 AND instance_id=$2;
 
 
 -- USERS_COUNT

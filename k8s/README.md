@@ -48,7 +48,7 @@ Contains sensitive information (base64 encoded):
 
 ### 3. Deployment (deployment.yaml)
 Defines how the application should be deployed:
-- 3 replicas for high availability
+- 3 replicas for high availability. Every replica runs the scheduler, and duplicate execution is prevented by a lock in the `triggered` table: the replica that claims a schedule runs it, the others skip that tick. All replicas must therefore point at the same database, and the `triggered` table must match the definition in `cronjob.sql`: `schedule_id` as primary key plus the `instance_id` and lease columns. An older installation whose `triggered` table is still a bare `schedule_id` column has to be updated before scaling past one replica.
 - Rolling update strategy
 - Resource limits and requests
 - Health checks (liveness and readiness probes)

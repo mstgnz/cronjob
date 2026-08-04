@@ -14,9 +14,17 @@ It is difficult to manage cronjob tasks on a server. This project provides an en
 
 
 ## Considerations
-**Run a single instance.** Overlapping executions of the same schedule are prevented in process: the scheduler wraps every job with `SkipIfStillRunning`, so a run is skipped while the previous one is still going.
+The application can run as several replicas. Duplicate execution is prevented on two levels:
 
-There is **no cross-instance locking yet**. The `triggered` table records which schedules are currently executing, but it carries no unique constraint and is not consulted before a job starts, so running several replicas would fire every schedule once per replica. Distributed locking has to be implemented before scaling out.
+- **Across instances**, by the `triggered` table. Before a schedule runs, the instance claims a row keyed by `schedule_id`; the primary key makes that claim exclusive, so exactly one replica proceeds and the rest skip the tick. The row is deleted when the run finishes.
+- **Within an instance**, by wrapping every job with `SkipIfStillRunning`, so a slow run is never overlapped by the next tick.
+
+Each lock carries a lease (`expires_at`) sized from the schedule's own timeout and retry count. A lock whose lease has passed can be taken over, so an instance that crashes mid-run cannot block its schedules forever. The lease is a backstop, not a timeout: a healthy run releases its lock as soon as it completes. Time comes from the database (`now()`), so clock drift between instances does not affect the lock.
+
+Two consequences worth knowing:
+
+- If a run genuinely outlives its lease, another instance may take the lock over and run the same job again. Executions are therefore at-least-once, not exactly-once. Give slow jobs a realistic `timeout` so the lease is sized correctly.
+- The nightly log cleanup is not locked. It is a plain `DELETE` by age, so replicas running it at the same time is harmless.
 
 It is strongly recommended that users implement additional control mechanisms on their own systems.
 
@@ -25,10 +33,9 @@ It is strongly recommended that users implement additional control mechanisms on
 
 The application is designed to run in a Kubernetes environment with high availability and scalability in mind. We provide comprehensive Kubernetes configurations and deployment guides in the [k8s](k8s) directory.
 
-Note that the manifests scale horizontally, which the scheduler does not support yet (see Considerations above). Keep the replica count at 1 and the autoscaler disabled until cross-instance locking exists.
-
 Key deployment features include:
-- Automatic scaling based on CPU and Memory usage (leave disabled for now)
+- High availability with multiple replicas
+- Automatic scaling based on CPU and Memory usage
 - Rolling updates for zero-downtime deployments
 - Health checks and self-healing capabilities
 - SSL/TLS termination with automatic certificate management
